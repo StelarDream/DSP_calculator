@@ -20,6 +20,7 @@
   let recipes = [];
   let craftingTables = {};
   let belts = {};
+  let descriptions = {};
 
   let itemSet, buildingSet;
   let recipesByResult = new Map(); // id -> [recipe,...]
@@ -66,12 +67,13 @@
   }
 
   async function init() {
-    [items, buildings, recipes, craftingTables, belts] = await Promise.all([
+    [items, buildings, recipes, craftingTables, belts, descriptions] = await Promise.all([
       loadJSON("items.json"),
       loadJSON("buildings.json"),
       loadJSON("recipes.json"),
       loadJSON("crafting-tables.json"),
-      loadJSON("belts.json")
+      loadJSON("belts.json"),
+      loadJSON("descriptions.json")
     ]);
 
     itemSet = new Set(items);
@@ -265,6 +267,15 @@
     return card;
   }
 
+  function renderDescription(id, detail) {
+    const desc = descriptions[id];
+    if (!desc) return;
+    const box = document.createElement("div");
+    box.className = "description-text";
+    box.textContent = desc;
+    detail.appendChild(box);
+  }
+
   function renderItemDetail(id) {
     const detail = document.getElementById("detail");
     const raw = isRaw(id);
@@ -279,6 +290,7 @@
       </div>
     `;
     detail.appendChild(header);
+    renderDescription(id, detail);
 
     const recipeTitle = document.createElement("div");
     recipeTitle.className = "section-title";
@@ -330,6 +342,7 @@
       </div>
     `;
     detail.appendChild(header);
+    renderDescription(id, detail);
 
     const category = buildingsByCategory.get(id);
     if (category) {
