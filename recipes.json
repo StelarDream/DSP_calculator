@@ -576,7 +576,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 4,
         "result": {
             "casimir-crystal": 1
@@ -588,7 +588,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 4,
         "result": {
             "casimir-crystal": 1
@@ -600,7 +600,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 5,
         "result": {
             "titanium-glass": 2
@@ -612,7 +612,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 12,
         "result": {
             "plane-filter": 1
@@ -623,7 +623,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 6,
         "result": {
             "quantum-chip": 1
@@ -634,18 +634,7 @@
         }
     },
     {
-        "type": "assembler",
-        "time": 12,
-        "result": {
-            "plane-filter": 1
-        },
-        "recipe": {
-            "casimir-crystal": 1,
-            "titanium-glass": 2
-        }
-    },
-    {
-        "type": "assembler",
+        "type": "assembling",
         "time": 10,
         "result": {
             "space-warper": 1
@@ -655,7 +644,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 10,
         "result": {
             "space-warper": 8
@@ -665,7 +654,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 6,
         "result": {
             "graviton-lens": 1
@@ -676,7 +665,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 6,
         "result": {
             "frame-material": 1
@@ -688,19 +677,7 @@
         }
     },
     {
-        "type": "assembler",
-        "time": 6,
-        "result": {
-            "frame-material": 1
-        },
-        "recipe": {
-            "carbon-nanotube": 6,
-            "titanium-alloy": 1,
-            "high-purity-silicon": 1
-        }
-    },
-    {
-        "type": "assembler",
+        "type": "assembling",
         "time": 4,
         "result": {
             "solar-sail": 2
@@ -711,7 +688,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 8,
         "result": {
             "dyson-sphere-component": 1
@@ -723,7 +700,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 6,
         "result": {
             "small-carrier-rocket": 1
@@ -735,7 +712,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 2,
         "result": {
             "logistics-bot": 1
@@ -747,7 +724,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 4,
         "result": {
             "logistics-drone": 1
@@ -759,7 +736,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 6,
         "result": {
             "interstellar-logistics-vessel": 1
@@ -771,7 +748,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 2,
         "result": {
             "prototype": 1
@@ -784,7 +761,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 4,
         "result": {
             "precision-drone": 1
@@ -797,7 +774,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 4,
         "result": {
             "attack-drone": 1
@@ -810,7 +787,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 5,
         "result": {
             "corvette": 1
@@ -823,7 +800,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 2,
         "result": {
             "destroyer": 1
@@ -836,7 +813,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 6,
         "result": {
             "hydrogen-fuel-rod": 2
@@ -847,7 +824,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 12,
         "result": {
             "deuteron-fuel-rod": 2
@@ -859,7 +836,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 24,
         "result": {
             "antimatter-fuel-rod": 2
@@ -872,7 +849,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 6,
         "result": {
             "strange-annihilation-fuel-rod": 2
@@ -955,7 +932,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 2,
         "result": {
             "missile-set": 1
@@ -968,7 +945,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 4,
         "result": {
             "supersonic-missile-set": 2
@@ -981,7 +958,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 6,
         "result": {
             "gravity-missile-set": 2
@@ -993,7 +970,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 1.5,
         "result": {
             "shell-set": 1
@@ -1004,7 +981,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 3,
         "result": {
             "high-explosive-shell-set": 1
@@ -1016,7 +993,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 6,
         "result": {
             "crystal-shell-set": 1
@@ -1028,7 +1005,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 1,
         "result": {
             "magnum-ammo-box": 1
@@ -1038,7 +1015,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 2,
         "result": {
             "titanium-ammo-box": 1
@@ -1049,7 +1026,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 3,
         "result": {
             "superalloy-ammo-box": 1
@@ -1060,7 +1037,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 2,
         "result": {
             "plasma-capsule": 1
@@ -1072,7 +1049,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 2,
         "result": {
             "antimatter-capsule": 1
@@ -1085,7 +1062,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 2,
         "result": {
             "jamming-capsule": 1
@@ -1097,7 +1074,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 8,
         "result": {
             "suppressing-capsule": 2
@@ -1109,7 +1086,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 1,
         "result": {
             "foundation": 1
@@ -1120,7 +1097,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 0.5,
         "result": {
             "proliferator-mk-i": 1
@@ -1130,7 +1107,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 1,
         "result": {
             "proliferator-mk-ii": 1
@@ -1141,7 +1118,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 2,
         "result": {
             "proliferator-mk-iii": 1
@@ -1152,7 +1129,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 3,
         "result": {
             "accumulator": 1
@@ -1164,7 +1141,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 20,
         "result": {
             "advanced-mining-machine": 1
@@ -1178,7 +1155,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 3,
         "result": {
             "arc-smelter": 1
@@ -1191,7 +1168,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 30,
         "result": {
             "artificial-star": 1
@@ -1204,7 +1181,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 2,
         "result": {
             "assembling-machine-mk-i": 1
@@ -1216,7 +1193,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 3,
         "result": {
             "assembling-machine-mk-ii": 1
@@ -1228,7 +1205,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 4,
         "result": {
             "assembling-machine-mk-iii": 1
@@ -1240,7 +1217,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 4,
         "result": {
             "automatic-piler": 1
@@ -1253,7 +1230,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 6,
         "result": {
             "battlefield-analysis-base": 1
@@ -1266,7 +1243,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 5,
         "result": {
             "chemical-plant": 1
@@ -1279,7 +1256,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 1,
         "result": {
             "conveyor-belt-mk-i": 3
@@ -1290,7 +1267,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 1,
         "result": {
             "conveyor-belt-mk-ii": 3
@@ -1301,7 +1278,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 1,
         "result": {
             "conveyor-belt-mk-iii": 3
@@ -1313,7 +1290,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 2,
         "result": {
             "depot-mk-i": 1
@@ -1324,7 +1301,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 4,
         "result": {
             "depot-mk-ii": 1
@@ -1335,7 +1312,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 6,
         "result": {
             "em-rail-ejector": 1
@@ -1348,7 +1325,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 15,
         "result": {
             "energy-exchanger": 1
@@ -1361,7 +1338,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 3,
         "result": {
             "fractionator": 1
@@ -1374,7 +1351,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 4,
         "result": {
             "gauss-turret": 1
@@ -1387,7 +1364,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 6,
         "result": {
             "geothermal-power-station": 1
@@ -1400,7 +1377,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 5,
         "result": {
             "implosion-cannon": 1
@@ -1413,7 +1390,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 30,
         "result": {
             "interstellar-logistics-station": 1
@@ -1425,7 +1402,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 5,
         "result": {
             "jammer-tower": 1
@@ -1438,7 +1415,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 6,
         "result": {
             "laser-turret": 1
@@ -1451,7 +1428,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 8,
         "result": {
             "logistics-distributor": 1
@@ -1463,7 +1440,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 2,
         "result": {
             "matrix-lab": 1
@@ -1476,7 +1453,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 10,
         "result": {
             "mini-fusion-power-plant": 1
@@ -1489,7 +1466,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 15,
         "result": {
             "miniature-particle-collider": 1
@@ -1503,7 +1480,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 3,
         "result": {
             "mining-machine": 1
@@ -1516,7 +1493,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 100000000,
         "result": {
             "missile-turret": 1
@@ -1524,7 +1501,7 @@
         "recipe": {}
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 6,
         "result": {
             "negentropy-smelter": 1
@@ -1537,7 +1514,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 8,
         "result": {
             "oil-extractor": 1
@@ -1550,8 +1527,8 @@
         }
     },
     {
-        "type": "assembler",
-        "time": 100000000,
+        "type": "assembling",
+        "time": 8,
         "result": {
             "oil-refinery": 1
         },
@@ -1563,8 +1540,8 @@
         }
     },
     {
-        "type": "assembler",
-        "time": 100000000,
+        "type": "assembling",
+        "time": 30,
         "result": {
             "orbital-collector": 1
         },
@@ -1576,7 +1553,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 1,
         "result": {
             "pile-sorter": 1
@@ -1588,7 +1565,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 5,
         "result": {
             "plane-smelter": 1
@@ -1601,7 +1578,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 20,
         "result": {
             "planetary-logistics-station": 1
@@ -1614,7 +1591,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 10,
         "result": {
             "planetary-shield-generator": 1
@@ -1627,7 +1604,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 10,
         "result": {
             "plasma-turret": 1
@@ -1641,7 +1618,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 10,
         "result": {
             "quantum-chemical-plant": 1
@@ -1654,7 +1631,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 8,
         "result": {
             "ray-receiver": 1
@@ -1668,10 +1645,10 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 5,
         "result": {
-            "re-composing-assembler": 1
+            "re-composing-assembling": 1
         },
         "recipe": {
             "assembling-machine-mk-iii": 1,
@@ -1681,7 +1658,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 5,
         "result": {
             "satellite-substation": 1
@@ -1693,7 +1670,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 4,
         "result": {
             "self-evolution-lab": 1
@@ -1706,7 +1683,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 6,
         "result": {
             "signal-tower": 1
@@ -1718,7 +1695,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 6,
         "result": {
             "solar-panel": 1
@@ -1730,7 +1707,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 1,
         "result": {
             "sorter-mk-i": 1
@@ -1741,7 +1718,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 1,
         "result": {
             "sorter-mk-ii": 2
@@ -1752,7 +1729,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 1,
         "result": {
             "sorter-mk-iii": 1
@@ -1763,7 +1740,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 2,
         "result": {
             "splitter": 1
@@ -1775,7 +1752,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 3,
         "result": {
             "spray-coater": 1
@@ -1788,7 +1765,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 8,
         "result": {
             "sr-plasma-turret": 1
@@ -1801,7 +1778,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 2,
         "result": {
             "storage-tank": 1
@@ -1813,7 +1790,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 1,
         "result": {
             "tesla-tower": 1
@@ -1824,7 +1801,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 5,
         "result": {
             "thermal-power-plant": 1
@@ -1837,7 +1814,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 2,
         "result": {
             "traffic-monitor": 1
@@ -1850,7 +1827,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 30,
         "result": {
             "vertical-launching-silo": 1
@@ -1863,7 +1840,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 4,
         "result": {
             "water-pump": 1
@@ -1876,7 +1853,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 4,
         "result": {
             "wind-turbine": 1
@@ -1888,7 +1865,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 2,
         "result": {
             "wireless-power-tower": 1
@@ -1899,7 +1876,7 @@
         }
     },
     {
-        "type": "assembler",
+        "type": "assembling",
         "time": 4,
         "result": {
             "holo-beacon": 1
