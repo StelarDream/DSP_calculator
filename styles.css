@@ -267,6 +267,49 @@ html, body {
 .badge.raw { background: rgba(224,164,88,0.15); color: var(--raw); }
 .badge.crafted { background: rgba(111,207,151,0.15); color: var(--crafted); }
 .badge.building { background: rgba(94,200,242,0.15); color: var(--accent); }
+.badge.always { background: rgba(111,207,151,0.15); color: var(--crafted); }
+.badge.rare { background: rgba(255,187,119,0.18); color: var(--secondary); }
+
+.collect-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  margin-bottom: 10px;
+}
+
+.collect-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.collect-method,
+.collect-source {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.collect-method img,
+.collect-source img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+.collect-row .badge { margin-left: auto; }
+
+.collect-description {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+  font-style: italic;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
 
 .section-title {
   font-size: 13px;

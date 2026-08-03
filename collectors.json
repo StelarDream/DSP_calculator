@@ -12,7 +12,7 @@
     "oil-collection": [
         "oil-extractor"
     ],
-    "manual": [
-        "manual"
+    "photon-collection": [
+        "ray-receiver"
     ]
 }
