@@ -1,0 +1,18 @@
+{
+    "mining": [
+        "mining-machine",
+        "advanced-mining-machine"
+    ],
+    "orbital-collection": [
+        "orbital-collector"
+    ],
+    "pumping": [
+        "water-pump"
+    ],
+    "oil-collection": [
+        "oil-extractor"
+    ],
+    "manual": [
+        "manual"
+    ]
+}

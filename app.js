@@ -248,8 +248,14 @@
 
     const timeEl = document.createElement("div");
     timeEl.className = "recipe-time";
-    const displayTime = recipe.time >= 100000 ? "unknown" : `${recipe.time}s`;
-    timeEl.innerHTML = `<span class="clock-icon">⏱</span>${displayTime}`;
+    if (recipe.chance !== undefined) {
+      const pct = recipe.chance * 100;
+      const pctDisplay = Number.isInteger(pct) ? pct : parseFloat(pct.toFixed(2));
+      timeEl.innerHTML = `<span class="meta-icon">🎲</span>${pctDisplay}%`;
+    } else {
+      const displayTime = recipe.time >= 100000 ? "unknown" : `${recipe.time}s`;
+      timeEl.innerHTML = `<span class="meta-icon">⏱</span>${displayTime}`;
+    }
     meta.appendChild(timeEl);
 
     card.appendChild(meta);

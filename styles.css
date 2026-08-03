@@ -319,7 +319,7 @@ html, body {
   color: var(--secondary);
 }
 
-.recipe-time .clock-icon {
+.recipe-time .meta-icon {
   font-size: 18px;
   line-height: 1;
 }
