@@ -199,8 +199,8 @@
     const kind = kindOf(id);
     const el = document.createElement("div");
     el.className = "item-chip";
-    el.innerHTML = `<img src="${iconPath(id, kind)}" alt=""><span>${displayName(id)}</span>` +
-      (qty !== undefined ? `<span class="qty">&times;${qty}</span>` : "");
+    const qtyNum = qty !== undefined ? `<span class="qty-num">${qty}</span>` : "";
+    el.innerHTML = `${qtyNum}<img src="${iconPath(id, kind)}" alt=""><span>${displayName(id)}</span>`;
     el.addEventListener("click", () => selectEntity(kind, id));
     return el;
   }

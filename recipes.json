@@ -1648,7 +1648,7 @@
         "type": "assembling",
         "time": 5,
         "result": {
-            "re-composing-assembling": 1
+            "re-composing-assembler": 1
         },
         "recipe": {
             "assembling-machine-mk-iii": 1,

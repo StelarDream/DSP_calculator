@@ -16,6 +16,29 @@
 
 * { box-sizing: border-box; }
 
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-dim);
+}
+
 html, body {
   height: 100%;
   margin: 0;
@@ -335,23 +358,31 @@ html, body {
 .item-chip {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: var(--bg-panel-alt);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 5px 10px 5px 5px;
+  padding: 5px 12px;
   cursor: pointer;
   font-size: 13px;
 }
 
 .item-chip:hover { border-color: var(--accent); }
 
-.item-chip img { width: 26px; height: 26px; object-fit: contain; }
-
-.item-chip .qty {
+.item-chip .qty-num {
+  flex-shrink: 0;
+  font-family: "Saira", "Segoe UI", system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
   color: var(--secondary);
-  font-weight: 600;
-  font-size: 12px;
+}
+
+.item-chip img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .used-in-list {
