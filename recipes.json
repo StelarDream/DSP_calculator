@@ -1,0 +1,1914 @@
+[
+    {
+        "type": "smelting",
+        "time": 1,
+        "result": {
+            "iron-ingot": 1
+        },
+        "recipe": {
+            "iron-ore": 1
+        }
+    },
+    {
+        "type": "smelting",
+        "time": 1,
+        "result": {
+            "copper-ingot": 1
+        },
+        "recipe": {
+            "copper-ore": 1
+        }
+    },
+    {
+        "type": "smelting",
+        "time": 1,
+        "result": {
+            "stone-brick": 1
+        },
+        "recipe": {
+            "stone": 1
+        }
+    },
+    {
+        "type": "smelting",
+        "time": 2,
+        "result": {
+            "energetic-graphite": 1
+        },
+        "recipe": {
+            "coal": 2
+        }
+    },
+    {
+        "type": "refining",
+        "time": 4,
+        "result": {
+            "hydrogen": 3,
+            "energetic-graphite": 1
+        },
+        "recipe": {
+            "hydrogen": 2,
+            "refined-oil": 1
+        }
+    },
+    {
+        "type": "smelting",
+        "time": 2,
+        "result": {
+            "high-purity-silicon": 1
+        },
+        "recipe": {
+            "silicon-ore": 2
+        }
+    },
+    {
+        "type": "smelting",
+        "time": 10,
+        "result": {
+            "silicon-ore": 1
+        },
+        "recipe": {
+            "stone": 10
+        }
+    },
+    {
+        "type": "smelting",
+        "time": 2,
+        "result": {
+            "titanium-ingot": 1
+        },
+        "recipe": {
+            "titanium-ore": 2
+        }
+    },
+    {
+        "type": "smelting",
+        "time": 1.5,
+        "result": {
+            "magnet": 1
+        },
+        "recipe": {
+            "iron-ore": 1
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 1,
+        "result": {
+            "magnetic-coil": 2
+        },
+        "recipe": {
+            "magnet": 2,
+            "copper-ingot": 1
+        }
+    },
+    {
+        "type": "smelting",
+        "time": 2,
+        "result": {
+            "glass": 1
+        },
+        "recipe": {
+            "stone": 2
+        }
+    },
+    {
+        "type": "smelting",
+        "time": 2,
+        "result": {
+            "diamond": 1
+        },
+        "recipe": {
+            "energetic-graphite": 1
+        }
+    },
+    {
+        "type": "smelting",
+        "time": 1.5,
+        "result": {
+            "diamond": 2
+        },
+        "recipe": {
+            "kimberlite-ore": 1
+        }
+    },
+    {
+        "type": "smelting",
+        "time": 2,
+        "result": {
+            "crystal-silicon": 1
+        },
+        "recipe": {
+            "high-purity-silicon": 1
+        }
+    },
+    {
+        "type": "smelting",
+        "time": 1.5,
+        "result": {
+            "crystal-silicon": 2
+        },
+        "recipe": {
+            "fractal-silicon": 1
+        }
+    },
+    {
+        "type": "smelting",
+        "time": 12,
+        "result": {
+            "titanium-alloy": 4
+        },
+        "recipe": {
+            "titanium-ingot": 4,
+            "steel": 4,
+            "sulfuric-acid": 8
+        }
+    },
+    {
+        "type": "smelting",
+        "time": 3,
+        "result": {
+            "steel": 1
+        },
+        "recipe": {
+            "iron-ingot": 3
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 1,
+        "result": {
+            "circuit-board": 2
+        },
+        "recipe": {
+            "iron-ingot": 2,
+            "copper-ingot": 1
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 2,
+        "result": {
+            "prism": 2
+        },
+        "recipe": {
+            "glass": 3
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 2,
+        "result": {
+            "electric-motor": 1
+        },
+        "recipe": {
+            "iron-ingot": 2,
+            "gear": 1,
+            "magnetic-coil": 1
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 2,
+        "result": {
+            "microcrystalline-component": 1
+        },
+        "recipe": {
+            "high-purity-silicon": 2,
+            "copper-ingot": 1
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 1,
+        "result": {
+            "gear": 1
+        },
+        "recipe": {
+            "iron-ingot": 1
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 2,
+        "result": {
+            "plasma-exciter": 1
+        },
+        "recipe": {
+            "magnetic-coil": 4,
+            "prism": 2
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 3,
+        "result": {
+            "photon-combiner": 1
+        },
+        "recipe": {
+            "circuit-board": 1,
+            "prism": 2
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 3,
+        "result": {
+            "photon-combiner": 1
+        },
+        "recipe": {
+            "circuit-board": 1,
+            "grating-crystal": 1
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 2,
+        "result": {
+            "electromagnetic-turbine": 1
+        },
+        "recipe": {
+            "electric-motor": 2,
+            "magnetic-coil": 2
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 3,
+        "result": {
+            "processor": 1
+        },
+        "recipe": {
+            "circuit-board": 2,
+            "microcrystalline-component": 2
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 3,
+        "result": {
+            "engine": 1
+        },
+        "recipe": {
+            "magnetic-coil": 1,
+            "copper-ingot": 2
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 4,
+        "result": {
+            "thruster": 1
+        },
+        "recipe": {
+            "steel": 2,
+            "copper-ingot": 3
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 6,
+        "result": {
+            "reinforced-thruster": 1
+        },
+        "recipe": {
+            "titanium-alloy": 2,
+            "electromagnetic-turbine": 5
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 6,
+        "result": {
+            "reinforced-thruster": 1
+        },
+        "recipe": {
+            "titanium-alloy": 5,
+            "electromagnetic-turbine": 5
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 3,
+        "result": {
+            "super-magnetic-ring": 1
+        },
+        "recipe": {
+            "electromagnetic-turbine": 2,
+            "magnet": 3,
+            "energetic-graphite": 1
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 4,
+        "result": {
+            "particle-container": 1
+        },
+        "recipe": {
+            "electromagnetic-turbine": 2,
+            "copper-ingot": 2,
+            "graphene": 2
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 4,
+        "result": {
+            "particle-container": 1
+        },
+        "recipe": {
+            "unipolar-magnet": 10,
+            "copper-ingot": 2
+        }
+    },
+    {
+        "type": "chemical",
+        "time": 6,
+        "result": {
+            "sulfuric-acid": 4
+        },
+        "recipe": {
+            "refined-oil": 6,
+            "stone": 8,
+            "water": 4
+        }
+    },
+    {
+        "type": "refining",
+        "time": 4,
+        "result": {
+            "hydrogen": 1,
+            "refined-oil": 2
+        },
+        "recipe": {
+            "crude-oil": 2
+        }
+    },
+    {
+        "type": "chemical",
+        "time": 2,
+        "result": {
+            "hydrogen": 1,
+            "graphene": 2
+        },
+        "recipe": {
+            "fire-ice": 2
+        }
+    },
+    {
+        "type": "colliding",
+        "time": 2,
+        "result": {
+            "hydrogen": 2,
+            "antimatter": 2
+        },
+        "recipe": {
+            "critical-photon": 2
+        }
+    },
+    {
+        "type": "colliding",
+        "time": 2.5,
+        "result": {
+            "deuterium": 5
+        },
+        "recipe": {
+            "hydrogen": 10
+        }
+    },
+    {
+        "type": "fractionating",
+        "time": 0,
+        "chance": 0.01,
+        "result": {
+            "deuterium": 1
+        },
+        "recipe": {
+            "hydrogen": 1
+        }
+    },
+    {
+        "type": "chemical",
+        "time": 3,
+        "result": {
+            "combustible-unit": 1
+        },
+        "recipe": {
+            "coal": 3
+        }
+    },
+    {
+        "type": "chemical",
+        "time": 3,
+        "result": {
+            "plastic": 1
+        },
+        "recipe": {
+            "refined-oil": 2,
+            "energetic-graphite": 1
+        }
+    },
+    {
+        "type": "chemical",
+        "time": 6,
+        "result": {
+            "organic-crystal": 1
+        },
+        "recipe": {
+            "plastic": 1,
+            "refined-oil": 1,
+            "water": 1
+        }
+    },
+    {
+        "type": "chemical",
+        "time": 6,
+        "result": {
+            "organic-crystal": 1
+        },
+        "recipe": {
+            "log": 20,
+            "plant-fuel": 30,
+            "water": 10
+        }
+    },
+    {
+        "type": "chemical",
+        "time": 3,
+        "result": {
+            "graphene": 2
+        },
+        "recipe": {
+            "energetic-graphite": 3,
+            "sulfuric-acid": 1
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 20,
+        "result": {
+            "annihilation-constraint-sphere": 1
+        },
+        "recipe": {
+            "particle-container": 1,
+            "processor": 1
+        }
+    },
+    {
+        "type": "chemical",
+        "time": 6,
+        "result": {
+            "explosive-unit": 2
+        },
+        "recipe": {
+            "combustible-unit": 2,
+            "plastic": 2,
+            "sulfuric-acid": 1
+        }
+    },
+    {
+        "type": "colliding",
+        "time": 8,
+        "result": {
+            "strange-matter": 1
+        },
+        "recipe": {
+            "particle-container": 2,
+            "iron-ingot": 2,
+            "deuterium": 10
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 4,
+        "result": {
+            "titanium-crystal": 1
+        },
+        "recipe": {
+            "organic-crystal": 1,
+            "titanium-ingot": 3
+        }
+    },
+    {
+        "type": "chemical",
+        "time": 4,
+        "result": {
+            "carbon-nanotube": 2
+        },
+        "recipe": {
+            "graphene": 3,
+            "titanium-ingot": 1
+        }
+    },
+    {
+        "type": "chemical",
+        "time": 4,
+        "result": {
+            "carbon-nanotube": 2
+        },
+        "recipe": {
+            "stalagmite-crystal": 6
+        }
+    },
+    {
+        "type": "assembling",
+        "time": 8,
+        "result": {
+            "particle-broadband": 1
+        },
+        "recipe": {
+            "carbon-nanotube": 2,
+            "crystal-silicon": 2,
+            "plastic": 1
+        }
+    },
+    {
+        "type": "chemical",
+        "time": 24,
+        "result": {
+            "crystal-explosive-unit": 8
+        },
+        "recipe": {
+            "explosive-unit": 8,
+            "casimir-crystal": 1,
+            "crystal-silicon": 8
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 4,
+        "result": {
+            "casimir-crystal": 1
+        },
+        "recipe": {
+            "titanium-crystal": 1,
+            "graphene": 2,
+            "hydrogen": 12
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 4,
+        "result": {
+            "casimir-crystal": 1
+        },
+        "recipe": {
+            "grating-crystal": 8,
+            "graphene": 2,
+            "hydrogen": 12
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 5,
+        "result": {
+            "titanium-glass": 2
+        },
+        "recipe": {
+            "glass": 2,
+            "titanium-ingot": 2,
+            "water": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 12,
+        "result": {
+            "plane-filter": 1
+        },
+        "recipe": {
+            "casimir-crystal": 1,
+            "titanium-glass": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 6,
+        "result": {
+            "quantum-chip": 1
+        },
+        "recipe": {
+            "processor": 2,
+            "plane-filter": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 12,
+        "result": {
+            "plane-filter": 1
+        },
+        "recipe": {
+            "casimir-crystal": 1,
+            "titanium-glass": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 10,
+        "result": {
+            "space-warper": 1
+        },
+        "recipe": {
+            "graviton-lens": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 10,
+        "result": {
+            "space-warper": 8
+        },
+        "recipe": {
+            "gravity-matrix": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 6,
+        "result": {
+            "graviton-lens": 1
+        },
+        "recipe": {
+            "diamond": 4,
+            "strange-matter": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 6,
+        "result": {
+            "frame-material": 1
+        },
+        "recipe": {
+            "carbon-nanotube": 6,
+            "titanium-alloy": 1,
+            "high-purity-silicon": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 6,
+        "result": {
+            "frame-material": 1
+        },
+        "recipe": {
+            "carbon-nanotube": 6,
+            "titanium-alloy": 1,
+            "high-purity-silicon": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 4,
+        "result": {
+            "solar-sail": 2
+        },
+        "recipe": {
+            "graphene": 1,
+            "photon-combiner": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 8,
+        "result": {
+            "dyson-sphere-component": 1
+        },
+        "recipe": {
+            "frame-material": 3,
+            "solar-sail": 3,
+            "processor": 3
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 6,
+        "result": {
+            "small-carrier-rocket": 1
+        },
+        "recipe": {
+            "dyson-sphere-component": 2,
+            "deuteron-fuel-rod": 4,
+            "quantum-chip": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 2,
+        "result": {
+            "logistics-bot": 1
+        },
+        "recipe": {
+            "iron-ingot": 2,
+            "engine": 1,
+            "processor": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 4,
+        "result": {
+            "logistics-drone": 1
+        },
+        "recipe": {
+            "iron-ingot": 5,
+            "processor": 2,
+            "thruster": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 6,
+        "result": {
+            "interstellar-logistics-vessel": 1
+        },
+        "recipe": {
+            "titanium-alloy": 10,
+            "processor": 10,
+            "reinforced-thruster": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 2,
+        "result": {
+            "prototype": 1
+        },
+        "recipe": {
+            "iron-ingot": 3,
+            "engine": 1,
+            "circuit-board": 2,
+            "plasma-exciter": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 4,
+        "result": {
+            "precision-drone": 1
+        },
+        "recipe": {
+            "prototype": 1,
+            "electromagnetic-turbine": 1,
+            "circuit-board": 2,
+            "photon-combiner": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 4,
+        "result": {
+            "attack-drone": 1
+        },
+        "recipe": {
+            "prototype": 1,
+            "electromagnetic-turbine": 1,
+            "processor": 1,
+            "particle-container": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 5,
+        "result": {
+            "corvette": 1
+        },
+        "recipe": {
+            "titanium-alloy": 5,
+            "reinforced-thruster": 1,
+            "processor": 2,
+            "particle-container": 3
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 2,
+        "result": {
+            "destroyer": 1
+        },
+        "recipe": {
+            "frame-material": 20,
+            "reinforced-thruster": 4,
+            "processor": 4,
+            "strange-matter": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 6,
+        "result": {
+            "hydrogen-fuel-rod": 2
+        },
+        "recipe": {
+            "titanium-ingot": 1,
+            "hydrogen": 10
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 12,
+        "result": {
+            "deuteron-fuel-rod": 2
+        },
+        "recipe": {
+            "titanium-alloy": 1,
+            "deuterium": 20,
+            "super-magnetic-ring": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 24,
+        "result": {
+            "antimatter-fuel-rod": 2
+        },
+        "recipe": {
+            "antimatter": 12,
+            "hydrogen": 12,
+            "annihilation-constraint-sphere": 1,
+            "titanium-alloy": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 6,
+        "result": {
+            "strange-annihilation-fuel-rod": 2
+        },
+        "recipe": {
+            "antimatter-fuel-rod": 8,
+            "core-element": 1,
+            "strange-matter": 2,
+            "frame-material": 1
+        }
+    },
+    {
+        "type": "lab",
+        "time": 3,
+        "result": {
+            "electromagnetic-matrix": 1
+        },
+        "recipe": {
+            "magnetic-coil": 1,
+            "circuit-board": 1
+        }
+    },
+    {
+        "type": "lab",
+        "time": 6,
+        "result": {
+            "energy-matrix": 1
+        },
+        "recipe": {
+            "energetic-graphite": 2,
+            "hydrogen": 2
+        }
+    },
+    {
+        "type": "lab",
+        "time": 8,
+        "result": {
+            "structure-matrix": 1
+        },
+        "recipe": {
+            "diamond": 1,
+            "titanium-crystal": 1
+        }
+    },
+    {
+        "type": "lab",
+        "time": 10,
+        "result": {
+            "information-matrix": 1
+        },
+        "recipe": {
+            "processor": 2,
+            "particle-broadband": 1
+        }
+    },
+    {
+        "type": "lab",
+        "time": 24,
+        "result": {
+            "gravity-matrix": 2
+        },
+        "recipe": {
+            "graviton-lens": 1,
+            "quantum-chip": 1
+        }
+    },
+    {
+        "type": "lab",
+        "time": 15,
+        "result": {
+            "universe-matrix": 1
+        },
+        "recipe": {
+            "electromagnetic-matrix": 1,
+            "energy-matrix": 1,
+            "structure-matrix": 1,
+            "information-matrix": 1,
+            "gravity-matrix": 1,
+            "antimatter": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 2,
+        "result": {
+            "missile-set": 1
+        },
+        "recipe": {
+            "copper-ingot": 6,
+            "circuit-board": 3,
+            "combustible-unit": 2,
+            "engine": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 4,
+        "result": {
+            "supersonic-missile-set": 2
+        },
+        "recipe": {
+            "missile-set": 2,
+            "processor": 4,
+            "explosive-unit": 4,
+            "thruster": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 6,
+        "result": {
+            "gravity-missile-set": 2
+        },
+        "recipe": {
+            "supersonic-missile-set": 3,
+            "crystal-explosive-unit": 6,
+            "strange-matter": 3
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 1.5,
+        "result": {
+            "shell-set": 1
+        },
+        "recipe": {
+            "copper-ingot": 9,
+            "combustible-unit": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 3,
+        "result": {
+            "high-explosive-shell-set": 1
+        },
+        "recipe": {
+            "shell-set": 1,
+            "titanium-ingot": 6,
+            "explosive-unit": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 6,
+        "result": {
+            "crystal-shell-set": 1
+        },
+        "recipe": {
+            "high-explosive-shell-set": 1,
+            "titanium-alloy": 3,
+            "crystal-explosive-unit": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 1,
+        "result": {
+            "magnum-ammo-box": 1
+        },
+        "recipe": {
+            "copper-ingot": 3
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 2,
+        "result": {
+            "titanium-ammo-box": 1
+        },
+        "recipe": {
+            "magnum-ammo-box": 1,
+            "titanium-ingot": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 3,
+        "result": {
+            "superalloy-ammo-box": 1
+        },
+        "recipe": {
+            "titanium-ammo-box": 1,
+            "titanium-alloy": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 2,
+        "result": {
+            "plasma-capsule": 1
+        },
+        "recipe": {
+            "graphene": 1,
+            "magnet": 2,
+            "deuterium": 10
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 2,
+        "result": {
+            "antimatter-capsule": 1
+        },
+        "recipe": {
+            "plasma-capsule": 1,
+            "particle-container": 1,
+            "hydrogen": 10,
+            "antimatter": 10
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 2,
+        "result": {
+            "jamming-capsule": 1
+        },
+        "recipe": {
+            "electromagnetic-turbine": 1,
+            "plasma-exciter": 1,
+            "hydrogen": 3
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 8,
+        "result": {
+            "suppressing-capsule": 2
+        },
+        "recipe": {
+            "jamming-capsule": 2,
+            "super-magnetic-ring": 1,
+            "titanium-glass": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 1,
+        "result": {
+            "foundation": 1
+        },
+        "recipe": {
+            "stone-brick": 3,
+            "steel": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 0.5,
+        "result": {
+            "proliferator-mk-i": 1
+        },
+        "recipe": {
+            "coal": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 1,
+        "result": {
+            "proliferator-mk-ii": 1
+        },
+        "recipe": {
+            "proliferator-mk-i": 2,
+            "diamond": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 2,
+        "result": {
+            "proliferator-mk-iii": 1
+        },
+        "recipe": {
+            "proliferator-mk-ii": 2,
+            "carbon-nanotube": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 3,
+        "result": {
+            "accumulator": 1
+        },
+        "recipe": {
+            "iron-ingot": 6,
+            "super-magnetic-ring": 1,
+            "crystal-silicon": 3
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 20,
+        "result": {
+            "advanced-mining-machine": 1
+        },
+        "recipe": {
+            "titanium-alloy": 20,
+            "frame-material": 10,
+            "super-magnetic-ring": 10,
+            "quantum-chip": 4,
+            "grating-crystal": 40
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 3,
+        "result": {
+            "arc-smelter": 1
+        },
+        "recipe": {
+            "iron-ingot": 4,
+            "stone-brick": 2,
+            "circuit-board": 4,
+            "magnetic-coil": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 30,
+        "result": {
+            "artificial-star": 1
+        },
+        "recipe": {
+            "titanium-alloy": 20,
+            "frame-material": 20,
+            "annihilation-constraint-sphere": 10,
+            "quantum-chip": 10
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 2,
+        "result": {
+            "assembling-machine-mk-i": 1
+        },
+        "recipe": {
+            "iron-ingot": 4,
+            "gear": 8,
+            "circuit-board": 4
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 3,
+        "result": {
+            "assembling-machine-mk-ii": 1
+        },
+        "recipe": {
+            "assembling-machine-mk-i": 1,
+            "graphene": 8,
+            "processor": 4
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 4,
+        "result": {
+            "assembling-machine-mk-iii": 1
+        },
+        "recipe": {
+            "assembling-machine-mk-ii": 1,
+            "particle-broadband": 8,
+            "quantum-chip": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 4,
+        "result": {
+            "automatic-piler": 1
+        },
+        "recipe": {
+            "steel": 3,
+            "gear": 4,
+            "super-magnetic-ring": 1,
+            "processor": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 6,
+        "result": {
+            "battlefield-analysis-base": 1
+        },
+        "recipe": {
+            "steel": 12,
+            "circuit-board": 18,
+            "microcrystalline-component": 6,
+            "engine": 12
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 5,
+        "result": {
+            "chemical-plant": 1
+        },
+        "recipe": {
+            "steel": 6,
+            "stone-brick": 8,
+            "glass": 8,
+            "circuit-board": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 1,
+        "result": {
+            "conveyor-belt-mk-i": 3
+        },
+        "recipe": {
+            "iron-ingot": 2,
+            "gear": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 1,
+        "result": {
+            "conveyor-belt-mk-ii": 3
+        },
+        "recipe": {
+            "conveyor-belt-mk-i": 3,
+            "electromagnetic-turbine": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 1,
+        "result": {
+            "conveyor-belt-mk-iii": 3
+        },
+        "recipe": {
+            "conveyor-belt-mk-ii": 3,
+            "super-magnetic-ring": 1,
+            "graphene": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 2,
+        "result": {
+            "depot-mk-i": 1
+        },
+        "recipe": {
+            "iron-ingot": 4,
+            "stone-brick": 4
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 4,
+        "result": {
+            "depot-mk-ii": 1
+        },
+        "recipe": {
+            "steel": 8,
+            "stone-brick": 8
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 6,
+        "result": {
+            "em-rail-ejector": 1
+        },
+        "recipe": {
+            "steel": 20,
+            "gear": 20,
+            "processor": 5,
+            "super-magnetic-ring": 10
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 15,
+        "result": {
+            "energy-exchanger": 1
+        },
+        "recipe": {
+            "titanium-alloy": 40,
+            "steel": 40,
+            "processor": 40,
+            "particle-container": 8
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 3,
+        "result": {
+            "fractionator": 1
+        },
+        "recipe": {
+            "steel": 6,
+            "stone-brick": 4,
+            "glass": 4,
+            "processor": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 4,
+        "result": {
+            "gauss-turret": 1
+        },
+        "recipe": {
+            "iron-ingot": 8,
+            "gear": 8,
+            "circuit-board": 2,
+            "magnetic-coil": 4
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 6,
+        "result": {
+            "geothermal-power-station": 1
+        },
+        "recipe": {
+            "steel": 15,
+            "copper-ingot": 20,
+            "photon-combiner": 4,
+            "super-magnetic-ring": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 5,
+        "result": {
+            "implosion-cannon": 1
+        },
+        "recipe": {
+            "steel": 10,
+            "electric-motor": 8,
+            "circuit-board": 10,
+            "super-magnetic-ring": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 30,
+        "result": {
+            "interstellar-logistics-station": 1
+        },
+        "recipe": {
+            "planetary-logistics-station": 1,
+            "titanium-alloy": 40,
+            "particle-container": 20
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 5,
+        "result": {
+            "jammer-tower": 1
+        },
+        "recipe": {
+            "copper-ingot": 12,
+            "plasma-exciter": 9,
+            "diamond": 6,
+            "processor": 3
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 6,
+        "result": {
+            "laser-turret": 1
+        },
+        "recipe": {
+            "steel": 9,
+            "plasma-exciter": 6,
+            "circuit-board": 6,
+            "photon-combiner": 9
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 8,
+        "result": {
+            "logistics-distributor": 1
+        },
+        "recipe": {
+            "iron-ingot": 8,
+            "plasma-exciter": 4,
+            "processor": 4
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 2,
+        "result": {
+            "matrix-lab": 1
+        },
+        "recipe": {
+            "iron-ingot": 8,
+            "glass": 4,
+            "circuit-board": 4,
+            "magnetic-coil": 4
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 10,
+        "result": {
+            "mini-fusion-power-plant": 1
+        },
+        "recipe": {
+            "titanium-alloy": 12,
+            "super-magnetic-ring": 10,
+            "carbon-nanotube": 8,
+            "processor": 4
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 15,
+        "result": {
+            "miniature-particle-collider": 1
+        },
+        "recipe": {
+            "titanium-alloy": 20,
+            "frame-material": 20,
+            "super-magnetic-ring": 25,
+            "graphene": 10,
+            "processor": 8
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 3,
+        "result": {
+            "mining-machine": 1
+        },
+        "recipe": {
+            "iron-ingot": 4,
+            "circuit-board": 2,
+            "magnetic-coil": 2,
+            "gear": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 100000000,
+        "result": {
+            "missile-turret": 1
+        },
+        "recipe": {}
+    },
+    {
+        "type": "assembler",
+        "time": 6,
+        "result": {
+            "negentropy-smelter": 1
+        },
+        "recipe": {
+            "plane-smelter": 1,
+            "negentropy-singularity": 10,
+            "energy-shard": 30,
+            "quantum-chip": 4
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 8,
+        "result": {
+            "oil-extractor": 1
+        },
+        "recipe": {
+            "steel": 12,
+            "stone-brick": 12,
+            "circuit-board": 6,
+            "plasma-exciter": 4
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 100000000,
+        "result": {
+            "oil-refinery": 1
+        },
+        "recipe": {
+            "steel": 10,
+            "stone-brick": 10,
+            "circuit-board": 6,
+            "plasma-exciter": 6
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 100000000,
+        "result": {
+            "orbital-collector": 1
+        },
+        "recipe": {
+            "interstellar-logistics-station": 1,
+            "super-magnetic-ring": 50,
+            "reinforced-thruster": 20,
+            "accumulator-full": 20
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 1,
+        "result": {
+            "pile-sorter": 1
+        },
+        "recipe": {
+            "sorter-mk-iii": 2,
+            "super-magnetic-ring": 1,
+            "processor": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 5,
+        "result": {
+            "plane-smelter": 1
+        },
+        "recipe": {
+            "arc-smelter": 1,
+            "frame-material": 5,
+            "plane-filter": 4,
+            "unipolar-magnet": 15
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 20,
+        "result": {
+            "planetary-logistics-station": 1
+        },
+        "recipe": {
+            "steel": 40,
+            "titanium-ingot": 40,
+            "processor": 40,
+            "particle-container": 20
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 10,
+        "result": {
+            "planetary-shield-generator": 1
+        },
+        "recipe": {
+            "steel": 20,
+            "electromagnetic-turbine": 20,
+            "super-magnetic-ring": 5,
+            "particle-container": 5
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 10,
+        "result": {
+            "plasma-turret": 1
+        },
+        "recipe": {
+            "titanium-alloy": 20,
+            "titanium-glass": 10,
+            "super-magnetic-ring": 10,
+            "plasma-exciter": 5,
+            "processor": 5
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 10,
+        "result": {
+            "quantum-chemical-plant": 1
+        },
+        "recipe": {
+            "chemical-plant": 1,
+            "titanium-glass": 10,
+            "strange-matter": 3,
+            "quantum-chip": 3
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 8,
+        "result": {
+            "ray-receiver": 1
+        },
+        "recipe": {
+            "steel": 20,
+            "high-purity-silicon": 20,
+            "photon-combiner": 10,
+            "processor": 5,
+            "super-magnetic-ring": 20
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 5,
+        "result": {
+            "re-composing-assembler": 1
+        },
+        "recipe": {
+            "assembling-machine-mk-iii": 1,
+            "matter-recombinator": 10,
+            "energy-shard": 30,
+            "quantum-chip": 4
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 5,
+        "result": {
+            "satellite-substation": 1
+        },
+        "recipe": {
+            "wireless-power-tower": 1,
+            "super-magnetic-ring": 10,
+            "frame-material": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 4,
+        "result": {
+            "self-evolution-lab": 1
+        },
+        "recipe": {
+            "matrix-lab": 1,
+            "silicon-based-neuron": 10,
+            "dark-fog-matrix": 20,
+            "quantum-chip": 4
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 6,
+        "result": {
+            "signal-tower": 1
+        },
+        "recipe": {
+            "wireless-power-tower": 2,
+            "steel": 12,
+            "crystal-silicon": 6
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 6,
+        "result": {
+            "solar-panel": 1
+        },
+        "recipe": {
+            "copper-ingot": 10,
+            "high-purity-silicon": 10,
+            "circuit-board": 5
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 1,
+        "result": {
+            "sorter-mk-i": 1
+        },
+        "recipe": {
+            "iron-ingot": 1,
+            "circuit-board": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 1,
+        "result": {
+            "sorter-mk-ii": 2
+        },
+        "recipe": {
+            "sorter-mk-i": 2,
+            "electric-motor": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 1,
+        "result": {
+            "sorter-mk-iii": 1
+        },
+        "recipe": {
+            "sorter-mk-ii": 2,
+            "electromagnetic-turbine": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 2,
+        "result": {
+            "splitter": 1
+        },
+        "recipe": {
+            "iron-ingot": 3,
+            "gear": 2,
+            "circuit-board": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 3,
+        "result": {
+            "spray-coater": 1
+        },
+        "recipe": {
+            "steel": 4,
+            "plasma-exciter": 2,
+            "circuit-board": 2,
+            "microcrystalline-component": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 8,
+        "result": {
+            "sr-plasma-turret": 1
+        },
+        "recipe": {
+            "steel": 15,
+            "super-magnetic-ring": 5,
+            "plasma-exciter": 5,
+            "processor": 5
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 2,
+        "result": {
+            "storage-tank": 1
+        },
+        "recipe": {
+            "iron-ingot": 8,
+            "stone-brick": 4,
+            "glass": 4
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 1,
+        "result": {
+            "tesla-tower": 1
+        },
+        "recipe": {
+            "iron-ingot": 2,
+            "magnetic-coil": 1
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 5,
+        "result": {
+            "thermal-power-plant": 1
+        },
+        "recipe": {
+            "iron-ingot": 10,
+            "stone-brick": 4,
+            "gear": 4,
+            "magnetic-coil": 4
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 2,
+        "result": {
+            "traffic-monitor": 1
+        },
+        "recipe": {
+            "iron-ingot": 3,
+            "gear": 2,
+            "glass": 1,
+            "circuit-board": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 30,
+        "result": {
+            "vertical-launching-silo": 1
+        },
+        "recipe": {
+            "titanium-alloy": 80,
+            "frame-material": 30,
+            "graviton-lens": 20,
+            "quantum-chip": 10
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 4,
+        "result": {
+            "water-pump": 1
+        },
+        "recipe": {
+            "iron-ingot": 8,
+            "stone-brick": 4,
+            "electric-motor": 4,
+            "circuit-board": 2
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 4,
+        "result": {
+            "wind-turbine": 1
+        },
+        "recipe": {
+            "iron-ingot": 6,
+            "gear": 1,
+            "magnetic-coil": 3
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 2,
+        "result": {
+            "wireless-power-tower": 1
+        },
+        "recipe": {
+            "tesla-tower": 1,
+            "plasma-exciter": 3
+        }
+    },
+    {
+        "type": "assembler",
+        "time": 4,
+        "result": {
+            "holo-beacon": 1
+        },
+        "recipe": {
+            "iron-ingot": 3,
+            "prism": 4,
+            "plasma-exciter": 2,
+            "circuit-board": 2
+        }
+    }
+]
