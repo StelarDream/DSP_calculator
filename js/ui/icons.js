@@ -7,3 +7,6 @@ export const CHANCE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="current
 // Dependency-tree glyph (root node branching into two) - used on the button
 // that will kick off full recipe-tree generation.
 export const TREE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M12 7.5v4M12 11.5 5 16.5M12 11.5l7 5"/></svg>`;
+
+// Left-pointing arrow - used on the tree view's back button.
+export const BACK_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>`;

@@ -4,6 +4,7 @@ import { initTabs } from './ui/tabs.js';
 import { renderFilters } from './ui/filters.js';
 import { renderList } from './ui/list.js';
 import { renderDetail } from './ui/detail.js';
+import { renderTreeView } from './ui/treeView.js';
 import { selectEntities } from './selectEntities.js';
 
 export async function init() {
@@ -27,14 +28,26 @@ export async function init() {
   }
 
   function updateDetail() {
+    if (state.view === 'tree' && state.treeRecipe) {
+      renderTreeView(detailContainer, state.treeRecipe, state.registries, exitTreeView);
+      return;
+    }
+
     const object = state.selectedId ? state.registries?.objects.get(state.selectedId) : null;
     renderDetail(detailContainer, object ?? null, state.registries, selectObject, generateTree);
   }
 
-  // Placeholder for the recipe-tree generator - wired up to the tree button
-  // on each recipe card. TODO: build the actual tree view.
+  // Wired up to the tree button on each recipe card.
   function generateTree(recipe) {
-    console.log('Generate recipe tree for:', recipe);
+    state.view = 'tree';
+    state.treeRecipe = recipe;
+    updateDetail();
+  }
+
+  function exitTreeView() {
+    state.view = 'detail';
+    state.treeRecipe = null;
+    updateDetail();
   }
 
   // Shows another object's page - used for list clicks as well as clicking
@@ -45,6 +58,8 @@ export async function init() {
   function selectObject(id) {
     if (!state.registries?.objects.has(id)) return;
     state.selectedId = id;
+    state.view = 'detail';
+    state.treeRecipe = null;
     updateList();
     updateDetail();
   }
@@ -53,6 +68,8 @@ export async function init() {
     state.tab = tab;
     state.filter = 'all';
     state.selectedId = null;
+    state.view = 'detail';
+    state.treeRecipe = null;
     updateFilters();
     updateList();
     updateDetail();

@@ -6,4 +6,8 @@ export const state = {
   search: '',
   selectedId: null,
   registries: null,
+  // 'detail' shows the selected object's page; 'tree' shows the recipe-tree
+  // view for treeRecipe (set via the tree button on a recipe card).
+  view: 'detail',
+  treeRecipe: null,
 };

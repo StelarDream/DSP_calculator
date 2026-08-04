@@ -54,6 +54,9 @@
 
   --shadow-panel: 0 8px 30px rgba(0, 0, 0, 0.45);
   --glow-primary: 0 0 0 1px var(--primary-border), 0 0 18px rgba(133, 255, 255, 0.12);
+
+  --grid-line-minor: rgba(133, 255, 255, 0.05);
+  --grid-line-major: rgba(133, 255, 255, 0.12);
 }
 
 * {
@@ -400,6 +403,19 @@ body {
   padding: 32px;
 }
 
+/* Blueprint-style graph paper: a faint minor grid plus a slightly bolder
+   major grid every 4 cells. Used behind empty states and the tree canvas. */
+.blueprint-grid {
+  background-color: var(--bg-panel-alt);
+  background-image:
+    linear-gradient(var(--grid-line-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line-major) 1px, transparent 1px),
+    linear-gradient(var(--grid-line-minor) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line-minor) 1px, transparent 1px);
+  background-size: 96px 96px, 96px 96px, 24px 24px, 24px 24px;
+  background-position: -1px -1px;
+}
+
 .empty-state {
   height: 100%;
   display: flex;
@@ -414,6 +430,63 @@ body {
 .empty-state p {
   max-width: 320px;
   font-size: 0.95rem;
+}
+
+/* Tree view - swapped in over the normal detail pane. */
+
+.tree-view-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px 6px 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-family: var(--font-accent);
+  font-weight: 600;
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.back-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.back-btn:hover {
+  border-color: var(--primary-border);
+  color: var(--primary);
+}
+
+.tree-view-title {
+  margin: 0;
+  font-family: var(--font-accent);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.tree-view-canvas {
+  height: calc(100% - 68px);
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text-muted);
 }
 
 .detail-header {
