@@ -6,27 +6,36 @@ import { NODE_WIDTH } from './constants.js';
 // world's own edges.
 const PADDING = 40;
 
-// Renders a built tree (see buildTree.js) as absolutely-positioned cards
-// over an SVG edge overlay, inside a "world" div sized to fit the whole
-// tree. Purely visual for now - no interactivity (pan/zoom, expand/collapse
-// come in later steps); the canvas just scrolls if the tree is bigger than
-// the viewport.
-export function renderTreeCanvas(root) {
+// The pannable/zoomable element that node cards and edges get rendered
+// into. Created once per tree view and reused across rebuilds (see
+// renderTreeInto) so the pan/zoom transform applied to it isn't disturbed
+// by expand/collapse or recipe-choice changes.
+export function createTreeWorld() {
+  const world = document.createElement('div');
+  world.className = 'tree-world';
+  return world;
+}
+
+// (Re)populates `world` with the given tree's cards + edges, resizing it to
+// fit. Called for the initial render and again after every expand/collapse
+// or recipe-choice change - reusing the same element rather than replacing
+// it is what keeps the current pan/zoom position stable across a rebuild.
+// Returns the world's new pixel size, since callers (fit-to-view) need it.
+export function renderTreeInto(world, root, handlers) {
+  world.innerHTML = '';
+
   const { nodes, edges, width, height } = layoutTree(root);
   const worldWidth = width + PADDING * 2;
   const worldHeight = height + PADDING * 2;
-
-  const world = document.createElement('div');
-  world.className = 'tree-world';
   world.style.width = `${worldWidth}px`;
   world.style.height = `${worldHeight}px`;
 
   world.appendChild(renderEdges(edges, worldWidth, worldHeight));
   for (const { node, x, y } of nodes) {
-    world.appendChild(positionNode(renderTreeNode(node), x, y));
+    world.appendChild(positionNode(renderTreeNode(node, handlers), x, y));
   }
 
-  return world;
+  return { width: worldWidth, height: worldHeight };
 }
 
 function renderEdges(edges, width, height) {

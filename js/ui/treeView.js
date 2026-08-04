@@ -2,7 +2,7 @@ import { formatLabel } from './format.js';
 import { BACK_ICON, ZOOM_IN_ICON, ZOOM_OUT_ICON, FIT_VIEW_ICON } from './icons.js';
 import { renderIconButton } from './metaBar.js';
 import { buildTree } from '../tree/buildTree.js';
-import { renderTreeCanvas } from '../tree/treeCanvas.js';
+import { createTreeWorld, renderTreeInto } from '../tree/treeCanvas.js';
 import { createPanZoom } from '../tree/panZoom.js';
 
 // Full-pane recipe-tree view, swapped in over the normal detail pane when a
@@ -48,26 +48,43 @@ function renderCanvas(subjectId, recipe, registries) {
   const canvas = document.createElement('div');
   canvas.className = 'tree-view-canvas blueprint-grid';
 
+  // Local to this tree view session - which recipe each node uses (seeded
+  // with the recipe the tree button was clicked from) and which nodes have
+  // been manually expanded/collapsed, overriding the default-depth rule.
   const choices = new Map([[subjectId, recipe.id]]);
-  const tree = buildTree(subjectId, 1, registries, { choices });
-  const world = renderTreeCanvas(tree);
+  const overrides = new Map();
+
+  const world = createTreeWorld();
   canvas.appendChild(world);
-
-  const worldWidth = parseFloat(world.style.width);
-  const worldHeight = parseFloat(world.style.height);
   const panZoom = createPanZoom(canvas, world);
-  canvas.appendChild(renderToolbar(panZoom, worldWidth, worldHeight));
 
-  return { canvas, fit: () => panZoom.fitToView(worldWidth, worldHeight) };
+  // Rebuilds the tree from current choices/overrides and repopulates the
+  // existing world element in place, so the pan/zoom transform survives.
+  let size;
+  function rerender() {
+    const tree = buildTree(subjectId, 1, registries, { choices, overrides });
+    size = renderTreeInto(world, tree, {
+      onToggle(path, wasCollapsed) {
+        overrides.set(path, wasCollapsed);
+        rerender();
+      },
+    });
+  }
+  rerender();
+
+  const fit = () => panZoom.fitToView(size.width, size.height);
+  canvas.appendChild(renderToolbar(panZoom, fit));
+
+  return { canvas, fit };
 }
 
-function renderToolbar(panZoom, worldWidth, worldHeight) {
+function renderToolbar(panZoom, fit) {
   const toolbar = document.createElement('div');
   toolbar.className = 'tree-toolbar';
   toolbar.append(
     renderIconButton(ZOOM_IN_ICON, 'Zoom in', () => panZoom.zoomIn()),
     renderIconButton(ZOOM_OUT_ICON, 'Zoom out', () => panZoom.zoomOut()),
-    renderIconButton(FIT_VIEW_ICON, 'Fit to view', () => panZoom.fitToView(worldWidth, worldHeight)),
+    renderIconButton(FIT_VIEW_ICON, 'Fit to view', fit),
   );
   return toolbar;
 }

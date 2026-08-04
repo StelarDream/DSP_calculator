@@ -1,16 +1,25 @@
 import { formatLabel } from '../ui/format.js';
+import { CHEVRON_ICON } from '../ui/icons.js';
 import { NODE_WIDTH, NODE_HEIGHT } from './constants.js';
 
 // A single fixed-size card in the tree canvas - icon, name, required qty.
-// Leaf/cycle nodes get a modifier class for their distinct styling; no
-// click handlers yet, this is purely the visual for step 2.
-export function renderTreeNode(node) {
-  const el = document.createElement('div');
+// Craftable nodes (anything not a leaf/cycle) render as a button with a
+// chevron and toggle expand/collapse via handlers.onToggle(path,
+// wasCollapsed) on click; leaves render as plain, non-interactive cards.
+export function renderTreeNode(node, { onToggle } = {}) {
+  const expandable = !node.isLeaf && typeof onToggle === 'function';
+  const el = document.createElement(expandable ? 'button' : 'div');
   el.className = 'tree-node';
   if (node.isLeaf) el.classList.add('tree-node--leaf');
   if (node.isCycle) el.classList.add('tree-node--cycle');
   el.style.width = `${NODE_WIDTH}px`;
   el.style.height = `${NODE_HEIGHT}px`;
+
+  if (expandable) {
+    el.type = 'button';
+    el.classList.add('tree-node--expandable');
+    el.addEventListener('click', () => onToggle(node.path, node.isCollapsed));
+  }
 
   const icon = document.createElement('img');
   icon.className = 'tree-node-icon';
@@ -30,6 +39,15 @@ export function renderTreeNode(node) {
 
   info.append(name, qty);
   el.append(icon, info);
+
+  if (expandable) {
+    const chevron = document.createElement('span');
+    chevron.className = 'tree-node-chevron';
+    if (!node.isCollapsed) chevron.classList.add('tree-node-chevron--open');
+    chevron.innerHTML = CHEVRON_ICON;
+    el.appendChild(chevron);
+  }
+
   return el;
 }
 

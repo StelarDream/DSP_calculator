@@ -530,6 +530,10 @@ body {
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-panel);
+  font: inherit;
+  text-align: left;
+  cursor: default;
+  transition: border-color 0.15s ease;
 }
 
 .tree-node--leaf {
@@ -539,6 +543,14 @@ body {
 
 .tree-node--cycle {
   border-color: var(--secondary-border);
+}
+
+.tree-node--expandable {
+  cursor: pointer;
+}
+
+.tree-node--expandable:hover {
+  border-color: var(--primary-border);
 }
 
 .tree-node-icon {
@@ -552,6 +564,7 @@ body {
 .tree-node-info {
   display: flex;
   flex-direction: column;
+  flex: 1;
   min-width: 0;
   gap: 2px;
 }
@@ -569,6 +582,24 @@ body {
 .tree-node-qty {
   font-size: 0.78rem;
   color: var(--secondary);
+}
+
+.tree-node-chevron {
+  flex: 0 0 auto;
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+  transition: transform 0.15s ease;
+}
+
+.tree-node-chevron svg {
+  width: 100%;
+  height: 100%;
+}
+
+.tree-node-chevron--open {
+  transform: rotate(90deg);
 }
 
 .detail-header {
