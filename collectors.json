@@ -1,18 +1,25 @@
 {
-    "mining": [
-        "mining-machine",
-        "advanced-mining-machine"
-    ],
-    "orbital-collection": [
-        "orbital-collector"
-    ],
-    "pumping": [
-        "water-pump"
-    ],
-    "oil-collection": [
-        "oil-extractor"
-    ],
-    "photon-collection": [
-        "ray-receiver"
-    ]
+    "mining": {
+        "mining-machine": {
+            "speed": 0.5
+        },
+        "advanced-mining-machine": {
+            "speed": [
+                1,
+                3
+            ]
+        }
+    },
+    "orbital-collection": {
+        "orbital-collector": {}
+    },
+    "pumping": {
+        "water-pump": {}
+    },
+    "oil-collection": {
+        "oil-extractor": {}
+    },
+    "photon-collection": {
+        "ray-receiver": {}
+    }
 }

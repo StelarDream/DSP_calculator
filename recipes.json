@@ -5,7 +5,7 @@
         "result": {
             "iron-ingot": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ore": 1
         }
     },
@@ -15,7 +15,7 @@
         "result": {
             "copper-ingot": 1
         },
-        "recipe": {
+        "ingredients": {
             "copper-ore": 1
         }
     },
@@ -25,7 +25,7 @@
         "result": {
             "stone-brick": 1
         },
-        "recipe": {
+        "ingredients": {
             "stone": 1
         }
     },
@@ -35,7 +35,7 @@
         "result": {
             "energetic-graphite": 1
         },
-        "recipe": {
+        "ingredients": {
             "coal": 2
         }
     },
@@ -46,7 +46,7 @@
             "hydrogen": 3,
             "energetic-graphite": 1
         },
-        "recipe": {
+        "ingredients": {
             "hydrogen": 2,
             "refined-oil": 1
         }
@@ -57,7 +57,7 @@
         "result": {
             "high-purity-silicon": 1
         },
-        "recipe": {
+        "ingredients": {
             "silicon-ore": 2
         }
     },
@@ -67,7 +67,7 @@
         "result": {
             "silicon-ore": 1
         },
-        "recipe": {
+        "ingredients": {
             "stone": 10
         }
     },
@@ -77,7 +77,7 @@
         "result": {
             "titanium-ingot": 1
         },
-        "recipe": {
+        "ingredients": {
             "titanium-ore": 2
         }
     },
@@ -87,7 +87,7 @@
         "result": {
             "magnet": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ore": 1
         }
     },
@@ -97,7 +97,7 @@
         "result": {
             "magnetic-coil": 2
         },
-        "recipe": {
+        "ingredients": {
             "magnet": 2,
             "copper-ingot": 1
         }
@@ -108,7 +108,7 @@
         "result": {
             "glass": 1
         },
-        "recipe": {
+        "ingredients": {
             "stone": 2
         }
     },
@@ -118,7 +118,7 @@
         "result": {
             "diamond": 1
         },
-        "recipe": {
+        "ingredients": {
             "energetic-graphite": 1
         }
     },
@@ -128,7 +128,7 @@
         "result": {
             "diamond": 2
         },
-        "recipe": {
+        "ingredients": {
             "kimberlite-ore": 1
         }
     },
@@ -138,7 +138,7 @@
         "result": {
             "crystal-silicon": 1
         },
-        "recipe": {
+        "ingredients": {
             "high-purity-silicon": 1
         }
     },
@@ -148,7 +148,7 @@
         "result": {
             "crystal-silicon": 2
         },
-        "recipe": {
+        "ingredients": {
             "fractal-silicon": 1
         }
     },
@@ -158,7 +158,7 @@
         "result": {
             "titanium-alloy": 4
         },
-        "recipe": {
+        "ingredients": {
             "titanium-ingot": 4,
             "steel": 4,
             "sulfuric-acid": 8
@@ -170,7 +170,7 @@
         "result": {
             "steel": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 3
         }
     },
@@ -180,7 +180,7 @@
         "result": {
             "circuit-board": 2
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 2,
             "copper-ingot": 1
         }
@@ -191,7 +191,7 @@
         "result": {
             "prism": 2
         },
-        "recipe": {
+        "ingredients": {
             "glass": 3
         }
     },
@@ -201,7 +201,7 @@
         "result": {
             "electric-motor": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 2,
             "gear": 1,
             "magnetic-coil": 1
@@ -213,7 +213,7 @@
         "result": {
             "microcrystalline-component": 1
         },
-        "recipe": {
+        "ingredients": {
             "high-purity-silicon": 2,
             "copper-ingot": 1
         }
@@ -224,7 +224,7 @@
         "result": {
             "gear": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 1
         }
     },
@@ -234,7 +234,7 @@
         "result": {
             "plasma-exciter": 1
         },
-        "recipe": {
+        "ingredients": {
             "magnetic-coil": 4,
             "prism": 2
         }
@@ -245,7 +245,7 @@
         "result": {
             "photon-combiner": 1
         },
-        "recipe": {
+        "ingredients": {
             "circuit-board": 1,
             "prism": 2
         }
@@ -256,7 +256,7 @@
         "result": {
             "photon-combiner": 1
         },
-        "recipe": {
+        "ingredients": {
             "circuit-board": 1,
             "grating-crystal": 1
         }
@@ -267,7 +267,7 @@
         "result": {
             "electromagnetic-turbine": 1
         },
-        "recipe": {
+        "ingredients": {
             "electric-motor": 2,
             "magnetic-coil": 2
         }
@@ -278,7 +278,7 @@
         "result": {
             "processor": 1
         },
-        "recipe": {
+        "ingredients": {
             "circuit-board": 2,
             "microcrystalline-component": 2
         }
@@ -289,7 +289,7 @@
         "result": {
             "engine": 1
         },
-        "recipe": {
+        "ingredients": {
             "magnetic-coil": 1,
             "copper-ingot": 2
         }
@@ -300,7 +300,7 @@
         "result": {
             "thruster": 1
         },
-        "recipe": {
+        "ingredients": {
             "steel": 2,
             "copper-ingot": 3
         }
@@ -311,7 +311,7 @@
         "result": {
             "reinforced-thruster": 1
         },
-        "recipe": {
+        "ingredients": {
             "titanium-alloy": 2,
             "electromagnetic-turbine": 5
         }
@@ -322,7 +322,7 @@
         "result": {
             "reinforced-thruster": 1
         },
-        "recipe": {
+        "ingredients": {
             "titanium-alloy": 5,
             "electromagnetic-turbine": 5
         }
@@ -333,7 +333,7 @@
         "result": {
             "super-magnetic-ring": 1
         },
-        "recipe": {
+        "ingredients": {
             "electromagnetic-turbine": 2,
             "magnet": 3,
             "energetic-graphite": 1
@@ -345,7 +345,7 @@
         "result": {
             "particle-container": 1
         },
-        "recipe": {
+        "ingredients": {
             "electromagnetic-turbine": 2,
             "copper-ingot": 2,
             "graphene": 2
@@ -357,7 +357,7 @@
         "result": {
             "particle-container": 1
         },
-        "recipe": {
+        "ingredients": {
             "unipolar-magnet": 10,
             "copper-ingot": 2
         }
@@ -368,7 +368,7 @@
         "result": {
             "sulfuric-acid": 4
         },
-        "recipe": {
+        "ingredients": {
             "refined-oil": 6,
             "stone": 8,
             "water": 4
@@ -381,7 +381,7 @@
             "hydrogen": 1,
             "refined-oil": 2
         },
-        "recipe": {
+        "ingredients": {
             "crude-oil": 2
         }
     },
@@ -392,7 +392,7 @@
             "hydrogen": 1,
             "graphene": 2
         },
-        "recipe": {
+        "ingredients": {
             "fire-ice": 2
         }
     },
@@ -403,7 +403,7 @@
             "hydrogen": 2,
             "antimatter": 2
         },
-        "recipe": {
+        "ingredients": {
             "critical-photon": 2
         }
     },
@@ -413,7 +413,7 @@
         "result": {
             "deuterium": 5
         },
-        "recipe": {
+        "ingredients": {
             "hydrogen": 10
         }
     },
@@ -424,7 +424,7 @@
         "result": {
             "deuterium": 1
         },
-        "recipe": {
+        "ingredients": {
             "hydrogen": 1
         }
     },
@@ -434,7 +434,7 @@
         "result": {
             "combustible-unit": 1
         },
-        "recipe": {
+        "ingredients": {
             "coal": 3
         }
     },
@@ -444,7 +444,7 @@
         "result": {
             "plastic": 1
         },
-        "recipe": {
+        "ingredients": {
             "refined-oil": 2,
             "energetic-graphite": 1
         }
@@ -455,7 +455,7 @@
         "result": {
             "organic-crystal": 1
         },
-        "recipe": {
+        "ingredients": {
             "plastic": 1,
             "refined-oil": 1,
             "water": 1
@@ -467,7 +467,7 @@
         "result": {
             "organic-crystal": 1
         },
-        "recipe": {
+        "ingredients": {
             "log": 20,
             "plant-fuel": 30,
             "water": 10
@@ -479,7 +479,7 @@
         "result": {
             "graphene": 2
         },
-        "recipe": {
+        "ingredients": {
             "energetic-graphite": 3,
             "sulfuric-acid": 1
         }
@@ -490,7 +490,7 @@
         "result": {
             "annihilation-constraint-sphere": 1
         },
-        "recipe": {
+        "ingredients": {
             "particle-container": 1,
             "processor": 1
         }
@@ -501,7 +501,7 @@
         "result": {
             "explosive-unit": 2
         },
-        "recipe": {
+        "ingredients": {
             "combustible-unit": 2,
             "plastic": 2,
             "sulfuric-acid": 1
@@ -513,7 +513,7 @@
         "result": {
             "strange-matter": 1
         },
-        "recipe": {
+        "ingredients": {
             "particle-container": 2,
             "iron-ingot": 2,
             "deuterium": 10
@@ -525,7 +525,7 @@
         "result": {
             "titanium-crystal": 1
         },
-        "recipe": {
+        "ingredients": {
             "organic-crystal": 1,
             "titanium-ingot": 3
         }
@@ -536,7 +536,7 @@
         "result": {
             "carbon-nanotube": 2
         },
-        "recipe": {
+        "ingredients": {
             "graphene": 3,
             "titanium-ingot": 1
         }
@@ -547,7 +547,7 @@
         "result": {
             "carbon-nanotube": 2
         },
-        "recipe": {
+        "ingredients": {
             "stalagmite-crystal": 6
         }
     },
@@ -557,7 +557,7 @@
         "result": {
             "particle-broadband": 1
         },
-        "recipe": {
+        "ingredients": {
             "carbon-nanotube": 2,
             "crystal-silicon": 2,
             "plastic": 1
@@ -569,7 +569,7 @@
         "result": {
             "crystal-explosive-unit": 8
         },
-        "recipe": {
+        "ingredients": {
             "explosive-unit": 8,
             "casimir-crystal": 1,
             "crystal-silicon": 8
@@ -581,7 +581,7 @@
         "result": {
             "casimir-crystal": 1
         },
-        "recipe": {
+        "ingredients": {
             "titanium-crystal": 1,
             "graphene": 2,
             "hydrogen": 12
@@ -593,7 +593,7 @@
         "result": {
             "casimir-crystal": 1
         },
-        "recipe": {
+        "ingredients": {
             "grating-crystal": 8,
             "graphene": 2,
             "hydrogen": 12
@@ -605,7 +605,7 @@
         "result": {
             "titanium-glass": 2
         },
-        "recipe": {
+        "ingredients": {
             "glass": 2,
             "titanium-ingot": 2,
             "water": 2
@@ -617,7 +617,7 @@
         "result": {
             "plane-filter": 1
         },
-        "recipe": {
+        "ingredients": {
             "casimir-crystal": 1,
             "titanium-glass": 2
         }
@@ -628,7 +628,7 @@
         "result": {
             "quantum-chip": 1
         },
-        "recipe": {
+        "ingredients": {
             "processor": 2,
             "plane-filter": 2
         }
@@ -639,7 +639,7 @@
         "result": {
             "space-warper": 1
         },
-        "recipe": {
+        "ingredients": {
             "graviton-lens": 1
         }
     },
@@ -649,7 +649,7 @@
         "result": {
             "space-warper": 8
         },
-        "recipe": {
+        "ingredients": {
             "gravity-matrix": 1
         }
     },
@@ -659,7 +659,7 @@
         "result": {
             "graviton-lens": 1
         },
-        "recipe": {
+        "ingredients": {
             "diamond": 4,
             "strange-matter": 1
         }
@@ -670,7 +670,7 @@
         "result": {
             "frame-material": 1
         },
-        "recipe": {
+        "ingredients": {
             "carbon-nanotube": 6,
             "titanium-alloy": 1,
             "high-purity-silicon": 1
@@ -682,7 +682,7 @@
         "result": {
             "solar-sail": 2
         },
-        "recipe": {
+        "ingredients": {
             "graphene": 1,
             "photon-combiner": 1
         }
@@ -693,7 +693,7 @@
         "result": {
             "dyson-sphere-component": 1
         },
-        "recipe": {
+        "ingredients": {
             "frame-material": 3,
             "solar-sail": 3,
             "processor": 3
@@ -705,7 +705,7 @@
         "result": {
             "small-carrier-rocket": 1
         },
-        "recipe": {
+        "ingredients": {
             "dyson-sphere-component": 2,
             "deuteron-fuel-rod": 4,
             "quantum-chip": 2
@@ -717,7 +717,7 @@
         "result": {
             "logistics-bot": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 2,
             "engine": 1,
             "processor": 1
@@ -729,7 +729,7 @@
         "result": {
             "logistics-drone": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 5,
             "processor": 2,
             "thruster": 2
@@ -741,7 +741,7 @@
         "result": {
             "interstellar-logistics-vessel": 1
         },
-        "recipe": {
+        "ingredients": {
             "titanium-alloy": 10,
             "processor": 10,
             "reinforced-thruster": 1
@@ -753,7 +753,7 @@
         "result": {
             "prototype": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 3,
             "engine": 1,
             "circuit-board": 2,
@@ -766,7 +766,7 @@
         "result": {
             "precision-drone": 1
         },
-        "recipe": {
+        "ingredients": {
             "prototype": 1,
             "electromagnetic-turbine": 1,
             "circuit-board": 2,
@@ -779,7 +779,7 @@
         "result": {
             "attack-drone": 1
         },
-        "recipe": {
+        "ingredients": {
             "prototype": 1,
             "electromagnetic-turbine": 1,
             "processor": 1,
@@ -792,7 +792,7 @@
         "result": {
             "corvette": 1
         },
-        "recipe": {
+        "ingredients": {
             "titanium-alloy": 5,
             "reinforced-thruster": 1,
             "processor": 2,
@@ -805,7 +805,7 @@
         "result": {
             "destroyer": 1
         },
-        "recipe": {
+        "ingredients": {
             "frame-material": 20,
             "reinforced-thruster": 4,
             "processor": 4,
@@ -818,7 +818,7 @@
         "result": {
             "hydrogen-fuel-rod": 2
         },
-        "recipe": {
+        "ingredients": {
             "titanium-ingot": 1,
             "hydrogen": 10
         }
@@ -829,7 +829,7 @@
         "result": {
             "deuteron-fuel-rod": 2
         },
-        "recipe": {
+        "ingredients": {
             "titanium-alloy": 1,
             "deuterium": 20,
             "super-magnetic-ring": 1
@@ -841,7 +841,7 @@
         "result": {
             "antimatter-fuel-rod": 2
         },
-        "recipe": {
+        "ingredients": {
             "antimatter": 12,
             "hydrogen": 12,
             "annihilation-constraint-sphere": 1,
@@ -854,7 +854,7 @@
         "result": {
             "strange-annihilation-fuel-rod": 2
         },
-        "recipe": {
+        "ingredients": {
             "antimatter-fuel-rod": 8,
             "core-element": 1,
             "strange-matter": 2,
@@ -867,7 +867,7 @@
         "result": {
             "electromagnetic-matrix": 1
         },
-        "recipe": {
+        "ingredients": {
             "magnetic-coil": 1,
             "circuit-board": 1
         }
@@ -878,7 +878,7 @@
         "result": {
             "energy-matrix": 1
         },
-        "recipe": {
+        "ingredients": {
             "energetic-graphite": 2,
             "hydrogen": 2
         }
@@ -889,7 +889,7 @@
         "result": {
             "structure-matrix": 1
         },
-        "recipe": {
+        "ingredients": {
             "diamond": 1,
             "titanium-crystal": 1
         }
@@ -900,7 +900,7 @@
         "result": {
             "information-matrix": 1
         },
-        "recipe": {
+        "ingredients": {
             "processor": 2,
             "particle-broadband": 1
         }
@@ -911,7 +911,7 @@
         "result": {
             "gravity-matrix": 2
         },
-        "recipe": {
+        "ingredients": {
             "graviton-lens": 1,
             "quantum-chip": 1
         }
@@ -922,7 +922,7 @@
         "result": {
             "universe-matrix": 1
         },
-        "recipe": {
+        "ingredients": {
             "electromagnetic-matrix": 1,
             "energy-matrix": 1,
             "structure-matrix": 1,
@@ -937,7 +937,7 @@
         "result": {
             "missile-set": 1
         },
-        "recipe": {
+        "ingredients": {
             "copper-ingot": 6,
             "circuit-board": 3,
             "combustible-unit": 2,
@@ -950,7 +950,7 @@
         "result": {
             "supersonic-missile-set": 2
         },
-        "recipe": {
+        "ingredients": {
             "missile-set": 2,
             "processor": 4,
             "explosive-unit": 4,
@@ -963,7 +963,7 @@
         "result": {
             "gravity-missile-set": 2
         },
-        "recipe": {
+        "ingredients": {
             "supersonic-missile-set": 3,
             "crystal-explosive-unit": 6,
             "strange-matter": 3
@@ -975,7 +975,7 @@
         "result": {
             "shell-set": 1
         },
-        "recipe": {
+        "ingredients": {
             "copper-ingot": 9,
             "combustible-unit": 2
         }
@@ -986,7 +986,7 @@
         "result": {
             "high-explosive-shell-set": 1
         },
-        "recipe": {
+        "ingredients": {
             "shell-set": 1,
             "titanium-ingot": 6,
             "explosive-unit": 2
@@ -998,7 +998,7 @@
         "result": {
             "crystal-shell-set": 1
         },
-        "recipe": {
+        "ingredients": {
             "high-explosive-shell-set": 1,
             "titanium-alloy": 3,
             "crystal-explosive-unit": 2
@@ -1010,7 +1010,7 @@
         "result": {
             "magnum-ammo-box": 1
         },
-        "recipe": {
+        "ingredients": {
             "copper-ingot": 3
         }
     },
@@ -1020,7 +1020,7 @@
         "result": {
             "titanium-ammo-box": 1
         },
-        "recipe": {
+        "ingredients": {
             "magnum-ammo-box": 1,
             "titanium-ingot": 2
         }
@@ -1031,7 +1031,7 @@
         "result": {
             "superalloy-ammo-box": 1
         },
-        "recipe": {
+        "ingredients": {
             "titanium-ammo-box": 1,
             "titanium-alloy": 2
         }
@@ -1042,7 +1042,7 @@
         "result": {
             "plasma-capsule": 1
         },
-        "recipe": {
+        "ingredients": {
             "graphene": 1,
             "magnet": 2,
             "deuterium": 10
@@ -1054,7 +1054,7 @@
         "result": {
             "antimatter-capsule": 1
         },
-        "recipe": {
+        "ingredients": {
             "plasma-capsule": 1,
             "particle-container": 1,
             "hydrogen": 10,
@@ -1067,7 +1067,7 @@
         "result": {
             "jamming-capsule": 1
         },
-        "recipe": {
+        "ingredients": {
             "electromagnetic-turbine": 1,
             "plasma-exciter": 1,
             "hydrogen": 3
@@ -1079,7 +1079,7 @@
         "result": {
             "suppressing-capsule": 2
         },
-        "recipe": {
+        "ingredients": {
             "jamming-capsule": 2,
             "super-magnetic-ring": 1,
             "titanium-glass": 2
@@ -1091,7 +1091,7 @@
         "result": {
             "foundation": 1
         },
-        "recipe": {
+        "ingredients": {
             "stone-brick": 3,
             "steel": 1
         }
@@ -1102,7 +1102,7 @@
         "result": {
             "proliferator-mk-i": 1
         },
-        "recipe": {
+        "ingredients": {
             "coal": 1
         }
     },
@@ -1112,7 +1112,7 @@
         "result": {
             "proliferator-mk-ii": 1
         },
-        "recipe": {
+        "ingredients": {
             "proliferator-mk-i": 2,
             "diamond": 1
         }
@@ -1123,7 +1123,7 @@
         "result": {
             "proliferator-mk-iii": 1
         },
-        "recipe": {
+        "ingredients": {
             "proliferator-mk-ii": 2,
             "carbon-nanotube": 1
         }
@@ -1134,7 +1134,7 @@
         "result": {
             "accumulator": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 6,
             "super-magnetic-ring": 1,
             "crystal-silicon": 3
@@ -1146,7 +1146,7 @@
         "result": {
             "advanced-mining-machine": 1
         },
-        "recipe": {
+        "ingredients": {
             "titanium-alloy": 20,
             "frame-material": 10,
             "super-magnetic-ring": 10,
@@ -1160,7 +1160,7 @@
         "result": {
             "arc-smelter": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 4,
             "stone-brick": 2,
             "circuit-board": 4,
@@ -1173,7 +1173,7 @@
         "result": {
             "artificial-star": 1
         },
-        "recipe": {
+        "ingredients": {
             "titanium-alloy": 20,
             "frame-material": 20,
             "annihilation-constraint-sphere": 10,
@@ -1186,7 +1186,7 @@
         "result": {
             "assembling-machine-mk-i": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 4,
             "gear": 8,
             "circuit-board": 4
@@ -1198,7 +1198,7 @@
         "result": {
             "assembling-machine-mk-ii": 1
         },
-        "recipe": {
+        "ingredients": {
             "assembling-machine-mk-i": 1,
             "graphene": 8,
             "processor": 4
@@ -1210,7 +1210,7 @@
         "result": {
             "assembling-machine-mk-iii": 1
         },
-        "recipe": {
+        "ingredients": {
             "assembling-machine-mk-ii": 1,
             "particle-broadband": 8,
             "quantum-chip": 2
@@ -1222,7 +1222,7 @@
         "result": {
             "automatic-piler": 1
         },
-        "recipe": {
+        "ingredients": {
             "steel": 3,
             "gear": 4,
             "super-magnetic-ring": 1,
@@ -1235,7 +1235,7 @@
         "result": {
             "battlefield-analysis-base": 1
         },
-        "recipe": {
+        "ingredients": {
             "steel": 12,
             "circuit-board": 18,
             "microcrystalline-component": 6,
@@ -1248,7 +1248,7 @@
         "result": {
             "chemical-plant": 1
         },
-        "recipe": {
+        "ingredients": {
             "steel": 6,
             "stone-brick": 8,
             "glass": 8,
@@ -1261,7 +1261,7 @@
         "result": {
             "conveyor-belt-mk-i": 3
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 2,
             "gear": 1
         }
@@ -1272,7 +1272,7 @@
         "result": {
             "conveyor-belt-mk-ii": 3
         },
-        "recipe": {
+        "ingredients": {
             "conveyor-belt-mk-i": 3,
             "electromagnetic-turbine": 1
         }
@@ -1283,7 +1283,7 @@
         "result": {
             "conveyor-belt-mk-iii": 3
         },
-        "recipe": {
+        "ingredients": {
             "conveyor-belt-mk-ii": 3,
             "super-magnetic-ring": 1,
             "graphene": 1
@@ -1295,7 +1295,7 @@
         "result": {
             "depot-mk-i": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 4,
             "stone-brick": 4
         }
@@ -1306,7 +1306,7 @@
         "result": {
             "depot-mk-ii": 1
         },
-        "recipe": {
+        "ingredients": {
             "steel": 8,
             "stone-brick": 8
         }
@@ -1317,7 +1317,7 @@
         "result": {
             "em-rail-ejector": 1
         },
-        "recipe": {
+        "ingredients": {
             "steel": 20,
             "gear": 20,
             "processor": 5,
@@ -1330,7 +1330,7 @@
         "result": {
             "energy-exchanger": 1
         },
-        "recipe": {
+        "ingredients": {
             "titanium-alloy": 40,
             "steel": 40,
             "processor": 40,
@@ -1343,7 +1343,7 @@
         "result": {
             "fractionator": 1
         },
-        "recipe": {
+        "ingredients": {
             "steel": 6,
             "stone-brick": 4,
             "glass": 4,
@@ -1356,7 +1356,7 @@
         "result": {
             "gauss-turret": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 8,
             "gear": 8,
             "circuit-board": 2,
@@ -1369,7 +1369,7 @@
         "result": {
             "geothermal-power-station": 1
         },
-        "recipe": {
+        "ingredients": {
             "steel": 15,
             "copper-ingot": 20,
             "photon-combiner": 4,
@@ -1382,7 +1382,7 @@
         "result": {
             "implosion-cannon": 1
         },
-        "recipe": {
+        "ingredients": {
             "steel": 10,
             "electric-motor": 8,
             "circuit-board": 10,
@@ -1395,7 +1395,7 @@
         "result": {
             "interstellar-logistics-station": 1
         },
-        "recipe": {
+        "ingredients": {
             "planetary-logistics-station": 1,
             "titanium-alloy": 40,
             "particle-container": 20
@@ -1407,7 +1407,7 @@
         "result": {
             "jammer-tower": 1
         },
-        "recipe": {
+        "ingredients": {
             "copper-ingot": 12,
             "plasma-exciter": 9,
             "diamond": 6,
@@ -1420,7 +1420,7 @@
         "result": {
             "laser-turret": 1
         },
-        "recipe": {
+        "ingredients": {
             "steel": 9,
             "plasma-exciter": 6,
             "circuit-board": 6,
@@ -1433,7 +1433,7 @@
         "result": {
             "logistics-distributor": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 8,
             "plasma-exciter": 4,
             "processor": 4
@@ -1445,7 +1445,7 @@
         "result": {
             "matrix-lab": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 8,
             "glass": 4,
             "circuit-board": 4,
@@ -1458,7 +1458,7 @@
         "result": {
             "mini-fusion-power-plant": 1
         },
-        "recipe": {
+        "ingredients": {
             "titanium-alloy": 12,
             "super-magnetic-ring": 10,
             "carbon-nanotube": 8,
@@ -1471,7 +1471,7 @@
         "result": {
             "miniature-particle-collider": 1
         },
-        "recipe": {
+        "ingredients": {
             "titanium-alloy": 20,
             "frame-material": 20,
             "super-magnetic-ring": 25,
@@ -1485,7 +1485,7 @@
         "result": {
             "mining-machine": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 4,
             "circuit-board": 2,
             "magnetic-coil": 2,
@@ -1498,7 +1498,7 @@
         "result": {
             "missile-turret": 1
         },
-        "recipe": {}
+        "ingredients": {}
     },
     {
         "type": "assembling",
@@ -1506,7 +1506,7 @@
         "result": {
             "negentropy-smelter": 1
         },
-        "recipe": {
+        "ingredients": {
             "plane-smelter": 1,
             "negentropy-singularity": 10,
             "energy-shard": 30,
@@ -1519,7 +1519,7 @@
         "result": {
             "oil-extractor": 1
         },
-        "recipe": {
+        "ingredients": {
             "steel": 12,
             "stone-brick": 12,
             "circuit-board": 6,
@@ -1532,7 +1532,7 @@
         "result": {
             "oil-refinery": 1
         },
-        "recipe": {
+        "ingredients": {
             "steel": 10,
             "stone-brick": 10,
             "circuit-board": 6,
@@ -1545,7 +1545,7 @@
         "result": {
             "orbital-collector": 1
         },
-        "recipe": {
+        "ingredients": {
             "interstellar-logistics-station": 1,
             "super-magnetic-ring": 50,
             "reinforced-thruster": 20,
@@ -1558,7 +1558,7 @@
         "result": {
             "pile-sorter": 1
         },
-        "recipe": {
+        "ingredients": {
             "sorter-mk-iii": 2,
             "super-magnetic-ring": 1,
             "processor": 1
@@ -1570,7 +1570,7 @@
         "result": {
             "plane-smelter": 1
         },
-        "recipe": {
+        "ingredients": {
             "arc-smelter": 1,
             "frame-material": 5,
             "plane-filter": 4,
@@ -1583,7 +1583,7 @@
         "result": {
             "planetary-logistics-station": 1
         },
-        "recipe": {
+        "ingredients": {
             "steel": 40,
             "titanium-ingot": 40,
             "processor": 40,
@@ -1596,7 +1596,7 @@
         "result": {
             "planetary-shield-generator": 1
         },
-        "recipe": {
+        "ingredients": {
             "steel": 20,
             "electromagnetic-turbine": 20,
             "super-magnetic-ring": 5,
@@ -1609,7 +1609,7 @@
         "result": {
             "plasma-turret": 1
         },
-        "recipe": {
+        "ingredients": {
             "titanium-alloy": 20,
             "titanium-glass": 10,
             "super-magnetic-ring": 10,
@@ -1623,7 +1623,7 @@
         "result": {
             "quantum-chemical-plant": 1
         },
-        "recipe": {
+        "ingredients": {
             "chemical-plant": 1,
             "titanium-glass": 10,
             "strange-matter": 3,
@@ -1636,7 +1636,7 @@
         "result": {
             "ray-receiver": 1
         },
-        "recipe": {
+        "ingredients": {
             "steel": 20,
             "high-purity-silicon": 20,
             "photon-combiner": 10,
@@ -1650,7 +1650,7 @@
         "result": {
             "re-composing-assembler": 1
         },
-        "recipe": {
+        "ingredients": {
             "assembling-machine-mk-iii": 1,
             "matter-recombinator": 10,
             "energy-shard": 30,
@@ -1663,7 +1663,7 @@
         "result": {
             "satellite-substation": 1
         },
-        "recipe": {
+        "ingredients": {
             "wireless-power-tower": 1,
             "super-magnetic-ring": 10,
             "frame-material": 2
@@ -1675,7 +1675,7 @@
         "result": {
             "self-evolution-lab": 1
         },
-        "recipe": {
+        "ingredients": {
             "matrix-lab": 1,
             "silicon-based-neuron": 10,
             "dark-fog-matrix": 20,
@@ -1688,7 +1688,7 @@
         "result": {
             "signal-tower": 1
         },
-        "recipe": {
+        "ingredients": {
             "wireless-power-tower": 2,
             "steel": 12,
             "crystal-silicon": 6
@@ -1700,7 +1700,7 @@
         "result": {
             "solar-panel": 1
         },
-        "recipe": {
+        "ingredients": {
             "copper-ingot": 10,
             "high-purity-silicon": 10,
             "circuit-board": 5
@@ -1712,7 +1712,7 @@
         "result": {
             "sorter-mk-i": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 1,
             "circuit-board": 1
         }
@@ -1723,7 +1723,7 @@
         "result": {
             "sorter-mk-ii": 2
         },
-        "recipe": {
+        "ingredients": {
             "sorter-mk-i": 2,
             "electric-motor": 1
         }
@@ -1734,7 +1734,7 @@
         "result": {
             "sorter-mk-iii": 1
         },
-        "recipe": {
+        "ingredients": {
             "sorter-mk-ii": 2,
             "electromagnetic-turbine": 1
         }
@@ -1745,7 +1745,7 @@
         "result": {
             "splitter": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 3,
             "gear": 2,
             "circuit-board": 1
@@ -1757,7 +1757,7 @@
         "result": {
             "spray-coater": 1
         },
-        "recipe": {
+        "ingredients": {
             "steel": 4,
             "plasma-exciter": 2,
             "circuit-board": 2,
@@ -1770,7 +1770,7 @@
         "result": {
             "sr-plasma-turret": 1
         },
-        "recipe": {
+        "ingredients": {
             "steel": 15,
             "super-magnetic-ring": 5,
             "plasma-exciter": 5,
@@ -1783,7 +1783,7 @@
         "result": {
             "storage-tank": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 8,
             "stone-brick": 4,
             "glass": 4
@@ -1795,7 +1795,7 @@
         "result": {
             "tesla-tower": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 2,
             "magnetic-coil": 1
         }
@@ -1806,7 +1806,7 @@
         "result": {
             "thermal-power-plant": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 10,
             "stone-brick": 4,
             "gear": 4,
@@ -1819,7 +1819,7 @@
         "result": {
             "traffic-monitor": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 3,
             "gear": 2,
             "glass": 1,
@@ -1832,7 +1832,7 @@
         "result": {
             "vertical-launching-silo": 1
         },
-        "recipe": {
+        "ingredients": {
             "titanium-alloy": 80,
             "frame-material": 30,
             "graviton-lens": 20,
@@ -1845,7 +1845,7 @@
         "result": {
             "water-pump": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 8,
             "stone-brick": 4,
             "electric-motor": 4,
@@ -1858,7 +1858,7 @@
         "result": {
             "wind-turbine": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 6,
             "gear": 1,
             "magnetic-coil": 3
@@ -1870,7 +1870,7 @@
         "result": {
             "wireless-power-tower": 1
         },
-        "recipe": {
+        "ingredients": {
             "tesla-tower": 1,
             "plasma-exciter": 3
         }
@@ -1881,7 +1881,7 @@
         "result": {
             "holo-beacon": 1
         },
-        "recipe": {
+        "ingredients": {
             "iron-ingot": 3,
             "prism": 4,
             "plasma-exciter": 2,

@@ -1,265 +1,230 @@
 [
     {
         "type": "mining",
-        "from": "iron-vein",
-        "result": "iron-ore",
-        "rarity": "always"
+        "source": "iron-vein",
+        "result": "iron-ore"
     },
     {
         "type": "mining",
-        "from": "copper-vein",
-        "result": "copper-ore",
-        "rarity": "always"
+        "source": "copper-vein",
+        "result": "copper-ore"
     },
     {
         "type": "mining",
-        "from": "coal-vein",
-        "result": "coal",
-        "rarity": "always"
+        "source": "coal-vein",
+        "result": "coal"
     },
     {
         "type": "mining",
-        "from": "titanium-vein",
-        "result": "titanium-ore",
-        "rarity": "always"
+        "source": "titanium-vein",
+        "result": "titanium-ore"
     },
     {
         "type": "mining",
-        "from": "stone-vein",
-        "result": "stone",
-        "rarity": "always"
+        "source": "stone-vein",
+        "result": "stone"
     },
     {
         "type": "mining",
-        "from": "kimberlite-vein",
-        "result": "kimberlite-ore",
-        "rarity": "always"
+        "source": "kimberlite-vein",
+        "result": "kimberlite-ore"
     },
     {
         "type": "mining",
-        "from": "fractal-silicon-vein",
-        "result": "fractal-silicon",
-        "rarity": "always"
+        "source": "fractal-silicon-vein",
+        "result": "fractal-silicon"
     },
     {
         "type": "mining",
-        "from": "grating-crystal-vein",
-        "result": "grating-crystal",
-        "rarity": "always"
+        "source": "grating-crystal-vein",
+        "result": "grating-crystal"
     },
     {
         "type": "mining",
-        "from": "unipolar-magnet-vein",
-        "result": "unipolar-magnet",
-        "rarity": "always"
+        "source": "unipolar-magnet-vein",
+        "result": "unipolar-magnet"
     },
     {
         "type": "mining",
-        "from": "fire-ice-vein",
-        "result": "fire-ice",
-        "rarity": "always"
+        "source": "fire-ice-vein",
+        "result": "fire-ice"
     },
     {
         "type": "mining",
-        "from": "stalagmite-crystal-vein",
-        "result": "stalagmite-crystal",
-        "rarity": "always"
+        "source": "stalagmite-crystal-vein",
+        "result": "stalagmite-crystal"
     },
     {
         "type": "mining",
-        "from": "silicon-vein",
-        "result": "silicon-ore",
-        "rarity": "always"
+        "source": "silicon-vein",
+        "result": "silicon-ore"
     },
     {
         "type": "mining",
-        "from": "organic-crystal-vein",
-        "result": "organic-crystal",
-        "rarity": "always"
+        "source": "organic-crystal-vein",
+        "result": "organic-crystal"
     },
     {
         "type": "manual",
-        "from": "rocks",
+        "source": "rocks",
         "result": "silicon-ore",
         "rarity": "rare"
     },
     {
         "type": "manual",
-        "from": "rocks",
+        "source": "rocks",
         "result": "titanium-ore",
         "rarity": "rare"
     },
     {
         "type": "manual",
-        "from": "iron-vein",
-        "result": "iron-ore",
-        "rarity": "always"
+        "source": "iron-vein",
+        "result": "iron-ore"
     },
     {
         "type": "manual",
-        "from": "copper-vein",
-        "result": "copper-ore",
-        "rarity": "always"
+        "source": "copper-vein",
+        "result": "copper-ore"
     },
     {
         "type": "manual",
-        "from": "coal-vein",
-        "result": "coal",
-        "rarity": "always"
+        "source": "coal-vein",
+        "result": "coal"
     },
     {
         "type": "manual",
-        "from": "titanium-vein",
-        "result": "titanium-ore",
-        "rarity": "always"
+        "source": "titanium-vein",
+        "result": "titanium-ore"
     },
     {
         "type": "manual",
-        "from": "stone-vein",
-        "result": "stone",
-        "rarity": "always"
+        "source": "stone-vein",
+        "result": "stone"
     },
     {
         "type": "manual",
-        "from": "kimberlite-vein",
-        "result": "kimberlite-ore",
-        "rarity": "always"
+        "source": "kimberlite-vein",
+        "result": "kimberlite-ore"
     },
     {
         "type": "manual",
-        "from": "fractal-silicon-vein",
-        "result": "fractal-silicon",
-        "rarity": "always"
+        "source": "fractal-silicon-vein",
+        "result": "fractal-silicon"
     },
     {
         "type": "manual",
-        "from": "grating-crystal-vein",
-        "result": "grating-crystal",
-        "rarity": "always"
+        "source": "grating-crystal-vein",
+        "result": "grating-crystal"
     },
     {
         "type": "manual",
-        "from": "unipolar-magnet-vein",
-        "result": "unipolar-magnet",
-        "rarity": "always"
+        "source": "unipolar-magnet-vein",
+        "result": "unipolar-magnet"
     },
     {
         "type": "manual",
-        "from": "fire-ice-vein",
-        "result": "fire-ice",
-        "rarity": "always"
+        "source": "fire-ice-vein",
+        "result": "fire-ice"
     },
     {
         "type": "manual",
-        "from": "stalagmite-crystal-vein",
-        "result": "stalagmite-crystal",
-        "rarity": "always"
+        "source": "stalagmite-crystal-vein",
+        "result": "stalagmite-crystal"
     },
     {
         "type": "manual",
-        "from": "silicon-vein",
-        "result": "silicon-ore",
-        "rarity": "always"
+        "source": "silicon-vein",
+        "result": "silicon-ore"
     },
     {
         "type": "manual",
-        "from": "organic-crystal-vein",
-        "result": "organic-crystal",
-        "rarity": "always"
+        "source": "organic-crystal-vein",
+        "result": "organic-crystal"
     },
     {
         "type": "oil-collection",
-        "from": "oil-seep",
-        "result": "crude-oil",
-        "rarity": "always"
+        "source": "oil-seep",
+        "result": "crude-oil"
     },
     {
         "type": "pumping",
-        "from": "ocean",
-        "result": "water",
-        "rarity": "always"
+        "source": "ocean",
+        "result": "water"
     },
     {
         "type": "pumping",
-        "from": "sulfuric-acid-ocean",
-        "result": "sulfuric-acid",
-        "rarity": "always"
+        "source": "sulfuric-acid-ocean",
+        "result": "sulfuric-acid"
     },
     {
         "type": "manual",
-        "from": "rocks",
-        "result": "stone",
-        "rarity": "always"
+        "source": "rocks",
+        "result": "stone"
     },
     {
         "type": "manual",
-        "from": "plants",
-        "result": "log",
-        "rarity": "always"
+        "source": "plants",
+        "result": "log"
     },
     {
         "type": "manual",
-        "from": "plants",
-        "result": "plant-fuel",
-        "rarity": "always"
+        "source": "plants",
+        "result": "plant-fuel"
     },
     {
         "type": "manual",
-        "from": "plants",
+        "source": "plants",
         "result": "organic-crystal",
         "rarity": "rare"
     },
     {
         "type": "manual",
-        "from": "plants",
+        "source": "plants",
         "result": "carbon-nanotube",
         "rarity": "rare"
     },
     {
         "type": "manual",
-        "from": "plants",
+        "source": "plants",
         "result": "sulfuric-acid",
         "rarity": "rare"
     },
     {
         "type": "manual",
-        "from": "gas-giant",
-        "result": "hydrogen",
-        "rarity": "always"
+        "source": "gas-giant",
+        "result": "hydrogen"
     },
     {
         "type": "manual",
-        "from": "gas-giant",
+        "source": "gas-giant",
         "result": "deuterium",
         "rarity": "rare"
     },
     {
         "type": "manual",
-        "from": "gas-giant",
+        "source": "gas-giant",
         "result": "fire-ice",
         "rarity": "rare"
     },
     {
         "type": "orbital-collection",
-        "from": "gas-giant",
-        "result": "hydrogen",
-        "rarity": "always"
+        "source": "gas-giant",
+        "result": "hydrogen"
     },
     {
         "type": "orbital-collection",
-        "from": "gas-giant",
+        "source": "gas-giant",
         "result": "deuterium",
         "rarity": "rare"
     },
     {
         "type": "orbital-collection",
-        "from": "gas-giant",
+        "source": "gas-giant",
         "result": "fire-ice",
         "rarity": "rare"
     },
     {
         "type": "photon-collection",
-        "result": "critical-photon",
-        "rarity": "always"
+        "result": "critical-photon"
     }
 ]

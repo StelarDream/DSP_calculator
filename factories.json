@@ -1,0 +1,52 @@
+{
+    "assembling": {
+        "assembling-machine-mk-i": {
+            "speed": 0.75
+        },
+        "assembling-machine-mk-ii": {
+            "speed": 1
+        },
+        "assembling-machine-mk-iii": {
+            "speed": 1.5
+        },
+        "re-composing-assembler": {
+            "speed": 3
+        }
+    },
+    "smelting": {
+        "arc-smelter": {
+            "speed": 1
+        },
+        "plane-smelter": {
+            "speed": 2
+        },
+        "negentropy-smelter": {
+            "speed": 3
+        }
+    },
+    "lab": {
+        "matrix-lab": {
+            "speed": 1
+        },
+        "self-evolution-lab": {
+            "speed": 3
+        }
+    },
+    "refining": {
+        "oil-refinery": {}
+    },
+    "chemical": {
+        "chemical-plant": {
+            "speed": 1
+        },
+        "quantum-chemical-plant": {
+            "speed": 2
+        }
+    },
+    "fractionating": {
+        "fractionator": {}
+    },
+    "colliding": {
+        "miniature-particle-collider": {}
+    }
+}
