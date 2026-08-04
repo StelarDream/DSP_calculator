@@ -601,6 +601,24 @@ body {
   color: var(--secondary);
 }
 
+.tree-node-ingredients {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.tree-node-ingredient-icon {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  border-radius: 3px;
+  /* Only ever shown on the yellow-toned choice card - a warmer tile than
+     --bg-panel-alt so it reads as part of the card, not a mismatched chip. */
+  background: rgba(255, 245, 158, 0.28);
+}
+
 .tree-node-chevron {
   flex: 0 0 auto;
   display: inline-flex;

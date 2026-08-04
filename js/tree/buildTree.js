@@ -65,7 +65,7 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
     // options as the node's "children" instead of guessing one. Resolves
     // into real ingredient children once onChoose records a pick.
     node.needsChoice = true;
-    node.children = recipeOptions.map((recipe) => buildChoiceNode(recipe, itemId, path, depth));
+    node.children = recipeOptions.map((recipe) => buildChoiceNode(recipe, itemId, path, depth, registries));
     return node;
   }
 
@@ -119,7 +119,9 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
 // A pseudo-node standing in for "expand using this recipe" - not a real
 // ingredient, so it doesn't recurse and isn't tracked in `ancestors`.
 // parentPath is what onChoose(parentPath, recipe.id) records the pick under.
-function buildChoiceNode(recipe, itemId, parentPath, depth) {
+// ingredientIcons is precomputed here (rather than left to the renderer)
+// since resolving item icons is what buildTree already has registries for.
+function buildChoiceNode(recipe, itemId, parentPath, depth, registries) {
   return {
     path: `${parentPath}»${recipe.id}`,
     parentPath,
@@ -133,6 +135,10 @@ function buildChoiceNode(recipe, itemId, parentPath, depth) {
     needsChoice: false,
     recipeOptions: [],
     recipe,
+    ingredientIcons: Object.keys(recipe.ingredients).map((id) => ({
+      id,
+      icon: registries.objects.get(id)?.icon,
+    })),
     isCollapsed: false,
     children: [],
   };

@@ -87,9 +87,9 @@ export function renderTreeNode(node, handlers = {}) {
 
 // One candidate recipe, shown in place of a craftable node's children when
 // it has more than one option and none has been picked yet - see
-// buildTree.js's needsChoice. Distinguished by recipe *type* + a summary of
-// its ingredients, since the item icon/name would be identical across every
-// option (they all produce the same thing).
+// buildTree.js's needsChoice. Distinguished by recipe *type* + an icon
+// preview of its ingredients, since the item icon/name would be identical
+// across every option (they all produce the same thing).
 function renderChoiceNode(node, onChoose) {
   const el = document.createElement('button');
   el.type = 'button';
@@ -110,11 +110,18 @@ function renderChoiceNode(node, onChoose) {
   name.className = 'tree-node-name';
   name.textContent = formatLabel(node.recipe.type);
 
-  const via = document.createElement('span');
-  via.className = 'tree-node-qty';
-  via.textContent = Object.keys(node.recipe.ingredients).map(formatLabel).join(', ');
+  const ingredients = document.createElement('span');
+  ingredients.className = 'tree-node-ingredients';
+  for (const { id, icon } of node.ingredientIcons) {
+    const ingredientIcon = document.createElement('img');
+    ingredientIcon.className = 'tree-node-ingredient-icon';
+    ingredientIcon.src = icon ?? '';
+    ingredientIcon.alt = formatLabel(id);
+    ingredientIcon.title = formatLabel(id);
+    ingredients.appendChild(ingredientIcon);
+  }
 
-  info.append(name, via);
+  info.append(name, ingredients);
   el.append(icon, info);
   return el;
 }
