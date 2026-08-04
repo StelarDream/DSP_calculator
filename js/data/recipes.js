@@ -22,5 +22,14 @@ export async function loadRecipes() {
     }
   }
 
-  return { recipes, byResultItem };
+  // Which recipes consume a given item (i.e. what it's "used in").
+  const byIngredientItem = new Map();
+  for (const recipe of recipes) {
+    for (const itemId of Object.keys(recipe.ingredients)) {
+      if (!byIngredientItem.has(itemId)) byIngredientItem.set(itemId, []);
+      byIngredientItem.get(itemId).push(recipe);
+    }
+  }
+
+  return { recipes, byResultItem, byIngredientItem };
 }

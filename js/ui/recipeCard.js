@@ -3,11 +3,11 @@ import { renderEntityRow } from './entityRow.js';
 import { renderMetaBar, renderStat, renderIconRow, svgIcon, imgIcon } from './metaBar.js';
 import { CLOCK_ICON, CHANCE_ICON } from './icons.js';
 
-export function renderRecipeCard(recipe, registries) {
+export function renderRecipeCard(recipe, registries, onSelect) {
   const card = document.createElement('div');
   card.className = 'recipe-card';
   card.appendChild(renderMeta(recipe, registries));
-  card.appendChild(renderGrid(recipe, registries.objects));
+  card.appendChild(renderGrid(recipe, registries.objects, onSelect));
   return card;
 }
 
@@ -33,23 +33,23 @@ function renderMeta(recipe, registries) {
   return renderMetaBar(left, right);
 }
 
-function renderGrid(recipe, objects) {
+function renderGrid(recipe, objects, onSelect) {
   const grid = document.createElement('div');
   grid.className = 'recipe-grid';
 
-  grid.appendChild(renderSide('Ingredients', recipe.ingredients, objects));
+  grid.appendChild(renderSide('Ingredients', recipe.ingredients, objects, onSelect));
 
   const arrow = document.createElement('div');
   arrow.className = 'recipe-arrow';
   arrow.textContent = '→';
   grid.appendChild(arrow);
 
-  grid.appendChild(renderSide('Result', recipe.result, objects));
+  grid.appendChild(renderSide('Result', recipe.result, objects, onSelect));
 
   return grid;
 }
 
-function renderSide(label, entries, objects) {
+function renderSide(label, entries, objects, onSelect) {
   const side = document.createElement('div');
   side.className = 'recipe-side';
 
@@ -59,7 +59,7 @@ function renderSide(label, entries, objects) {
   side.appendChild(heading);
 
   for (const [id, qty] of Object.entries(entries)) {
-    side.appendChild(renderEntityRow(objects.get(id), formatLabel(id), qty));
+    side.appendChild(renderEntityRow({ id, entity: objects.get(id), label: formatLabel(id), qty, onSelect }));
   }
 
   return side;

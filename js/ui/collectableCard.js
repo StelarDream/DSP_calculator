@@ -2,14 +2,19 @@ import { formatLabel } from './format.js';
 import { renderEntityRow } from './entityRow.js';
 import { renderMetaBar, renderStat, renderIconRow, imgIcon } from './metaBar.js';
 
-export function renderCollectableCard(collectable, registries) {
+export function renderCollectableCard(collectable, registries, onSelect) {
   const card = document.createElement('div');
   card.className = 'recipe-card';
   card.appendChild(renderMeta(collectable, registries));
 
   if (collectable.source) {
     const sourceObj = registries.objects.get(collectable.source);
-    card.appendChild(renderEntityRow(sourceObj, formatLabel(collectable.source)));
+    card.appendChild(renderEntityRow({
+      id: collectable.source,
+      entity: sourceObj,
+      label: formatLabel(collectable.source),
+      onSelect,
+    }));
   }
 
   return card;

@@ -13,6 +13,10 @@ export const FILTER_DEFS = {
     { key: 'factory', label: 'Factories' },
     { key: 'collector', label: 'Collectors' },
   ],
+  // No sub-categories for sources yet - just the "All" slot.
+  source: [
+    { key: 'all', label: 'All' },
+  ],
 };
 
 export function renderFilters(container, tab, activeFilter, onSelect) {

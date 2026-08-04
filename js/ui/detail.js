@@ -1,9 +1,11 @@
 import { formatLabel } from './format.js';
 import { renderRecipeCard } from './recipeCard.js';
 import { renderCollectableCard } from './collectableCard.js';
+import { renderUsedInIcons } from './usedInIcons.js';
 
-export function renderDetail(container, object, registries) {
+export function renderDetail(container, object, registries, onSelect) {
   container.innerHTML = '';
+  container.scrollTop = 0;
 
   if (!object) {
     container.appendChild(renderEmptyState());
@@ -19,13 +21,29 @@ export function renderDetail(container, object, registries) {
 
   if (object.tags.has('craftable')) {
     const recipes = registries.recipes.byResultItem.get(object.id) ?? [];
-    const cards = recipes.map((recipe) => renderRecipeCard(recipe, registries));
+    const cards = recipes.map((recipe) => renderRecipeCard(recipe, registries, onSelect));
     container.appendChild(renderSection('Crafting Recipes', cards));
+  }
+
+  // Only shown when the item is actually consumed by at least one recipe.
+  // Condensed to just the icons of what it's used to craft, not full cards.
+  const usedIn = registries.recipes.byIngredientItem.get(object.id) ?? [];
+  if (usedIn.length > 0) {
+    const section = document.createElement('section');
+    section.className = 'detail-section';
+
+    const heading = document.createElement('h3');
+    heading.className = 'detail-section-title';
+    heading.textContent = 'Used In';
+    section.appendChild(heading);
+
+    section.appendChild(renderUsedInIcons(usedIn, registries.objects, onSelect));
+    container.appendChild(section);
   }
 
   if (object.tags.has('collectable')) {
     const collectables = registries.collectables.collectables.filter((c) => c.result === object.id);
-    const cards = collectables.map((collectable) => renderCollectableCard(collectable, registries));
+    const cards = collectables.map((collectable) => renderCollectableCard(collectable, registries, onSelect));
     container.appendChild(renderSection('Collection Methods', cards));
   }
 }

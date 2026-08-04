@@ -504,6 +504,41 @@ body {
   margin-top: 12px;
 }
 
+.used-in-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.used-in-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 5px;
+  margin: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.used-in-item:hover {
+  border-color: var(--primary-border);
+}
+
+.used-in-icon {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: var(--bg-panel-alt);
+}
+
 /* Recipe card */
 
 .recipe-card {
@@ -621,10 +656,16 @@ img.meta-stat-icon {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
   padding: 8px 10px;
+  margin: 0;
   background: var(--bg-elevated);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-sm);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
