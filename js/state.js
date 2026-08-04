@@ -3,5 +3,8 @@
 export const state = {
   tab: 'items',
   filter: 'all',
+  search: '',
+  selectedId: null,
   registries: null,
+  categories: null,
 };
