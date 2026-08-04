@@ -312,17 +312,6 @@
             "reinforced-thruster": 1
         },
         "ingredients": {
-            "titanium-alloy": 2,
-            "electromagnetic-turbine": 5
-        }
-    },
-    {
-        "type": "assembling",
-        "time": 6,
-        "result": {
-            "reinforced-thruster": 1
-        },
-        "ingredients": {
             "titanium-alloy": 5,
             "electromagnetic-turbine": 5
         }
@@ -456,7 +445,7 @@
             "organic-crystal": 1
         },
         "ingredients": {
-            "plastic": 1,
+            "plastic": 2,
             "refined-oil": 1,
             "water": 1
         }
@@ -671,7 +660,7 @@
             "frame-material": 1
         },
         "ingredients": {
-            "carbon-nanotube": 6,
+            "carbon-nanotube": 4,
             "titanium-alloy": 1,
             "high-purity-silicon": 1
         }
@@ -744,7 +733,7 @@
         "ingredients": {
             "titanium-alloy": 10,
             "processor": 10,
-            "reinforced-thruster": 1
+            "reinforced-thruster": 2
         }
     },
     {
@@ -801,7 +790,7 @@
     },
     {
         "type": "assembling",
-        "time": 2,
+        "time": 8,
         "result": {
             "destroyer": 1
         },
@@ -850,7 +839,7 @@
     },
     {
         "type": "assembling",
-        "time": 6,
+        "time": 32,
         "result": {
             "strange-annihilation-fuel-rod": 2
         },
@@ -941,7 +930,7 @@
             "copper-ingot": 6,
             "circuit-board": 3,
             "combustible-unit": 2,
-            "engine": 2
+            "engine": 1
         }
     },
     {
@@ -1033,7 +1022,7 @@
         },
         "ingredients": {
             "titanium-ammo-box": 1,
-            "titanium-alloy": 2
+            "titanium-alloy": 1
         }
     },
     {
@@ -1249,7 +1238,7 @@
             "chemical-plant": 1
         },
         "ingredients": {
-            "steel": 6,
+            "steel": 8,
             "stone-brick": 8,
             "glass": 8,
             "circuit-board": 2
@@ -1441,7 +1430,7 @@
     },
     {
         "type": "assembling",
-        "time": 2,
+        "time": 3,
         "result": {
             "matrix-lab": 1
         },
@@ -1494,11 +1483,16 @@
     },
     {
         "type": "assembling",
-        "time": 100000000,
+        "time": 6,
         "result": {
             "missile-turret": 1
         },
-        "ingredients": {}
+        "ingredients": {
+            "steel": 8,
+            "electric-motor": 6,
+            "circuit-board": 12,
+            "engine": 6
+        }
     },
     {
         "type": "assembling",
@@ -1866,7 +1860,7 @@
     },
     {
         "type": "assembling",
-        "time": 2,
+        "time": 3,
         "result": {
             "wireless-power-tower": 1
         },
