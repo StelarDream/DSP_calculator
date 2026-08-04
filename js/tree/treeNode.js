@@ -1,18 +1,25 @@
 import { formatLabel } from '../ui/format.js';
-import { CHEVRON_ICON } from '../ui/icons.js';
+import { CHEVRON_ICON, EDIT_ICON } from '../ui/icons.js';
 import { NODE_WIDTH, NODE_HEIGHT } from './constants.js';
 
 // A single fixed-size card in the tree canvas. Three flavors:
 //  - choice: "expand using this recipe" - see renderChoiceNode.
 //  - leaf/cycle: plain, non-interactive card.
-//  - craftable: a button with a chevron, toggling expand/collapse via
-//    handlers.onToggle(path, wasCollapsed) on click.
+//  - craftable: div[role="button"] with a chevron, toggling expand/collapse
+//    via handlers.onToggle(path, wasCollapsed) on click. (A real <button>
+//    can't be used here since a resolved multi-recipe node nests an actual
+//    <button> - the "change recipe" badge - inside it.)
 export function renderTreeNode(node, handlers = {}) {
   if (node.isChoice) return renderChoiceNode(node, handlers.onChoose);
 
-  const { onToggle } = handlers;
+  const { onToggle, onEdit } = handlers;
   const expandable = !node.isLeaf && typeof onToggle === 'function';
-  const el = document.createElement(expandable ? 'button' : 'div');
+  // Only makes sense once resolved to a specific recipe (not mid-choice)
+  // and expanded (so there's actually a visible branch to relabel).
+  const editable = expandable && !node.isCollapsed && !node.needsChoice
+    && node.recipeOptions.length > 1 && typeof onEdit === 'function';
+
+  const el = document.createElement('div');
   el.className = 'tree-node';
   if (node.isLeaf) el.classList.add('tree-node--leaf');
   if (node.isCycle) el.classList.add('tree-node--cycle');
@@ -20,9 +27,16 @@ export function renderTreeNode(node, handlers = {}) {
   el.style.height = `${NODE_HEIGHT}px`;
 
   if (expandable) {
-    el.type = 'button';
     el.classList.add('tree-node--expandable');
-    el.addEventListener('click', () => onToggle(node.path, node.isCollapsed));
+    el.setAttribute('role', 'button');
+    el.tabIndex = 0;
+    const toggle = () => onToggle(node.path, node.isCollapsed);
+    el.addEventListener('click', toggle);
+    el.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      toggle();
+    });
   }
 
   const icon = document.createElement('img');
@@ -50,6 +64,22 @@ export function renderTreeNode(node, handlers = {}) {
     if (!node.isCollapsed) chevron.classList.add('tree-node-chevron--open');
     chevron.innerHTML = CHEVRON_ICON;
     el.appendChild(chevron);
+  }
+
+  if (editable) {
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'tree-node-edit';
+    edit.title = 'Change recipe';
+    edit.setAttribute('aria-label', 'Change recipe');
+    edit.innerHTML = EDIT_ICON;
+    // Stop it reaching the card's own click (which would toggle collapse)
+    // and reopen the choice step for this node instead.
+    edit.addEventListener('click', (event) => {
+      event.stopPropagation();
+      onEdit(node.path);
+    });
+    el.appendChild(edit);
   }
 
   return el;

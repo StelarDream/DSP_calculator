@@ -72,6 +72,10 @@ function renderCanvas(subjectId, recipe, registries) {
         choices.set(path, recipeId);
         rerender();
       },
+      onEdit(path) {
+        choices.delete(path);
+        rerender();
+      },
     });
   }
   rerender();

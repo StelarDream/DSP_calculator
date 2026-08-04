@@ -48,10 +48,12 @@ export function createPanZoom(viewport, world, { minScale = 0.25, maxScale = 2.5
   function onPointerDown(event) {
     // Only the primary button/touch pans - avoids hijacking right-click etc.
     if (event.button !== 0) return;
-    // Let interactive elements sitting on the canvas (toolbar buttons, and
-    // later node controls) handle their own clicks - grabbing pointer
-    // capture here would hijack the click before it ever fires.
-    if (event.target.closest('button, a, input, select, textarea')) return;
+    // Let interactive elements sitting on the canvas (toolbar buttons, node
+    // toggles/edit controls) handle their own clicks - grabbing pointer
+    // capture here would hijack the click before it ever fires. Tree nodes
+    // are div[role="button"] rather than real <button>s, since a node can
+    // itself contain a nested edit button.
+    if (event.target.closest('button, a, input, select, textarea, [role="button"]')) return;
     dragging = true;
     lastX = event.clientX;
     lastY = event.clientY;

@@ -619,6 +619,37 @@ body {
   transform: rotate(90deg);
 }
 
+/* "Change recipe" badge - straddles the card's right edge, right where its
+   branch line to the children begins. */
+.tree-node-edit {
+  position: absolute;
+  right: -11px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  z-index: 1;
+}
+
+.tree-node-edit svg {
+  width: 13px;
+  height: 13px;
+}
+
+.tree-node-edit:hover {
+  color: var(--secondary);
+  border-color: var(--secondary-border);
+}
+
 .detail-header {
   display: flex;
   align-items: center;
