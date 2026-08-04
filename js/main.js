@@ -5,6 +5,7 @@ import { renderFilters } from './ui/filters.js';
 import { renderList } from './ui/list.js';
 import { renderDetail } from './ui/detail.js';
 import { renderTreeView } from './ui/treeView.js';
+import { deserializeTreeState } from './tree/serializeTree.js';
 import { selectEntities } from './selectEntities.js';
 
 export async function init() {
@@ -29,7 +30,7 @@ export async function init() {
 
   function updateDetail() {
     if (state.view === 'tree' && state.treeRecipe) {
-      renderTreeView(detailContainer, state.selectedId, state.treeRecipe, state.registries, exitTreeView);
+      renderTreeView(detailContainer, state.selectedId, state.treeRecipe, state.registries, exitTreeView, state.treeInitialState);
       return;
     }
 
@@ -41,12 +42,14 @@ export async function init() {
   function generateTree(recipe) {
     state.view = 'tree';
     state.treeRecipe = recipe;
+    state.treeInitialState = null;
     updateDetail();
   }
 
   function exitTreeView() {
     state.view = 'detail';
     state.treeRecipe = null;
+    state.treeInitialState = null;
     updateDetail();
   }
 
@@ -60,6 +63,7 @@ export async function init() {
     state.selectedId = id;
     state.view = 'detail';
     state.treeRecipe = null;
+    state.treeInitialState = null;
     updateList();
     updateDetail();
   }
@@ -70,6 +74,7 @@ export async function init() {
     state.selectedId = null;
     state.view = 'detail';
     state.treeRecipe = null;
+    state.treeInitialState = null;
     updateFilters();
     updateList();
     updateDetail();
@@ -84,5 +89,27 @@ export async function init() {
 
   state.registries = await loadRegistries();
 
+  restoreSharedTree();
   updateList();
+  updateDetail();
+
+  // If the URL carries a ?tree= share code, opens straight into that tree
+  // instead of the normal empty state. Silently does nothing on anything
+  // invalid/stale (unknown item, removed recipe) - falls back to the
+  // regular empty state rather than erroring out.
+  function restoreSharedTree() {
+    const code = new URLSearchParams(location.search).get('tree');
+    if (!code) return;
+
+    const restored = deserializeTreeState(code);
+    if (!restored || !state.registries.objects.has(restored.subjectId)) return;
+
+    const recipe = state.registries.recipes.recipes.find((r) => r.id === restored.recipeId);
+    if (!recipe) return;
+
+    state.selectedId = restored.subjectId;
+    state.view = 'tree';
+    state.treeRecipe = recipe;
+    state.treeInitialState = { choices: restored.choices, overrides: restored.overrides };
+  }
 }

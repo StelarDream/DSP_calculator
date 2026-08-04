@@ -900,6 +900,14 @@ body {
   border-color: var(--primary-border);
 }
 
+/* Brief post-click confirmation (e.g. "link copied") - see
+   treeView.js's flashCopied. */
+.icon-btn--confirm {
+  color: var(--primary);
+  border-color: var(--primary-border);
+  background: var(--primary-dim);
+}
+
 .meta-group {
   display: flex;
   align-items: center;

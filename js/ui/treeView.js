@@ -1,22 +1,25 @@
 import { formatLabel } from './format.js';
-import { BACK_ICON, ZOOM_IN_ICON, ZOOM_OUT_ICON, FIT_VIEW_ICON } from './icons.js';
+import { BACK_ICON, ZOOM_IN_ICON, ZOOM_OUT_ICON, FIT_VIEW_ICON, SHARE_ICON, CHECK_ICON } from './icons.js';
 import { renderIconButton } from './metaBar.js';
 import { buildTree } from '../tree/buildTree.js';
 import { createTreeWorld, renderTreeInto } from '../tree/treeCanvas.js';
 import { createPanZoom } from '../tree/panZoom.js';
+import { serializeTreeState } from '../tree/serializeTree.js';
 
 // Full-pane recipe-tree view, swapped in over the normal detail pane when a
-// recipe card's tree button is clicked.
+// recipe card's tree button is clicked (or a shared link is opened).
 // subjectId: the object whose page the recipe card was on (still highlighted
 // in the sidebar) - used for the title instead of guessing from the recipe's
 // result, which can list multiple/unrelated items (e.g. byproducts). Also
 // seeds the root's recipe choice, so the tree honors *which* recipe card
 // was clicked rather than always defaulting to the first one found.
-export function renderTreeView(container, subjectId, recipe, registries, onBack) {
+// initialState: { choices, overrides } to seed the tree with instead of
+// starting fresh - how a shared link restores its exact state.
+export function renderTreeView(container, subjectId, recipe, registries, onBack, initialState) {
   container.innerHTML = '';
   container.scrollTop = 0;
 
-  const { canvas, fit } = renderCanvas(subjectId, recipe, registries);
+  const { canvas, fit } = renderCanvas(subjectId, recipe, registries, initialState);
   container.appendChild(renderHeader(subjectId, onBack));
   container.appendChild(canvas);
 
@@ -44,15 +47,18 @@ function renderHeader(subjectId, onBack) {
   return header;
 }
 
-function renderCanvas(subjectId, recipe, registries) {
+function renderCanvas(subjectId, recipe, registries, initialState) {
   const canvas = document.createElement('div');
   canvas.className = 'tree-view-canvas blueprint-grid';
 
-  // Local to this tree view session - which recipe each node uses (seeded
-  // with the recipe the tree button was clicked from) and which nodes have
-  // been manually expanded/collapsed, overriding the default-depth rule.
-  const choices = new Map([[subjectId, recipe.id]]);
-  const overrides = new Map();
+  // Local to this tree view session - which recipe each node uses and
+  // which nodes have been manually expanded/collapsed, overriding the
+  // default-depth rule. Seeded from a shared link when there is one,
+  // otherwise starts fresh with just the root's recipe (the one the tree
+  // button was clicked from).
+  const choices = new Map(initialState?.choices);
+  const overrides = new Map(initialState?.overrides);
+  choices.set(subjectId, recipe.id);
 
   const world = createTreeWorld();
   canvas.appendChild(world);
@@ -81,18 +87,60 @@ function renderCanvas(subjectId, recipe, registries) {
   rerender();
 
   const fit = () => panZoom.fitToView(size.width, size.height);
-  canvas.appendChild(renderToolbar(panZoom, fit));
+  const shareUrl = () => buildShareUrl(subjectId, recipe.id, choices, overrides);
+  canvas.appendChild(renderToolbar(panZoom, fit, shareUrl));
 
   return { canvas, fit };
 }
 
-function renderToolbar(panZoom, fit) {
+function buildShareUrl(subjectId, recipeId, choices, overrides) {
+  const code = serializeTreeState({ subjectId, recipeId, choices, overrides });
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.searchParams.set('tree', code);
+  return url.toString();
+}
+
+function renderToolbar(panZoom, fit, shareUrl) {
   const toolbar = document.createElement('div');
   toolbar.className = 'tree-toolbar';
   toolbar.append(
     renderIconButton(ZOOM_IN_ICON, 'Zoom in', () => panZoom.zoomIn()),
     renderIconButton(ZOOM_OUT_ICON, 'Zoom out', () => panZoom.zoomOut()),
     renderIconButton(FIT_VIEW_ICON, 'Fit to view', fit),
+    renderShareButton(shareUrl),
   );
   return toolbar;
+}
+
+function renderShareButton(shareUrl) {
+  const label = 'Copy shareable link';
+  const button = renderIconButton(SHARE_ICON, label, async () => {
+    const url = shareUrl();
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      // Clipboard API can be blocked (permissions, insecure context) - fall
+      // back to a prompt so the link is still obtainable by hand.
+      window.prompt('Copy this link:', url);
+    }
+    flashCopied(button, label);
+  });
+  return button;
+}
+
+// Briefly swaps the button to a checkmark so a click has visible feedback,
+// then reverts - the only signal a clipboard write otherwise gives.
+function flashCopied(button, label) {
+  button.innerHTML = CHECK_ICON;
+  button.classList.add('icon-btn--confirm');
+  button.title = 'Copied!';
+  button.setAttribute('aria-label', 'Copied!');
+
+  setTimeout(() => {
+    button.innerHTML = SHARE_ICON;
+    button.classList.remove('icon-btn--confirm');
+    button.title = label;
+    button.setAttribute('aria-label', label);
+  }, 1500);
 }

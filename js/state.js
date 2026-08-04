@@ -10,4 +10,8 @@ export const state = {
   // view for treeRecipe (set via the tree button on a recipe card).
   view: 'detail',
   treeRecipe: null,
+  // { choices, overrides } to seed the tree view with instead of starting
+  // fresh - only set when restoring a shared link (see main.js), and
+  // consumed once by the next renderTreeView call.
+  treeInitialState: null,
 };
