@@ -482,13 +482,80 @@ body {
 .tree-view-canvas {
   height: calc(100% - 68px);
   min-height: 320px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
+  overflow: auto;
   border: 1px dashed var(--border);
   border-radius: var(--radius-lg);
   color: var(--text-muted);
+}
+
+/* Sized to fit the whole laid-out tree - see treeCanvas.js. Positioned so
+   the SVG edge overlay and the absolutely-placed node cards share the same
+   coordinate space. */
+.tree-world {
+  position: relative;
+}
+
+.tree-edges {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.tree-edge {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 2;
+}
+
+.tree-node {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+}
+
+.tree-node--leaf {
+  background: var(--bg-panel-alt);
+  border-style: dashed;
+}
+
+.tree-node--cycle {
+  border-color: var(--secondary-border);
+}
+
+.tree-node-icon {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.tree-node-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.tree-node-name {
+  font-family: var(--font-accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-node-qty {
+  font-size: 0.78rem;
+  color: var(--secondary);
 }
 
 .detail-header {

@@ -1,18 +1,21 @@
 import { formatLabel } from './format.js';
 import { BACK_ICON } from './icons.js';
+import { buildTree } from '../tree/buildTree.js';
+import { renderTreeCanvas } from '../tree/treeCanvas.js';
 
 // Full-pane recipe-tree view, swapped in over the normal detail pane when a
-// recipe card's tree button is clicked. Tree generation itself isn't built
-// yet - this just establishes the view and its way back out.
+// recipe card's tree button is clicked.
 // subjectId: the object whose page the recipe card was on (still highlighted
 // in the sidebar) - used for the title instead of guessing from the recipe's
-// result, which can list multiple/unrelated items (e.g. byproducts).
+// result, which can list multiple/unrelated items (e.g. byproducts). Also
+// seeds the root's recipe choice, so the tree honors *which* recipe card
+// was clicked rather than always defaulting to the first one found.
 export function renderTreeView(container, subjectId, recipe, registries, onBack) {
   container.innerHTML = '';
   container.scrollTop = 0;
 
   container.appendChild(renderHeader(subjectId, onBack));
-  container.appendChild(renderCanvas());
+  container.appendChild(renderCanvas(subjectId, recipe, registries));
 }
 
 function renderHeader(subjectId, onBack) {
@@ -33,13 +36,13 @@ function renderHeader(subjectId, onBack) {
   return header;
 }
 
-function renderCanvas() {
+function renderCanvas(subjectId, recipe, registries) {
   const canvas = document.createElement('div');
   canvas.className = 'tree-view-canvas blueprint-grid';
 
-  const placeholder = document.createElement('p');
-  placeholder.textContent = 'Tree generation coming soon.';
-  canvas.appendChild(placeholder);
+  const choices = new Map([[subjectId, recipe.id]]);
+  const tree = buildTree(subjectId, 1, registries, { choices });
+  canvas.appendChild(renderTreeCanvas(tree));
 
   return canvas;
 }
