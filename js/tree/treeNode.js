@@ -39,10 +39,26 @@ export function renderTreeNode(node, handlers = {}) {
     });
   }
 
+  const iconWrap = document.createElement('div');
+  iconWrap.className = 'tree-node-icon-wrap';
+
   const icon = document.createElement('img');
   icon.className = 'tree-node-icon';
   icon.src = node.object?.icon ?? '';
   icon.alt = '';
+  iconWrap.appendChild(icon);
+
+  // Only known once a node is expanded *and* resolved to a specific recipe
+  // (not mid-choice, not collapsed) - see buildTree.js. Shows which
+  // building/crafting-table type is responsible for this node.
+  if (node.recipe) {
+    const badge = document.createElement('img');
+    badge.className = 'tree-node-type-badge';
+    badge.src = `assets/recipe-types/${node.recipe.type}.png`;
+    badge.alt = '';
+    badge.title = formatLabel(node.recipe.type);
+    iconWrap.appendChild(badge);
+  }
 
   const info = document.createElement('div');
   info.className = 'tree-node-info';
@@ -56,7 +72,7 @@ export function renderTreeNode(node, handlers = {}) {
   qty.textContent = `×${formatQty(node.qty)}`;
 
   info.append(name, qty);
-  el.append(icon, info);
+  el.append(iconWrap, info);
 
   if (expandable) {
     const chevron = document.createElement('span');

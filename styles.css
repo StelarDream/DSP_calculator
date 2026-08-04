@@ -570,11 +570,37 @@ body {
   color: var(--secondary);
 }
 
+.tree-node-icon-wrap {
+  position: relative;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+}
+
 .tree-node-icon {
+  /* Fixed size on the img itself, not just via .tree-node-icon-wrap - the
+     choice card (renderChoiceNode) uses this class directly with no wrapper. */
   flex: 0 0 auto;
   width: 30px;
   height: 30px;
   object-fit: contain;
+  -webkit-user-drag: none;
+}
+
+/* Which building/crafting-table type produces this node - see
+   node.recipe in treeNode.js. Overlaps the item icon's corner rather than
+   taking its own space, since the card is already tight on width. */
+.tree-node-type-badge {
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  padding: 1px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: 4px;
   -webkit-user-drag: none;
 }
 
