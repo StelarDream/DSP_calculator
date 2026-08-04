@@ -48,6 +48,10 @@ export function createPanZoom(viewport, world, { minScale = 0.25, maxScale = 2.5
   function onPointerDown(event) {
     // Only the primary button/touch pans - avoids hijacking right-click etc.
     if (event.button !== 0) return;
+    // Let interactive elements sitting on the canvas (toolbar buttons, and
+    // later node controls) handle their own clicks - grabbing pointer
+    // capture here would hijack the click before it ever fires.
+    if (event.target.closest('button, a, input, select, textarea')) return;
     dragging = true;
     lastX = event.clientX;
     lastY = event.clientY;
