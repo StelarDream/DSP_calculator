@@ -4,8 +4,9 @@
     {
       "name": "dsp-static",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["-y", "serve", "-l", "5757"],
-      "port": 5757
+      "runtimeArgs": ["-y", "serve"],
+      "port": 5757,
+      "autoPort": true
     }
   ]
 }
