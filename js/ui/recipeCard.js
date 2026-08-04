@@ -8,15 +8,15 @@ import { CLOCK_ICON, CHANCE_ICON, TREE_ICON } from './icons.js';
 export function renderRecipeCard(recipe, registries, onSelect, onGenerateTree) {
   const card = document.createElement('div');
   card.className = 'recipe-card';
-  card.appendChild(renderHeader(recipe, registries, onGenerateTree));
+  card.appendChild(renderHeader(recipe, registries, onSelect, onGenerateTree));
   card.appendChild(renderGrid(recipe, registries.objects, onSelect));
   return card;
 }
 
-function renderHeader(recipe, registries, onGenerateTree) {
+function renderHeader(recipe, registries, onSelect, onGenerateTree) {
   const header = document.createElement('div');
   header.className = 'recipe-card-header';
-  header.appendChild(renderMeta(recipe, registries));
+  header.appendChild(renderMeta(recipe, registries, onSelect));
 
   if (typeof onGenerateTree === 'function') {
     header.appendChild(renderIconButton(TREE_ICON, 'Generate recipe tree', () => onGenerateTree(recipe)));
@@ -25,7 +25,7 @@ function renderHeader(recipe, registries, onGenerateTree) {
   return header;
 }
 
-function renderMeta(recipe, registries) {
+function renderMeta(recipe, registries, onSelect) {
   const left = [];
   // Time/chance are only shown when they differ from the defaults (0s /
   // guaranteed) - see js/data/recipes.js for where those defaults come from.
@@ -41,6 +41,7 @@ function renderMeta(recipe, registries) {
     right.push(renderIconRow(builtIn.map((entry) => ({
       icon: registries.objects.get(entry.building)?.icon,
       label: formatLabel(entry.building),
+      onClick: onSelect ? () => onSelect(entry.building) : undefined,
     }))));
   }
 

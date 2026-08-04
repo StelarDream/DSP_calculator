@@ -37,6 +37,7 @@ function renderMeta(collectable, registries, onSelect, showResult) {
     right.push(renderIconRow(collectedWith.map((entry) => ({
       icon: registries.objects.get(entry.collector)?.icon,
       label: formatLabel(entry.collector),
+      onClick: onSelect ? () => onSelect(entry.collector) : undefined,
     }))));
   }
 

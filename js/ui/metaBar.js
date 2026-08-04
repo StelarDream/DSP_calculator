@@ -47,18 +47,29 @@ export function renderStat(iconEl, text, onClick) {
   return stat;
 }
 
-// A row of icons only (no names) - e.g. which buildings/collectors handle this.
+// A row of icons only (no names) - e.g. which buildings/collectors handle
+// this. Each entry renders as a button (navigating via onClick) when one is
+// given, otherwise as a plain image.
 export function renderIconRow(entries) {
   const row = document.createElement('span');
   row.className = 'meta-icons';
 
-  for (const { icon, label } of entries) {
+  for (const { icon, label, onClick } of entries) {
+    const clickable = typeof onClick === 'function';
+    const el = document.createElement(clickable ? 'button' : 'span');
+    el.className = 'meta-icon';
+    if (clickable) {
+      el.type = 'button';
+      el.addEventListener('click', onClick);
+    }
+
     const img = document.createElement('img');
-    img.className = 'meta-icon';
     img.src = icon ?? '';
     img.alt = label ?? '';
     img.title = label ?? '';
-    row.appendChild(img);
+    el.appendChild(img);
+
+    row.appendChild(el);
   }
 
   return row;
