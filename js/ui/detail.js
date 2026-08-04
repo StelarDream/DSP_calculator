@@ -19,6 +19,14 @@ export function renderDetail(container, object, registries, onSelect) {
   description.textContent = object.description ?? 'No description available.';
   container.appendChild(description);
 
+  if (object.tags.has('source')) {
+    const yields = registries.collectables.collectables.filter((c) => c.source === object.id);
+    if (yields.length > 0) {
+      const cards = yields.map((collectable) => renderCollectableCard(collectable, registries, onSelect, { showResult: true }));
+      container.appendChild(renderSection('Yields', cards));
+    }
+  }
+
   if (object.tags.has('craftable')) {
     const recipes = registries.recipes.byResultItem.get(object.id) ?? [];
     const cards = recipes.map((recipe) => renderRecipeCard(recipe, registries, onSelect));

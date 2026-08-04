@@ -1,14 +1,16 @@
-// Two-sided meta bar: left = numeric stats (time, chance, rarity), right =
-// type + icon-only list of the buildings/collectors that handle it.
+// Two-sided meta bar: left = numeric stats (time, chance), right = type +
+// icon-only list of the buildings that handle it. Used by recipe cards.
 export function renderMetaBar(left, right) {
   const bar = document.createElement('div');
   bar.className = 'meta-bar';
-  bar.appendChild(renderGroup(left));
-  bar.appendChild(renderGroup(right));
+  bar.appendChild(renderMetaLine(left));
+  bar.appendChild(renderMetaLine(right));
   return bar;
 }
 
-function renderGroup(nodes) {
+// A single left-aligned line of stats/icon-rows joined by "|" dividers.
+// Used on its own by collectable cards (type | tables | source-or-yield).
+export function renderMetaLine(nodes) {
   const group = document.createElement('div');
   group.className = 'meta-group';
 
@@ -25,10 +27,17 @@ function renderGroup(nodes) {
   return group;
 }
 
-// A single "<icon> value" stat, e.g. the clock + time, or the type icon + name.
-export function renderStat(iconEl, text) {
-  const stat = document.createElement('span');
+// A single "<icon> value" stat, e.g. the clock + time, or the type icon +
+// name. Clickable (renders as a button) when onClick is given.
+export function renderStat(iconEl, text, onClick) {
+  const clickable = typeof onClick === 'function';
+  const stat = document.createElement(clickable ? 'button' : 'span');
   stat.className = 'meta-stat';
+  if (clickable) {
+    stat.type = 'button';
+    stat.addEventListener('click', onClick);
+  }
+
   if (iconEl) stat.appendChild(iconEl);
 
   const label = document.createElement('span');
