@@ -4,15 +4,18 @@ import { BACK_ICON } from './icons.js';
 // Full-pane recipe-tree view, swapped in over the normal detail pane when a
 // recipe card's tree button is clicked. Tree generation itself isn't built
 // yet - this just establishes the view and its way back out.
-export function renderTreeView(container, recipe, registries, onBack) {
+// subjectId: the object whose page the recipe card was on (still highlighted
+// in the sidebar) - used for the title instead of guessing from the recipe's
+// result, which can list multiple/unrelated items (e.g. byproducts).
+export function renderTreeView(container, subjectId, recipe, registries, onBack) {
   container.innerHTML = '';
   container.scrollTop = 0;
 
-  container.appendChild(renderHeader(recipe, registries, onBack));
+  container.appendChild(renderHeader(subjectId, onBack));
   container.appendChild(renderCanvas());
 }
 
-function renderHeader(recipe, registries, onBack) {
+function renderHeader(subjectId, onBack) {
   const header = document.createElement('div');
   header.className = 'tree-view-header';
 
@@ -22,10 +25,9 @@ function renderHeader(recipe, registries, onBack) {
   backBtn.innerHTML = `${BACK_ICON}<span>Back</span>`;
   backBtn.addEventListener('click', onBack);
 
-  const resultId = Object.keys(recipe.result)[0];
   const title = document.createElement('h2');
   title.className = 'tree-view-title';
-  title.textContent = `Recipe Tree — ${formatLabel(resultId ?? '')}`;
+  title.textContent = `Recipe Tree — ${formatLabel(subjectId ?? '')}`;
 
   header.append(backBtn, title);
   return header;

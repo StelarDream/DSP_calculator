@@ -29,7 +29,7 @@ export async function init() {
 
   function updateDetail() {
     if (state.view === 'tree' && state.treeRecipe) {
-      renderTreeView(detailContainer, state.treeRecipe, state.registries, exitTreeView);
+      renderTreeView(detailContainer, state.selectedId, state.treeRecipe, state.registries, exitTreeView);
       return;
     }
 
