@@ -480,12 +480,24 @@ body {
 }
 
 .tree-view-canvas {
+  position: relative;
   height: calc(100% - 68px);
   min-height: 320px;
-  overflow: auto;
+  overflow: hidden;
   border: 1px dashed var(--border);
   border-radius: var(--radius-lg);
   color: var(--text-muted);
+  touch-action: none;
+  user-select: none;
+}
+
+.tree-toolbar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  display: flex;
+  gap: 8px;
 }
 
 /* Sized to fit the whole laid-out tree - see treeCanvas.js. Positioned so
@@ -534,6 +546,7 @@ body {
   width: 30px;
   height: 30px;
   object-fit: contain;
+  -webkit-user-drag: none;
 }
 
 .tree-node-info {
