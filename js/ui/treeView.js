@@ -68,6 +68,10 @@ function renderCanvas(subjectId, recipe, registries) {
         overrides.set(path, wasCollapsed);
         rerender();
       },
+      onChoose(path, recipeId) {
+        choices.set(path, recipeId);
+        rerender();
+      },
     });
   }
   rerender();

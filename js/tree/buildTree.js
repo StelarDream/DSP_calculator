@@ -8,8 +8,13 @@ import { DEFAULT_EXPAND_DEPTH } from './constants.js';
 // produces it) - collectable/raw items included. Craftable items always
 // recurse into their chosen recipe's ingredients.
 //
-// choices:   Map<path, recipeId>  - which recipe a node uses, when it has
-//            more than one option. Falls back to the first recipe found.
+// A *collapsed* craftable node never resolves a recipe at all - collapsed
+// is "I'll produce this myself" (bought, stockpiled, whatever), so which
+// recipe it *would* use is moot until you actually expand it.
+//
+// choices:   Map<path, recipeId>  - which recipe an expanded node uses, once
+//            decided. Nodes with >1 option and no entry yet render as a
+//            choice step instead of guessing - see buildChoiceNode.
 // overrides: Map<path, boolean>   - manual expand/collapse toggles. Absent
 //            entries fall back to the DEFAULT_EXPAND_DEPTH rule.
 export function buildTree(rootItemId, qty, registries, { choices = new Map(), overrides = new Map() } = {}) {
@@ -38,6 +43,8 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
     depth,
     isLeaf,
     isCycle: false,
+    isChoice: false,
+    needsChoice: false,
     recipeOptions,
     recipe: null,
     isCollapsed: false,
@@ -46,14 +53,23 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
 
   if (isLeaf) return node;
 
-  const chosenId = choices.get(path);
-  node.recipe = recipeOptions.find((r) => r.id === chosenId) ?? recipeOptions[0];
-
   const expanded = overrides.has(path) ? overrides.get(path) : depth < DEFAULT_EXPAND_DEPTH;
   if (!expanded) {
     node.isCollapsed = true;
     return node;
   }
+
+  const chosen = recipeOptions.find((r) => r.id === choices.get(path));
+  if (!chosen && recipeOptions.length > 1) {
+    // More than one way to make this and nothing picked yet - surface the
+    // options as the node's "children" instead of guessing one. Resolves
+    // into real ingredient children once onChoose records a pick.
+    node.needsChoice = true;
+    node.children = recipeOptions.map((recipe) => buildChoiceNode(recipe, itemId, path, depth));
+    return node;
+  }
+
+  node.recipe = chosen ?? recipeOptions[0];
 
   // Ratio of each ingredient to *one* craft, scaled by how many of this
   // item's own output the parent actually needs - a recipe that yields 2
@@ -75,6 +91,8 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
         depth: depth + 1,
         isLeaf: true,
         isCycle: true,
+        isChoice: false,
+        needsChoice: false,
         recipeOptions: [],
         recipe: null,
         isCollapsed: false,
@@ -96,4 +114,26 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
   }
 
   return node;
+}
+
+// A pseudo-node standing in for "expand using this recipe" - not a real
+// ingredient, so it doesn't recurse and isn't tracked in `ancestors`.
+// parentPath is what onChoose(parentPath, recipe.id) records the pick under.
+function buildChoiceNode(recipe, itemId, parentPath, depth) {
+  return {
+    path: `${parentPath}»${recipe.id}`,
+    parentPath,
+    itemId,
+    object: undefined,
+    qty: undefined,
+    depth: depth + 1,
+    isLeaf: true,
+    isCycle: false,
+    isChoice: true,
+    needsChoice: false,
+    recipeOptions: [],
+    recipe,
+    isCollapsed: false,
+    children: [],
+  };
 }

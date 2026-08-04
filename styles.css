@@ -553,6 +553,23 @@ body {
   border-color: var(--primary-border);
 }
 
+/* "Expand using this recipe" - shown in place of a craftable node's
+   children when it has more than one recipe and none is picked yet. */
+.tree-node--choice {
+  cursor: pointer;
+  background: var(--secondary-dim);
+  border-style: dashed;
+  border-color: var(--secondary-border);
+}
+
+.tree-node--choice:hover {
+  border-color: var(--secondary);
+}
+
+.tree-node--choice .tree-node-name {
+  color: var(--secondary);
+}
+
 .tree-node-icon {
   flex: 0 0 auto;
   width: 30px;
