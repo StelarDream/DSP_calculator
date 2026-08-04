@@ -73,10 +73,16 @@ export function layoutTree(root) {
 
     const spots = byproductSpots.get(node.path);
     if (spots) {
-      const from = positions.get(node.path);
+      // A byproduct comes from the same craft that consumes the
+      // ingredient(s) - so the connector reads better anchored to the
+      // first real ingredient than to the product node itself. Falls back
+      // to the node's own position on the (unlikely) chance it has none.
+      const anchor = node.children.length > 0
+        ? positions.get(node.children[0].path)
+        : positions.get(node.path);
       node.byproducts.forEach((byproduct, i) => {
         nodes.push({ node: byproduct, ...spots[i], isByproduct: true });
-        byproductEdges.push({ from, to: spots[i] });
+        byproductEdges.push({ from: anchor, to: spots[i] });
       });
     }
 

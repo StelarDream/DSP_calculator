@@ -1,6 +1,6 @@
 import { layoutTree } from './layoutTree.js';
 import { renderTreeNode, renderByproductNode } from './treeNode.js';
-import { NODE_WIDTH, NODE_HEIGHT } from './constants.js';
+import { NODE_WIDTH } from './constants.js';
 
 // Padding around the laid-out tree so cards/edges aren't flush against the
 // world's own edges.
@@ -73,14 +73,19 @@ function edgePath({ from, to }) {
   return `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
 }
 
-// Straight vertical drop from the bottom of a node to the top of its
-// byproduct card, directly beneath it in the same column - short enough
-// that a bezier would just add unnecessary wobble.
+// From the ingredient card (from) to its byproduct (to) - the same craft
+// that consumes that ingredient is what produces the byproduct. Since the
+// ingredient sits one column *deeper* than the byproduct (which shares its
+// column with the product node), this flows right-to-left: left edge of
+// the ingredient to right edge of the byproduct card - the normal
+// left-to-right bezier, mirrored.
 function byproductEdgePath({ from, to }) {
-  const cx = from.x + PADDING + NODE_WIDTH / 2;
-  const y1 = from.y + PADDING + NODE_HEIGHT / 2;
-  const y2 = to.y + PADDING - NODE_HEIGHT / 2;
-  return `M ${cx} ${y1} L ${cx} ${y2}`;
+  const x1 = from.x + PADDING;
+  const y1 = from.y + PADDING;
+  const x2 = to.x + NODE_WIDTH + PADDING;
+  const y2 = to.y + PADDING;
+  const midX = (x1 + x2) / 2;
+  return `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
 }
 
 function positionNode(card, x, y) {
