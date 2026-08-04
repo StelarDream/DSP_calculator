@@ -1,5 +1,3 @@
-import { loadRegistries } from './js/data/index.js';
+import { init } from './js/main.js';
 
-loadRegistries().then((registries) => {
-  console.log('DSP registries loaded:', registries);
-});
+init();

@@ -2,7 +2,7 @@ import { fetchJSON } from './utils.js';
 
 // Map<itemId, { id, description, icon }>
 export async function loadItems(descriptions) {
-  const ids = await fetchJSON('items.json');
+  const ids = await fetchJSON('data/items.json');
 
   const items = new Map();
   for (const id of ids) {

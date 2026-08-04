@@ -2,7 +2,7 @@ import { fetchJSON } from './utils.js';
 
 // Collectable: { id, type, result, source, rarity }
 export async function loadCollectables() {
-  const raw = await fetchJSON('collectable.json');
+  const raw = await fetchJSON('data/collectable.json');
 
   const collectables = raw.map((entry, index) => ({
     id: index,

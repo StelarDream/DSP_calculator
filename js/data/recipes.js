@@ -2,7 +2,7 @@ import { fetchJSON } from './utils.js';
 
 // Recipe: { id, type, result: {itemId: qty}, ingredients: {itemId: qty}, chance, time }
 export async function loadRecipes() {
-  const raw = await fetchJSON('recipes.json');
+  const raw = await fetchJSON('data/recipes.json');
 
   const recipes = raw.map((entry, index) => ({
     id: index,

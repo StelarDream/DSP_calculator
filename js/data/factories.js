@@ -2,7 +2,7 @@ import { fetchJSON, normalizeRange } from './utils.js';
 
 // Map<recipeType, Array<{ building, speed: {min,max}, chance: {min,max} }>>
 export async function loadFactories() {
-  const raw = await fetchJSON('factories.json');
+  const raw = await fetchJSON('data/factories.json');
 
   const byRecipeType = new Map();
   for (const [recipeType, buildings] of Object.entries(raw)) {
