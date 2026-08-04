@@ -3,12 +3,14 @@ import { state } from './state.js';
 import { initTabs } from './ui/tabs.js';
 import { renderFilters } from './ui/filters.js';
 import { renderList } from './ui/list.js';
+import { renderDetail } from './ui/detail.js';
 import { selectEntities } from './selectEntities.js';
 
 export async function init() {
   const tabButtons = document.querySelectorAll('.tab-btn');
   const filtersContainer = document.getElementById('filters');
   const listContainer = document.getElementById('entity-list');
+  const detailContainer = document.getElementById('detail');
   const searchInput = document.getElementById('search');
 
   function updateFilters() {
@@ -24,7 +26,13 @@ export async function init() {
     renderList(listContainer, entities, state.selectedId, (id) => {
       state.selectedId = id;
       updateList();
+      updateDetail();
     });
+  }
+
+  function updateDetail() {
+    const object = state.selectedId ? state.registries?.objects.get(state.selectedId) : null;
+    renderDetail(detailContainer, object ?? null, state.registries);
   }
 
   initTabs(tabButtons, (tab) => {
@@ -33,6 +41,7 @@ export async function init() {
     state.selectedId = null;
     updateFilters();
     updateList();
+    updateDetail();
   });
 
   searchInput.addEventListener('input', () => {

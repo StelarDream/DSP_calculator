@@ -1,0 +1,70 @@
+import { formatLabel } from './format.js';
+import { renderEntityRow } from './entityRow.js';
+import { renderMetaBar, renderStat, renderIconRow, svgIcon, imgIcon } from './metaBar.js';
+import { CLOCK_ICON, CHANCE_ICON } from './icons.js';
+
+export function renderRecipeCard(recipe, registries) {
+  const card = document.createElement('div');
+  card.className = 'recipe-card';
+  card.appendChild(renderMeta(recipe, registries));
+  card.appendChild(renderGrid(recipe, registries.objects));
+  return card;
+}
+
+function renderMeta(recipe, registries) {
+  const left = [];
+  // Time/chance are only shown when they differ from the defaults (0s /
+  // guaranteed) - see js/data/recipes.js for where those defaults come from.
+  if (recipe.time !== 0) left.push(renderStat(svgIcon(CLOCK_ICON), `${recipe.time}s`));
+  if (recipe.chance !== 1) left.push(renderStat(svgIcon(CHANCE_ICON), formatChance(recipe.chance)));
+
+  const right = [
+    renderStat(imgIcon(`assets/recipe-types/${recipe.type}.png`, recipe.type), formatLabel(recipe.type)),
+  ];
+
+  const builtIn = registries.factories.byRecipeType.get(recipe.type) ?? [];
+  if (builtIn.length) {
+    right.push(renderIconRow(builtIn.map((entry) => ({
+      icon: registries.objects.get(entry.building)?.icon,
+      label: formatLabel(entry.building),
+    }))));
+  }
+
+  return renderMetaBar(left, right);
+}
+
+function renderGrid(recipe, objects) {
+  const grid = document.createElement('div');
+  grid.className = 'recipe-grid';
+
+  grid.appendChild(renderSide('Ingredients', recipe.ingredients, objects));
+
+  const arrow = document.createElement('div');
+  arrow.className = 'recipe-arrow';
+  arrow.textContent = '→';
+  grid.appendChild(arrow);
+
+  grid.appendChild(renderSide('Result', recipe.result, objects));
+
+  return grid;
+}
+
+function renderSide(label, entries, objects) {
+  const side = document.createElement('div');
+  side.className = 'recipe-side';
+
+  const heading = document.createElement('p');
+  heading.className = 'recipe-side-label';
+  heading.textContent = label;
+  side.appendChild(heading);
+
+  for (const [id, qty] of Object.entries(entries)) {
+    side.appendChild(renderEntityRow(objects.get(id), formatLabel(id), qty));
+  }
+
+  return side;
+}
+
+function formatChance(chance) {
+  return `${Number((chance * 100).toFixed(2))}%`;
+}
