@@ -8,7 +8,7 @@ export function renderCollectableCard(collectable, registries) {
   card.appendChild(renderMeta(collectable, registries));
 
   if (collectable.source) {
-    const sourceObj = registries.sources.get(collectable.source);
+    const sourceObj = registries.objects.get(collectable.source);
     card.appendChild(renderEntityRow(sourceObj, formatLabel(collectable.source)));
   }
 
