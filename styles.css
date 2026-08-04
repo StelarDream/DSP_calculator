@@ -549,6 +549,18 @@ body {
   box-shadow: var(--shadow-panel);
 }
 
+/* Row above a recipe card's ingredient grid: the meta bar plus any
+   standalone action buttons (e.g. the recipe-tree trigger). */
+.recipe-card-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.recipe-card-header .meta-bar {
+  flex: 1 1 auto;
+}
+
 /* Two-sided meta bar at the top of recipe/collectable cards: left = numeric
    stats (time, chance, rarity), right = type + icon-only list of the
    buildings/collectors that handle it. */
@@ -558,6 +570,32 @@ body {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
+}
+
+/* Standalone icon-only action button (e.g. "generate recipe tree"). */
+.icon-btn {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.icon-btn:hover {
+  color: var(--primary);
+  border-color: var(--primary-border);
 }
 
 .meta-group {

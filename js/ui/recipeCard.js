@@ -1,14 +1,28 @@
 import { formatLabel } from './format.js';
 import { renderEntityRow } from './entityRow.js';
-import { renderMetaBar, renderStat, renderIconRow, svgIcon, imgIcon } from './metaBar.js';
-import { CLOCK_ICON, CHANCE_ICON } from './icons.js';
+import { renderMetaBar, renderStat, renderIconRow, renderIconButton, svgIcon, imgIcon } from './metaBar.js';
+import { CLOCK_ICON, CHANCE_ICON, TREE_ICON } from './icons.js';
 
-export function renderRecipeCard(recipe, registries, onSelect) {
+// onGenerateTree: called with the recipe when the tree button is clicked -
+// placeholder hook for the recipe-tree generator, wired up by the caller.
+export function renderRecipeCard(recipe, registries, onSelect, onGenerateTree) {
   const card = document.createElement('div');
   card.className = 'recipe-card';
-  card.appendChild(renderMeta(recipe, registries));
+  card.appendChild(renderHeader(recipe, registries, onGenerateTree));
   card.appendChild(renderGrid(recipe, registries.objects, onSelect));
   return card;
+}
+
+function renderHeader(recipe, registries, onGenerateTree) {
+  const header = document.createElement('div');
+  header.className = 'recipe-card-header';
+  header.appendChild(renderMeta(recipe, registries));
+
+  if (typeof onGenerateTree === 'function') {
+    header.appendChild(renderIconButton(TREE_ICON, 'Generate recipe tree', () => onGenerateTree(recipe)));
+  }
+
+  return header;
 }
 
 function renderMeta(recipe, registries) {

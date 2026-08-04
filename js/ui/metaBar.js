@@ -64,6 +64,19 @@ export function renderIconRow(entries) {
   return row;
 }
 
+// A standalone icon-only button - e.g. the recipe-tree trigger. Distinct
+// from renderStat, which always pairs its icon with a text label.
+export function renderIconButton(svg, label, onClick) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'icon-btn';
+  button.title = label;
+  button.setAttribute('aria-label', label);
+  button.innerHTML = svg;
+  if (typeof onClick === 'function') button.addEventListener('click', onClick);
+  return button;
+}
+
 export function svgIcon(svg) {
   const span = document.createElement('span');
   span.className = 'meta-stat-icon';

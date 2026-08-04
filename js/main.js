@@ -28,7 +28,13 @@ export async function init() {
 
   function updateDetail() {
     const object = state.selectedId ? state.registries?.objects.get(state.selectedId) : null;
-    renderDetail(detailContainer, object ?? null, state.registries, selectObject);
+    renderDetail(detailContainer, object ?? null, state.registries, selectObject, generateTree);
+  }
+
+  // Placeholder for the recipe-tree generator - wired up to the tree button
+  // on each recipe card. TODO: build the actual tree view.
+  function generateTree(recipe) {
+    console.log('Generate recipe tree for:', recipe);
   }
 
   // Shows another object's page - used for list clicks as well as clicking

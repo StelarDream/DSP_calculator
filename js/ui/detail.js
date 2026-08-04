@@ -3,7 +3,7 @@ import { renderRecipeCard } from './recipeCard.js';
 import { renderCollectableCard } from './collectableCard.js';
 import { renderUsedInIcons } from './usedInIcons.js';
 
-export function renderDetail(container, object, registries, onSelect) {
+export function renderDetail(container, object, registries, onSelect, onGenerateTree) {
   container.innerHTML = '';
   container.scrollTop = 0;
 
@@ -29,7 +29,7 @@ export function renderDetail(container, object, registries, onSelect) {
 
   if (object.tags.has('craftable')) {
     const recipes = registries.recipes.byResultItem.get(object.id) ?? [];
-    const cards = recipes.map((recipe) => renderRecipeCard(recipe, registries, onSelect));
+    const cards = recipes.map((recipe) => renderRecipeCard(recipe, registries, onSelect, onGenerateTree));
     container.appendChild(renderSection('Crafting Recipes', cards));
   }
 
