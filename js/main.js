@@ -1,5 +1,4 @@
 import { loadRegistries } from './data/index.js';
-import { buildCategorySets } from './data/categories.js';
 import { state } from './state.js';
 import { initTabs } from './ui/tabs.js';
 import { renderFilters } from './ui/filters.js';
@@ -21,7 +20,7 @@ export async function init() {
   }
 
   function updateList() {
-    const entities = selectEntities(state, state.registries, state.categories);
+    const entities = selectEntities(state, state.registries);
     renderList(listContainer, entities, state.selectedId, (id) => {
       state.selectedId = id;
       updateList();
@@ -44,7 +43,6 @@ export async function init() {
   updateFilters();
 
   state.registries = await loadRegistries();
-  state.categories = buildCategorySets(state.registries);
 
   updateList();
 }

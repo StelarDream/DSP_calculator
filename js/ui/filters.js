@@ -1,15 +1,17 @@
-// Per-tab filter chip definitions. Buildings doesn't have real category data
-// yet, so "factories"/"collectors" are placeholders reserving the slot.
+// Per-tab filter chip definitions. `key` must match a tag name exactly
+// (or 'all') since selectEntities() checks obj.tags.has(filter) directly.
+// Buildings doesn't have real category data yet, so factory/collector are
+// placeholders reserving the slot.
 export const FILTER_DEFS = {
-  items: [
+  item: [
     { key: 'all', label: 'All' },
     { key: 'collectable', label: 'Collectable' },
     { key: 'craftable', label: 'Craftable' },
   ],
-  buildings: [
+  building: [
     { key: 'all', label: 'All' },
-    { key: 'factories', label: 'Factories' },
-    { key: 'collectors', label: 'Collectors' },
+    { key: 'factory', label: 'Factories' },
+    { key: 'collector', label: 'Collectors' },
   ],
 };
 
