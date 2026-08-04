@@ -1,6 +1,6 @@
 import { layoutTree } from './layoutTree.js';
 import { renderTreeNode, renderByproductNode } from './treeNode.js';
-import { NODE_WIDTH } from './constants.js';
+import { NODE_WIDTH, NODE_HEIGHT } from './constants.js';
 
 // Padding around the laid-out tree so cards/edges aren't flush against the
 // world's own edges.
@@ -24,13 +24,13 @@ export function createTreeWorld() {
 export function renderTreeInto(world, root, handlers) {
   world.innerHTML = '';
 
-  const { nodes, edges, width, height } = layoutTree(root);
+  const { nodes, edges, byproductEdges, width, height } = layoutTree(root);
   const worldWidth = width + PADDING * 2;
   const worldHeight = height + PADDING * 2;
   world.style.width = `${worldWidth}px`;
   world.style.height = `${worldHeight}px`;
 
-  world.appendChild(renderEdges(edges, worldWidth, worldHeight));
+  world.appendChild(renderEdges(edges, byproductEdges, worldWidth, worldHeight));
   for (const { node, x, y, isByproduct } of nodes) {
     const card = isByproduct ? renderByproductNode(node) : renderTreeNode(node, handlers);
     world.appendChild(positionNode(card, x, y));
@@ -39,7 +39,7 @@ export function renderTreeInto(world, root, handlers) {
   return { width: worldWidth, height: worldHeight };
 }
 
-function renderEdges(edges, width, height) {
+function renderEdges(edges, byproductEdges, width, height) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('class', 'tree-edges');
   svg.setAttribute('width', width);
@@ -49,6 +49,13 @@ function renderEdges(edges, width, height) {
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('class', 'tree-edge');
     path.setAttribute('d', edgePath(edge));
+    svg.appendChild(path);
+  }
+
+  for (const edge of byproductEdges) {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('class', 'tree-edge tree-edge--byproduct');
+    path.setAttribute('d', byproductEdgePath(edge));
     svg.appendChild(path);
   }
 
@@ -64,6 +71,16 @@ function edgePath({ from, to }) {
   const y2 = to.y + PADDING;
   const midX = (x1 + x2) / 2;
   return `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
+}
+
+// Straight vertical drop from the bottom of a node to the top of its
+// byproduct card, directly beneath it in the same column - short enough
+// that a bezier would just add unnecessary wobble.
+function byproductEdgePath({ from, to }) {
+  const cx = from.x + PADDING + NODE_WIDTH / 2;
+  const y1 = from.y + PADDING + NODE_HEIGHT / 2;
+  const y2 = to.y + PADDING - NODE_HEIGHT / 2;
+  return `M ${cx} ${y1} L ${cx} ${y2}`;
 }
 
 function positionNode(card, x, y) {

@@ -522,6 +522,14 @@ body {
   stroke-width: 2;
 }
 
+/* Short vertical drop from a node to its byproduct card - see
+   treeCanvas.js's byproductEdgePath. Dashed red to match the byproduct
+   card itself, distinct from the normal ingredient connectors. */
+.tree-edge--byproduct {
+  stroke: var(--danger-border);
+  stroke-dasharray: 4 3;
+}
+
 .tree-node {
   position: absolute;
   display: flex;
