@@ -23,6 +23,13 @@ export function renderFilters(container, tab, activeFilter, onSelect) {
   const defs = FILTER_DEFS[tab] ?? [];
   container.innerHTML = '';
 
+  // No point showing a filter bar with nothing but "All" to pick.
+  if (defs.length <= 1) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = '';
+
   for (const { key, label } of defs) {
     const button = document.createElement('button');
     button.className = 'filter-chip' + (key === activeFilter ? ' active' : '');

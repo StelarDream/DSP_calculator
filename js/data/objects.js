@@ -7,9 +7,9 @@ import { fetchJSON } from './utils.js';
 // applyDynamicTags() once the other registries are loaded - see tags.js.
 export async function loadObjects(descriptions) {
   const [itemIds, buildingIds, sourceIds] = await Promise.all([
-    fetchJSON('data/items.json'),
-    fetchJSON('data/buildings.json'),
-    fetchJSON('data/sources.json'),
+    fetchJSON('data/tags/items.json'),
+    fetchJSON('data/tags/buildings.json'),
+    fetchJSON('data/tags/sources.json'),
   ]);
 
   const objects = new Map();
