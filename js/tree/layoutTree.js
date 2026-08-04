@@ -9,6 +9,7 @@ import { ROW_HEIGHT, COLUMN_WIDTH } from './constants.js';
 // that's what the renderer and the SVG edge overlay actually need.
 export function layoutTree(root) {
   const positions = new Map(); // path -> { x, y }
+  const byproductSpots = new Map(); // path -> [{ x, y }, ...], same order as node.byproducts
   let nextRow = 0;
   let maxDepth = 0;
 
@@ -26,6 +27,19 @@ export function layoutTree(root) {
     }
 
     positions.set(node.path, { x, y });
+
+    // Byproducts claim their own row(s) right after this node's whole
+    // block, same column - reusing nextRow guarantees they can't overlap
+    // anything else, at the cost of landing below the node's subtree
+    // rather than flush against the node's own row.
+    if (node.byproducts.length > 0) {
+      byproductSpots.set(node.path, node.byproducts.map(() => {
+        const spot = { x, y: nextRow * ROW_HEIGHT };
+        nextRow += 1;
+        return spot;
+      }));
+    }
+
     return y;
   }
 
@@ -36,6 +50,14 @@ export function layoutTree(root) {
 
   (function collect(node) {
     nodes.push({ node, ...positions.get(node.path) });
+
+    const spots = byproductSpots.get(node.path);
+    if (spots) {
+      node.byproducts.forEach((byproduct, i) => {
+        nodes.push({ node: byproduct, ...spots[i], isByproduct: true });
+      });
+    }
+
     for (const child of node.children) {
       edges.push({ from: positions.get(node.path), to: positions.get(child.path) });
       collect(child);

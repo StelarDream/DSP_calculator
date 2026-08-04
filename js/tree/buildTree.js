@@ -49,6 +49,7 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
     recipe: null,
     isCollapsed: false,
     children: [],
+    byproducts: [],
   };
 
   if (isLeaf) return node;
@@ -77,6 +78,17 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
   const outputQty = node.recipe.result[itemId] ?? 1;
   const scale = qty / outputQty;
 
+  // Anything else this recipe outputs besides the item we asked for - e.g.
+  // Energetic Graphite's Refining recipe also spits out surplus Hydrogen.
+  // Purely informational (see treeNode.js) - not part of the tree proper.
+  node.byproducts = Object.entries(node.recipe.result)
+    .filter(([resultId]) => resultId !== itemId)
+    .map(([resultId, resultQty]) => ({
+      itemId: resultId,
+      object: registries.objects.get(resultId),
+      qty: resultQty * scale,
+    }));
+
   for (const [ingredientId, ingredientQty] of Object.entries(node.recipe.ingredients)) {
     const childPath = `${path}>${ingredientId}`;
 
@@ -97,6 +109,7 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
         recipe: null,
         isCollapsed: false,
         children: [],
+        byproducts: [],
       });
       continue;
     }
@@ -141,5 +154,6 @@ function buildChoiceNode(recipe, itemId, parentPath, depth, registries) {
     })),
     isCollapsed: false,
     children: [],
+    byproducts: [],
   };
 }

@@ -142,6 +142,37 @@ function renderChoiceNode(node, onChoose) {
   return el;
 }
 
+// Extra output from a resolved node's recipe besides the item that was
+// actually asked for - see buildTree.js's node.byproducts. Purely
+// informational (no click handler at all): a dashed, red-tinted card
+// flagging "you also get this," not part of the tree's own hierarchy.
+export function renderByproductNode(byproduct) {
+  const el = document.createElement('div');
+  el.className = 'tree-node tree-node--byproduct';
+  el.style.width = `${NODE_WIDTH}px`;
+  el.style.height = `${NODE_HEIGHT}px`;
+
+  const icon = document.createElement('img');
+  icon.className = 'tree-node-icon';
+  icon.src = byproduct.object?.icon ?? '';
+  icon.alt = '';
+
+  const info = document.createElement('div');
+  info.className = 'tree-node-info';
+
+  const name = document.createElement('span');
+  name.className = 'tree-node-name';
+  name.textContent = formatLabel(byproduct.itemId);
+
+  const qty = document.createElement('span');
+  qty.className = 'tree-node-qty';
+  qty.textContent = `+${formatQty(byproduct.qty)} byproduct`;
+
+  info.append(name, qty);
+  el.append(icon, info);
+  return el;
+}
+
 // Two decimals max, but drop the decimal entirely when it's a whole number
 // (most quantities are; fractional ones only show up from ratio scaling).
 function formatQty(qty) {

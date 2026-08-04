@@ -1,5 +1,5 @@
 import { layoutTree } from './layoutTree.js';
-import { renderTreeNode } from './treeNode.js';
+import { renderTreeNode, renderByproductNode } from './treeNode.js';
 import { NODE_WIDTH } from './constants.js';
 
 // Padding around the laid-out tree so cards/edges aren't flush against the
@@ -31,8 +31,9 @@ export function renderTreeInto(world, root, handlers) {
   world.style.height = `${worldHeight}px`;
 
   world.appendChild(renderEdges(edges, worldWidth, worldHeight));
-  for (const { node, x, y } of nodes) {
-    world.appendChild(positionNode(renderTreeNode(node, handlers), x, y));
+  for (const { node, x, y, isByproduct } of nodes) {
+    const card = isByproduct ? renderByproductNode(node) : renderTreeNode(node, handlers);
+    world.appendChild(positionNode(card, x, y));
   }
 
   return { width: worldWidth, height: worldHeight };

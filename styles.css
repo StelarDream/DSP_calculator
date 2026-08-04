@@ -59,6 +59,8 @@
   --grid-line-major: rgba(133, 255, 255, 0.12);
 
   --danger: #ff6b6b;
+  --danger-dim: rgba(255, 107, 107, 0.1);
+  --danger-border: rgba(255, 107, 107, 0.35);
 }
 
 * {
@@ -568,6 +570,20 @@ body {
 
 .tree-node--choice .tree-node-name {
   color: var(--secondary);
+}
+
+/* Extra output from a node's recipe, shown alongside it rather than as a
+   real child - see buildTree.js's node.byproducts. Purely informational,
+   not clickable. */
+.tree-node--byproduct {
+  cursor: default;
+  background: var(--danger-dim);
+  border-style: dashed;
+  border-color: var(--danger-border);
+}
+
+.tree-node--byproduct .tree-node-qty {
+  color: var(--danger);
 }
 
 .tree-node-icon-wrap {
