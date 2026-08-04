@@ -57,6 +57,8 @@
 
   --grid-line-minor: rgba(133, 255, 255, 0.05);
   --grid-line-major: rgba(133, 255, 255, 0.12);
+
+  --danger: #ff6b6b;
 }
 
 * {
@@ -726,6 +728,44 @@ img.meta-stat-icon {
   width: 28px;
   height: 28px;
   object-fit: contain;
+}
+
+/* Flags a recipe that can't be hand-crafted via the Replicator. */
+.meta-stat--danger {
+  color: var(--danger);
+}
+
+/* "Proliferation: <icon> Extra Yield | <icon> Speed Up" - a labeled group
+   of effect stats, tinted per-effect (see proliferation.js). */
+.proliferation-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.proliferation-label {
+  font-family: var(--font-accent);
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.proliferation-stat--primary {
+  color: var(--primary);
+}
+
+.proliferation-stat--primary .meta-stat-icon {
+  color: var(--primary);
+}
+
+.proliferation-stat--secondary {
+  color: var(--secondary);
+}
+
+.proliferation-stat--secondary .meta-stat-icon {
+  color: var(--secondary);
 }
 
 .meta-divider {

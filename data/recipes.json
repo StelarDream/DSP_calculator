@@ -7,6 +7,12 @@
         },
         "ingredients": {
             "iron-ore": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -17,6 +23,12 @@
         },
         "ingredients": {
             "copper-ore": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -27,6 +39,12 @@
         },
         "ingredients": {
             "stone": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -37,6 +55,12 @@
         },
         "ingredients": {
             "coal": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -49,6 +73,12 @@
         "ingredients": {
             "hydrogen": 2,
             "refined-oil": 1
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -59,6 +89,12 @@
         },
         "ingredients": {
             "silicon-ore": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -69,6 +105,12 @@
         },
         "ingredients": {
             "stone": 10
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -79,6 +121,12 @@
         },
         "ingredients": {
             "titanium-ore": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -89,6 +137,12 @@
         },
         "ingredients": {
             "iron-ore": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -100,6 +154,12 @@
         "ingredients": {
             "magnet": 2,
             "copper-ingot": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -110,6 +170,12 @@
         },
         "ingredients": {
             "stone": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -120,6 +186,12 @@
         },
         "ingredients": {
             "energetic-graphite": 1
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -130,6 +202,12 @@
         },
         "ingredients": {
             "kimberlite-ore": 1
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -140,6 +218,12 @@
         },
         "ingredients": {
             "high-purity-silicon": 1
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -150,6 +234,12 @@
         },
         "ingredients": {
             "fractal-silicon": 1
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -162,6 +252,12 @@
             "titanium-ingot": 4,
             "steel": 4,
             "sulfuric-acid": 8
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -172,6 +268,12 @@
         },
         "ingredients": {
             "iron-ingot": 3
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -183,6 +285,12 @@
         "ingredients": {
             "iron-ingot": 2,
             "copper-ingot": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -193,6 +301,12 @@
         },
         "ingredients": {
             "glass": 3
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -205,6 +319,12 @@
             "iron-ingot": 2,
             "gear": 1,
             "magnetic-coil": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -216,6 +336,12 @@
         "ingredients": {
             "high-purity-silicon": 2,
             "copper-ingot": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -226,6 +352,12 @@
         },
         "ingredients": {
             "iron-ingot": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -237,6 +369,12 @@
         "ingredients": {
             "magnetic-coil": 4,
             "prism": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -248,6 +386,12 @@
         "ingredients": {
             "circuit-board": 1,
             "prism": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -259,6 +403,12 @@
         "ingredients": {
             "circuit-board": 1,
             "grating-crystal": 1
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -270,6 +420,12 @@
         "ingredients": {
             "electric-motor": 2,
             "magnetic-coil": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -281,6 +437,12 @@
         "ingredients": {
             "circuit-board": 2,
             "microcrystalline-component": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -292,6 +454,12 @@
         "ingredients": {
             "magnetic-coil": 1,
             "copper-ingot": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -303,6 +471,12 @@
         "ingredients": {
             "steel": 2,
             "copper-ingot": 3
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -314,6 +488,12 @@
         "ingredients": {
             "titanium-alloy": 5,
             "electromagnetic-turbine": 5
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -326,6 +506,12 @@
             "electromagnetic-turbine": 2,
             "magnet": 3,
             "energetic-graphite": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -338,6 +524,12 @@
             "electromagnetic-turbine": 2,
             "copper-ingot": 2,
             "graphene": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -349,6 +541,12 @@
         "ingredients": {
             "unipolar-magnet": 10,
             "copper-ingot": 2
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -361,6 +559,12 @@
             "refined-oil": 6,
             "stone": 8,
             "water": 4
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -372,6 +576,12 @@
         },
         "ingredients": {
             "crude-oil": 2
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -383,6 +593,12 @@
         },
         "ingredients": {
             "fire-ice": 2
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -394,6 +610,12 @@
         },
         "ingredients": {
             "critical-photon": 2
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -404,6 +626,12 @@
         },
         "ingredients": {
             "hydrogen": 10
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -415,6 +643,12 @@
         },
         "ingredients": {
             "hydrogen": 1
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": false,
+            "chance": true,
+            "yield": false
         }
     },
     {
@@ -425,6 +659,12 @@
         },
         "ingredients": {
             "coal": 3
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -436,6 +676,12 @@
         "ingredients": {
             "refined-oil": 2,
             "energetic-graphite": 1
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -448,6 +694,12 @@
             "plastic": 2,
             "refined-oil": 1,
             "water": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -460,6 +712,12 @@
             "log": 20,
             "plant-fuel": 30,
             "water": 10
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -471,6 +729,12 @@
         "ingredients": {
             "energetic-graphite": 3,
             "sulfuric-acid": 1
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -482,6 +746,12 @@
         "ingredients": {
             "particle-container": 1,
             "processor": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -494,6 +764,12 @@
             "combustible-unit": 2,
             "plastic": 2,
             "sulfuric-acid": 1
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -506,6 +782,12 @@
             "particle-container": 2,
             "iron-ingot": 2,
             "deuterium": 10
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -517,6 +799,12 @@
         "ingredients": {
             "organic-crystal": 1,
             "titanium-ingot": 3
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -528,6 +816,12 @@
         "ingredients": {
             "graphene": 3,
             "titanium-ingot": 1
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -538,6 +832,12 @@
         },
         "ingredients": {
             "stalagmite-crystal": 6
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -550,6 +850,12 @@
             "carbon-nanotube": 2,
             "crystal-silicon": 2,
             "plastic": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -562,6 +868,12 @@
             "explosive-unit": 8,
             "casimir-crystal": 1,
             "crystal-silicon": 8
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -574,6 +886,12 @@
             "titanium-crystal": 1,
             "graphene": 2,
             "hydrogen": 12
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -586,6 +904,12 @@
             "grating-crystal": 8,
             "graphene": 2,
             "hydrogen": 12
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -598,6 +922,12 @@
             "glass": 2,
             "titanium-ingot": 2,
             "water": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -609,6 +939,12 @@
         "ingredients": {
             "casimir-crystal": 1,
             "titanium-glass": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -620,6 +956,12 @@
         "ingredients": {
             "processor": 2,
             "plane-filter": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -630,6 +972,12 @@
         },
         "ingredients": {
             "graviton-lens": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -640,6 +988,12 @@
         },
         "ingredients": {
             "gravity-matrix": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -651,6 +1005,12 @@
         "ingredients": {
             "diamond": 4,
             "strange-matter": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -663,6 +1023,12 @@
             "carbon-nanotube": 4,
             "titanium-alloy": 1,
             "high-purity-silicon": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -674,6 +1040,12 @@
         "ingredients": {
             "graphene": 1,
             "photon-combiner": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -686,6 +1058,12 @@
             "frame-material": 3,
             "solar-sail": 3,
             "processor": 3
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -698,6 +1076,12 @@
             "dyson-sphere-component": 2,
             "deuteron-fuel-rod": 4,
             "quantum-chip": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -710,6 +1094,12 @@
             "iron-ingot": 2,
             "engine": 1,
             "processor": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -722,6 +1112,12 @@
             "iron-ingot": 5,
             "processor": 2,
             "thruster": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -734,6 +1130,12 @@
             "titanium-alloy": 10,
             "processor": 10,
             "reinforced-thruster": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -747,6 +1149,12 @@
             "engine": 1,
             "circuit-board": 2,
             "plasma-exciter": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -760,6 +1168,12 @@
             "electromagnetic-turbine": 1,
             "circuit-board": 2,
             "photon-combiner": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -773,6 +1187,12 @@
             "electromagnetic-turbine": 1,
             "processor": 1,
             "particle-container": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -786,6 +1206,12 @@
             "reinforced-thruster": 1,
             "processor": 2,
             "particle-container": 3
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -799,6 +1225,12 @@
             "reinforced-thruster": 4,
             "processor": 4,
             "strange-matter": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -810,6 +1242,12 @@
         "ingredients": {
             "titanium-ingot": 1,
             "hydrogen": 10
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -822,6 +1260,12 @@
             "titanium-alloy": 1,
             "deuterium": 20,
             "super-magnetic-ring": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -835,6 +1279,12 @@
             "hydrogen": 12,
             "annihilation-constraint-sphere": 1,
             "titanium-alloy": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -848,6 +1298,12 @@
             "core-element": 1,
             "strange-matter": 2,
             "frame-material": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -859,6 +1315,12 @@
         "ingredients": {
             "magnetic-coil": 1,
             "circuit-board": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -870,6 +1332,12 @@
         "ingredients": {
             "energetic-graphite": 2,
             "hydrogen": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -881,6 +1349,12 @@
         "ingredients": {
             "diamond": 1,
             "titanium-crystal": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -892,6 +1366,12 @@
         "ingredients": {
             "processor": 2,
             "particle-broadband": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -903,6 +1383,12 @@
         "ingredients": {
             "graviton-lens": 1,
             "quantum-chip": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -918,6 +1404,12 @@
             "information-matrix": 1,
             "gravity-matrix": 1,
             "antimatter": 1
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -931,6 +1423,12 @@
             "circuit-board": 3,
             "combustible-unit": 2,
             "engine": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -944,6 +1442,12 @@
             "processor": 4,
             "explosive-unit": 4,
             "thruster": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -956,6 +1460,12 @@
             "supersonic-missile-set": 3,
             "crystal-explosive-unit": 6,
             "strange-matter": 3
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -967,6 +1477,12 @@
         "ingredients": {
             "copper-ingot": 9,
             "combustible-unit": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -979,6 +1495,12 @@
             "shell-set": 1,
             "titanium-ingot": 6,
             "explosive-unit": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -991,6 +1513,12 @@
             "high-explosive-shell-set": 1,
             "titanium-alloy": 3,
             "crystal-explosive-unit": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1001,6 +1529,12 @@
         },
         "ingredients": {
             "copper-ingot": 3
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1012,6 +1546,12 @@
         "ingredients": {
             "magnum-ammo-box": 1,
             "titanium-ingot": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1023,6 +1563,12 @@
         "ingredients": {
             "titanium-ammo-box": 1,
             "titanium-alloy": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1035,6 +1581,12 @@
             "graphene": 1,
             "magnet": 2,
             "deuterium": 10
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1048,6 +1600,12 @@
             "particle-container": 1,
             "hydrogen": 10,
             "antimatter": 10
+        },
+        "replicator": false,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1060,6 +1618,12 @@
             "electromagnetic-turbine": 1,
             "plasma-exciter": 1,
             "hydrogen": 3
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1072,6 +1636,12 @@
             "jamming-capsule": 2,
             "super-magnetic-ring": 1,
             "titanium-glass": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1083,6 +1653,12 @@
         "ingredients": {
             "stone-brick": 3,
             "steel": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1093,6 +1669,12 @@
         },
         "ingredients": {
             "coal": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1104,6 +1686,12 @@
         "ingredients": {
             "proliferator-mk-i": 2,
             "diamond": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1115,6 +1703,12 @@
         "ingredients": {
             "proliferator-mk-ii": 2,
             "carbon-nanotube": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1127,6 +1721,12 @@
             "iron-ingot": 6,
             "super-magnetic-ring": 1,
             "crystal-silicon": 3
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1141,6 +1741,12 @@
             "super-magnetic-ring": 10,
             "quantum-chip": 4,
             "grating-crystal": 40
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1154,6 +1760,12 @@
             "stone-brick": 2,
             "circuit-board": 4,
             "magnetic-coil": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1167,6 +1779,12 @@
             "frame-material": 20,
             "annihilation-constraint-sphere": 10,
             "quantum-chip": 10
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1179,6 +1797,12 @@
             "iron-ingot": 4,
             "gear": 8,
             "circuit-board": 4
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1191,6 +1815,12 @@
             "assembling-machine-mk-i": 1,
             "graphene": 8,
             "processor": 4
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -1203,6 +1833,12 @@
             "assembling-machine-mk-ii": 1,
             "particle-broadband": 8,
             "quantum-chip": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -1216,6 +1852,12 @@
             "gear": 4,
             "super-magnetic-ring": 1,
             "processor": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1229,6 +1871,12 @@
             "circuit-board": 18,
             "microcrystalline-component": 6,
             "engine": 12
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1242,6 +1890,12 @@
             "stone-brick": 8,
             "glass": 8,
             "circuit-board": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1253,6 +1907,12 @@
         "ingredients": {
             "iron-ingot": 2,
             "gear": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1264,6 +1924,12 @@
         "ingredients": {
             "conveyor-belt-mk-i": 3,
             "electromagnetic-turbine": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -1276,6 +1942,12 @@
             "conveyor-belt-mk-ii": 3,
             "super-magnetic-ring": 1,
             "graphene": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -1287,6 +1959,12 @@
         "ingredients": {
             "iron-ingot": 4,
             "stone-brick": 4
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1298,6 +1976,12 @@
         "ingredients": {
             "steel": 8,
             "stone-brick": 8
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1311,6 +1995,12 @@
             "gear": 20,
             "processor": 5,
             "super-magnetic-ring": 10
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1324,6 +2014,12 @@
             "steel": 40,
             "processor": 40,
             "particle-container": 8
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1337,6 +2033,12 @@
             "stone-brick": 4,
             "glass": 4,
             "processor": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1350,6 +2052,12 @@
             "gear": 8,
             "circuit-board": 2,
             "magnetic-coil": 4
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1363,6 +2071,12 @@
             "copper-ingot": 20,
             "photon-combiner": 4,
             "super-magnetic-ring": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1376,6 +2090,12 @@
             "electric-motor": 8,
             "circuit-board": 10,
             "super-magnetic-ring": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1388,6 +2108,12 @@
             "planetary-logistics-station": 1,
             "titanium-alloy": 40,
             "particle-container": 20
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -1401,6 +2127,12 @@
             "plasma-exciter": 9,
             "diamond": 6,
             "processor": 3
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1414,6 +2146,12 @@
             "plasma-exciter": 6,
             "circuit-board": 6,
             "photon-combiner": 9
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1426,6 +2164,12 @@
             "iron-ingot": 8,
             "plasma-exciter": 4,
             "processor": 4
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1439,6 +2183,12 @@
             "glass": 4,
             "circuit-board": 4,
             "magnetic-coil": 4
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1452,6 +2202,12 @@
             "super-magnetic-ring": 10,
             "carbon-nanotube": 8,
             "processor": 4
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1466,6 +2222,12 @@
             "super-magnetic-ring": 25,
             "graphene": 10,
             "processor": 8
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1479,6 +2241,12 @@
             "circuit-board": 2,
             "magnetic-coil": 2,
             "gear": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1492,6 +2260,12 @@
             "electric-motor": 6,
             "circuit-board": 12,
             "engine": 6
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1505,6 +2279,12 @@
             "negentropy-singularity": 10,
             "energy-shard": 30,
             "quantum-chip": 4
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -1518,6 +2298,12 @@
             "stone-brick": 12,
             "circuit-board": 6,
             "plasma-exciter": 4
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1531,6 +2317,12 @@
             "stone-brick": 10,
             "circuit-board": 6,
             "plasma-exciter": 6
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1544,6 +2336,12 @@
             "super-magnetic-ring": 50,
             "reinforced-thruster": 20,
             "accumulator-full": 20
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -1556,6 +2354,12 @@
             "sorter-mk-iii": 2,
             "super-magnetic-ring": 1,
             "processor": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -1569,6 +2373,12 @@
             "frame-material": 5,
             "plane-filter": 4,
             "unipolar-magnet": 15
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -1582,6 +2392,12 @@
             "titanium-ingot": 40,
             "processor": 40,
             "particle-container": 20
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1595,6 +2411,12 @@
             "electromagnetic-turbine": 20,
             "super-magnetic-ring": 5,
             "particle-container": 5
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1609,6 +2431,12 @@
             "super-magnetic-ring": 10,
             "plasma-exciter": 5,
             "processor": 5
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1622,6 +2450,12 @@
             "titanium-glass": 10,
             "strange-matter": 3,
             "quantum-chip": 3
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -1636,6 +2470,12 @@
             "photon-combiner": 10,
             "processor": 5,
             "super-magnetic-ring": 20
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1649,6 +2489,12 @@
             "matter-recombinator": 10,
             "energy-shard": 30,
             "quantum-chip": 4
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -1661,6 +2507,12 @@
             "wireless-power-tower": 1,
             "super-magnetic-ring": 10,
             "frame-material": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -1674,6 +2526,12 @@
             "silicon-based-neuron": 10,
             "dark-fog-matrix": 20,
             "quantum-chip": 4
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -1686,6 +2544,12 @@
             "wireless-power-tower": 2,
             "steel": 12,
             "crystal-silicon": 6
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -1698,6 +2562,12 @@
             "copper-ingot": 10,
             "high-purity-silicon": 10,
             "circuit-board": 5
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1709,6 +2579,12 @@
         "ingredients": {
             "iron-ingot": 1,
             "circuit-board": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1720,6 +2596,12 @@
         "ingredients": {
             "sorter-mk-i": 2,
             "electric-motor": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -1731,6 +2613,12 @@
         "ingredients": {
             "sorter-mk-ii": 2,
             "electromagnetic-turbine": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -1743,6 +2631,12 @@
             "iron-ingot": 3,
             "gear": 2,
             "circuit-board": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1756,6 +2650,12 @@
             "plasma-exciter": 2,
             "circuit-board": 2,
             "microcrystalline-component": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1769,6 +2669,12 @@
             "super-magnetic-ring": 5,
             "plasma-exciter": 5,
             "processor": 5
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1781,6 +2687,12 @@
             "iron-ingot": 8,
             "stone-brick": 4,
             "glass": 4
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1792,6 +2704,12 @@
         "ingredients": {
             "iron-ingot": 2,
             "magnetic-coil": 1
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1805,6 +2723,12 @@
             "stone-brick": 4,
             "gear": 4,
             "magnetic-coil": 4
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1818,6 +2742,12 @@
             "gear": 2,
             "glass": 1,
             "circuit-board": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1831,6 +2761,12 @@
             "frame-material": 30,
             "graviton-lens": 20,
             "quantum-chip": 10
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1844,6 +2780,12 @@
             "stone-brick": 4,
             "electric-motor": 4,
             "circuit-board": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1856,6 +2798,12 @@
             "iron-ingot": 6,
             "gear": 1,
             "magnetic-coil": 3
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": true
         }
     },
     {
@@ -1867,6 +2815,12 @@
         "ingredients": {
             "tesla-tower": 1,
             "plasma-exciter": 3
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     },
     {
@@ -1880,6 +2834,12 @@
             "prism": 4,
             "plasma-exciter": 2,
             "circuit-board": 2
+        },
+        "replicator": true,
+        "proliferation": {
+            "speed": true,
+            "chance": false,
+            "yield": false
         }
     }
 ]

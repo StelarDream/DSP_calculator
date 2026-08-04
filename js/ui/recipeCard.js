@@ -1,6 +1,7 @@
 import { formatLabel } from './format.js';
 import { renderEntityRow } from './entityRow.js';
 import { renderMetaBar, renderStat, renderIconRow, renderIconButton, svgIcon, imgIcon } from './metaBar.js';
+import { renderProliferationGroup } from './proliferation.js';
 import { CLOCK_ICON, CHANCE_ICON, TREE_ICON } from './icons.js';
 
 // onGenerateTree: called with the recipe when the tree button is clicked -
@@ -32,9 +33,18 @@ function renderMeta(recipe, registries, onSelect) {
   if (recipe.time !== 0) left.push(renderStat(svgIcon(CLOCK_ICON), `${recipe.time}s`));
   if (recipe.chance !== 1) left.push(renderStat(svgIcon(CHANCE_ICON), formatChance(recipe.chance)));
 
-  const right = [
-    renderStat(imgIcon(`assets/recipe-types/${recipe.type}.png`, recipe.type), formatLabel(recipe.type)),
-  ];
+  const proliferation = renderProliferationGroup(recipe.proliferation);
+  if (proliferation) left.push(proliferation);
+
+  const right = [];
+  // Flagged rather than the (now more common) positive case, since most
+  // recipes can be hand-crafted - only the exceptions need calling out.
+  if (!recipe.replicator) {
+    const warning = renderStat(null, "Can't make with Replicator");
+    warning.classList.add('meta-stat--danger');
+    right.push(warning);
+  }
+  right.push(renderStat(imgIcon(`assets/recipe-types/${recipe.type}.png`, recipe.type), formatLabel(recipe.type)));
 
   const builtIn = registries.factories.byRecipeType.get(recipe.type) ?? [];
   if (builtIn.length) {
