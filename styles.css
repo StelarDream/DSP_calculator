@@ -1003,10 +1003,17 @@ body {
   gap: 8px;
 }
 
+/* Rounded pill per row - icon + name on the left, qty on the right - same
+   principle as Factory View's sidebar (see .factory-sidebar-building-row
+   in factoryView.js) so the two sidebars read as one unified style. */
 .tree-resource-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
 }
 
 .tree-resource-icon {
