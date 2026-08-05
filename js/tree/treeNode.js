@@ -1,18 +1,9 @@
 import { formatLabel } from '../ui/format.js';
-import { CHEVRON_ICON, EDIT_ICON, PROLIF_YIELD_ICON, PROLIF_CHANCE_ICON, PROLIF_SPEED_ICON, PROLIF_NONE_ICON } from '../ui/icons.js';
+import { CHEVRON_ICON, EDIT_ICON } from '../ui/icons.js';
 import { NODE_WIDTH, NODE_HEIGHT } from './constants.js';
 import { formatQty } from './formatQty.js';
 import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
-
-// Which proliferator effects a recipe *can* support, in display order -
-// matches js/ui/proliferation.js's convention for the flat recipe card.
-// `tone` also matches that file: yield/chance boost output (primary),
-// speed is a throughput boost (secondary) - same reasoning here.
-const PROLIF_MODES = [
-  { key: 'yield', icon: PROLIF_YIELD_ICON, label: 'Extra Yield', tone: 'primary' },
-  { key: 'chance', icon: PROLIF_CHANCE_ICON, label: 'Extra Product Chance', tone: 'primary' },
-  { key: 'speed', icon: PROLIF_SPEED_ICON, label: 'Speed Up', tone: 'secondary' },
-];
+import { PROLIF_MODES, renderProlifModeRow, renderProlifLevelRow, modeLabel, levelLabel } from './proliferationPicker.js';
 
 // A single fixed-size card in the tree canvas. Three flavors:
 //  - choice: "expand using this recipe" - see renderChoiceNode.
@@ -199,63 +190,19 @@ function renderProlifMenu(node, availableModes, openState, { onSetProlifMode, on
   // pan, but the card's own click listener still needs stopping.
   menu.addEventListener('click', (event) => event.stopPropagation());
 
-  const modeRow = document.createElement('div');
-  modeRow.className = 'tree-node-prolif-row';
-
-  // Explicit opt-out, sitting right alongside the yield/chance/speed
-  // choices it's an alternative to - replaces the old standalone "Remove"
-  // link below the picker. Clears the node's proliferation entirely and
-  // closes the menu, same as the old Remove button did.
-  const none = document.createElement('button');
-  none.type = 'button';
-  none.className = 'tree-node-prolif-option tree-node-prolif-option--none';
-  if (!openState.mode && !openState.level) none.classList.add('tree-node-prolif-option--active');
-  none.title = 'None';
-  none.setAttribute('aria-label', 'None');
-  none.innerHTML = PROLIF_NONE_ICON;
-  none.addEventListener('click', () => onClearProliferation(node.path));
-  modeRow.appendChild(none);
-
-  for (const mode of availableModes) {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = `tree-node-prolif-option tree-node-prolif-option--${mode.tone}`;
-    if (openState.mode === mode.key) btn.classList.add('tree-node-prolif-option--active');
-    btn.title = mode.label;
-    btn.setAttribute('aria-label', mode.label);
-    btn.innerHTML = mode.icon;
-    btn.addEventListener('click', () => onSetProlifMode(node.path, mode.key));
-    modeRow.appendChild(btn);
-  }
-  menu.appendChild(modeRow);
-
-  const levelRow = document.createElement('div');
-  levelRow.className = 'tree-node-prolif-row';
-  for (const level of PROLIFERATOR_LEVELS) {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'tree-node-prolif-option';
-    if (openState.level === level.id) btn.classList.add('tree-node-prolif-option--active');
-    btn.title = level.label;
-    btn.setAttribute('aria-label', level.label);
-    const img = document.createElement('img');
-    img.src = `assets/items/${level.itemId}.png`;
-    img.alt = '';
-    btn.appendChild(img);
-    btn.addEventListener('click', () => onSetProlifLevel(node.path, level.id));
-    levelRow.appendChild(btn);
-  }
-  menu.appendChild(levelRow);
+  menu.appendChild(renderProlifModeRow(openState, availableModes, {
+    onSelectMode: (mode) => onSetProlifMode(node.path, mode),
+    // Explicit opt-out, sitting right alongside the yield/chance/speed
+    // choices it's an alternative to - replaces the old standalone "Remove"
+    // link below the picker. Clears the node's proliferation and closes
+    // the menu, same as the old Remove button did.
+    onSelectNone: () => onClearProliferation(node.path),
+  }));
+  menu.appendChild(renderProlifLevelRow(openState, {
+    onSelectLevel: (level) => onSetProlifLevel(node.path, level),
+  }));
 
   return menu;
-}
-
-function modeLabel(key) {
-  return PROLIF_MODES.find((mode) => mode.key === key)?.label ?? key;
-}
-
-function levelLabel(id) {
-  return PROLIFERATOR_LEVELS.find((level) => level.id === id)?.label ?? id;
 }
 
 // One candidate recipe, shown in place of a craftable node's children when

@@ -676,6 +676,18 @@ body {
   color: var(--primary);
 }
 
+/* Default Proliferation panel - reuses the per-node picker's row/option
+   classes (see proliferationPicker.js) but sits flush in the sidebar
+   instead of inside a floating .tree-node-prolif-menu, so it needs its own
+   spacing between the hint text and the two rows. */
+.tree-resources-section .tree-node-prolif-row + .tree-node-prolif-row {
+  margin-top: 8px;
+}
+
+.tree-resources-section .tree-resources-empty + .tree-node-prolif-row {
+  margin-top: 10px;
+}
+
 /* Sized to fit the whole laid-out tree - see treeCanvas.js. Positioned so
    the SVG edge overlay and the absolutely-placed node cards share the same
    coordinate space. */

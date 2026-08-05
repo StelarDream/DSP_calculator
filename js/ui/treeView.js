@@ -81,6 +81,11 @@ function renderBody(subjectId, recipe, registries, initialState) {
   // once both axes are set (see onSetProlifMode/onSetProlifLevel).
   let openProlifMenu = null;
 
+  // The tree-wide default from the sidebar's "Default Proliferation" panel
+  // - stamped onto newly-resolved nodes by applyDefaultProliferation below.
+  // Session-local like everything else here; not seeded from a shared link.
+  let defaultProlif = { mode: null, level: null };
+
   const world = createTreeWorld();
   canvas.appendChild(world);
   const panZoom = createPanZoom(canvas, world);
@@ -91,6 +96,7 @@ function renderBody(subjectId, recipe, registries, initialState) {
   let size;
   function rerender() {
     const tree = buildTree(subjectId, 1, registries, { choices, overrides });
+    applyDefaultProliferation(tree);
     size = renderTreeInto(world, tree, {
       onToggle(path, wasCollapsed) {
         overrides.set(path, wasCollapsed);
@@ -128,12 +134,47 @@ function renderBody(subjectId, recipe, registries, initialState) {
         rerender();
       },
       onClearProliferation(path) {
-        proliferation.delete(path);
+        // An explicit { mode: null, level: null } rather than a delete -
+        // marks the node as deliberately opted out, distinct from a node
+        // that's simply never been touched, so applyDefaultProliferation
+        // below doesn't turn right around and reapply the default to it.
+        proliferation.set(path, { mode: null, level: null });
         openProlifMenu = null;
         rerender();
       },
     });
-    renderResourcesInto(resources, summarizeTree(tree));
+    renderResourcesInto(resources, summarizeTree(tree), defaultProlif, {
+      onSetMode(mode) {
+        defaultProlif = { ...defaultProlif, mode };
+        rerender();
+      },
+      onSetLevel(level) {
+        defaultProlif = { ...defaultProlif, level };
+        rerender();
+      },
+      onClear() {
+        defaultProlif = { mode: null, level: null };
+        rerender();
+      },
+    });
+  }
+
+  // Stamps the current default (if any) onto every node that resolves to a
+  // recipe and doesn't already have its own proliferation entry - covers
+  // both nodes that just appeared (freshly expanded, or a choice just
+  // picked) and nodes left unset from before the default was configured.
+  // Explicit per-node choices (including an explicit "None") always win,
+  // since those already have an entry in `proliferation`. Silently does
+  // nothing for a node whose recipe can't support the default's mode - it
+  // stays unset rather than being forced onto an unsupported effect, and
+  // stays eligible to pick up the default later if its recipe changes.
+  function applyDefaultProliferation(node) {
+    if (!node) return;
+    if (node.recipe && !proliferation.has(node.path) && defaultProlif.mode && defaultProlif.level
+      && node.recipe.proliferation[defaultProlif.mode]) {
+      proliferation.set(node.path, { mode: defaultProlif.mode, level: defaultProlif.level });
+    }
+    for (const child of node.children) applyDefaultProliferation(child);
   }
 
   // Only actually applies once both a mode and a level are chosen (in

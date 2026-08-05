@@ -1,6 +1,7 @@
 import { formatLabel } from '../ui/format.js';
 import { formatQty } from './formatQty.js';
 import { PENDING_ICON } from '../ui/icons.js';
+import { renderDefaultProliferationSection } from './defaultProliferationPanel.js';
 
 // The persistent sidebar element - created once per tree view and reused
 // across rerenders (see renderResourcesInto), same convention as
@@ -13,13 +14,16 @@ export function createResourceSidebar() {
 
 // (Re)populates the sidebar from a summarizeTree() result: what still has
 // to come from outside the tree, and any byproduct surplus left over once
-// that demand is netted out.
-export function renderResourcesInto(sidebar, summary) {
+// that demand is netted out. defaultProlif/prolifHandlers drive the
+// "Default Proliferation" panel pinned at the bottom - see
+// treeView.js's applyDefaultProliferation.
+export function renderResourcesInto(sidebar, summary, defaultProlif, prolifHandlers) {
   sidebar.innerHTML = '';
   sidebar.appendChild(renderSection('Raw Resources', summary.needed, 'needed'));
   if (summary.leftover.length > 0) {
     sidebar.appendChild(renderSection('Leftover', summary.leftover, 'leftover'));
   }
+  sidebar.appendChild(renderDefaultProliferationSection(defaultProlif, prolifHandlers));
 }
 
 function renderSection(title, items, kind) {
