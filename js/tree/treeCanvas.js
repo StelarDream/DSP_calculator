@@ -1,6 +1,6 @@
 import { layoutTree } from './layoutTree.js';
 import { renderTreeNode, renderRecipeHub, renderByproductNode } from './treeNode.js';
-import { NODE_WIDTH } from './constants.js';
+import { NODE_WIDTH, HUB_ICON_OFFSET } from './constants.js';
 
 // Padding around the laid-out tree so cards/edges aren't flush against the
 // world's own edges.
@@ -96,11 +96,17 @@ function byproductEdgePath({ from, to }) {
 }
 
 // Item/byproduct cards are left-edge-anchored (their stored x *is* the left
-// edge) and only centered vertically. A hub's stored position is already
-// its center on both axes, so it gets centered outright instead.
+// edge) and only centered vertically. A hub's stored position is its
+// *icon's* center (both axes) - horizontally that's the same as the box's
+// own center (the icon's always centered in it - see .recipe-hub's
+// align-items), so translateX(-50%) still works there, but vertically the
+// box can be taller than just the icon (see HUB_ICON_OFFSET in
+// constants.js), so `top` is offset by a fixed amount instead of a
+// percentage-based translateY - a percentage would center the *box*, which
+// isn't the same point once it's got a proliferation row below the icon.
 function positionNode(card, x, y, isHub) {
   card.style.left = `${x + PADDING}px`;
-  card.style.top = `${y + PADDING}px`;
-  card.style.transform = isHub ? 'translate(-50%, -50%)' : 'translateY(-50%)';
+  card.style.top = `${y + PADDING - (isHub ? HUB_ICON_OFFSET : 0)}px`;
+  card.style.transform = isHub ? 'translateX(-50%)' : 'translateY(-50%)';
   return card;
 }

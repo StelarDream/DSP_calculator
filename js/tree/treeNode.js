@@ -1,6 +1,6 @@
 import { formatLabel } from '../ui/format.js';
-import { CHEVRON_ICON, EDIT_ICON } from '../ui/icons.js';
-import { NODE_WIDTH, NODE_HEIGHT, HUB_SIZE } from './constants.js';
+import { CHEVRON_ICON, EDIT_ICON, PROLIF_NONE_ICON } from '../ui/icons.js';
+import { NODE_WIDTH, NODE_HEIGHT } from './constants.js';
 import { formatQty } from './formatQty.js';
 import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
 import { PROLIF_MODES, renderProlifModeRow, renderProlifLevelRow, modeLabel, levelLabel } from './proliferationPicker.js';
@@ -115,8 +115,6 @@ export function renderRecipeHub(node, handlers = {}) {
   // positionNode) - bumped above neighboring hubs/cards while its popover
   // is open, same reasoning as the old .tree-node--menu-open.
   if (menuOpen) hub.classList.add('recipe-hub--menu-open');
-  hub.style.width = `${HUB_SIZE}px`;
-  hub.style.height = `${HUB_SIZE}px`;
 
   const icon = document.createElement('img');
   icon.className = 'recipe-hub-icon';
@@ -125,6 +123,9 @@ export function renderRecipeHub(node, handlers = {}) {
   icon.title = formatLabel(node.recipe.type);
   hub.appendChild(icon);
 
+  // Floating corner badge (unlike the proliferation button below) - stays
+  // put regardless of whether the hub also has a proliferation row, so it
+  // doesn't shift the hub's height when a recipe has no effects to offer.
   if (editable) {
     const edit = document.createElement('button');
     edit.type = 'button';
@@ -140,7 +141,14 @@ export function renderRecipeHub(node, handlers = {}) {
     hub.appendChild(edit);
   }
 
+  // Sits in-flow below the icon (a thin divider between them), rather than
+  // floating as a corner badge like the edit button - room to grow when
+  // active without overlapping the icon above it.
   if (proliferatable) {
+    const hubDivider = document.createElement('div');
+    hubDivider.className = 'recipe-hub-divider';
+    hub.appendChild(hubDivider);
+
     const prolif = document.createElement('button');
     prolif.type = 'button';
     prolif.className = 'tree-node-prolif';
@@ -152,27 +160,27 @@ export function renderRecipeHub(node, handlers = {}) {
       ? `Proliferation: ${modeLabel(activeProlif.mode)} (${levelLabel(activeProlif.level)})`
       : 'Add proliferation';
     prolif.setAttribute('aria-label', prolif.title);
-    // Once a mode+level is actually applied, swap the generic badge icon
-    // for "<mode icon> | <proliferator icon>" so the badge itself shows
-    // what's active, not just that something is - matching the tooltip.
+    // Always "<img icon> | <svg icon>" - active or not - so nothing about
+    // the row's size changes when proliferation gets toggled, only which
+    // icons it shows: the proliferator level + its mode once applied, or a
+    // generic hint + the same "None" glyph the picker's own None option
+    // uses (see proliferationPicker.js) while nothing's set yet.
+    const leftIcon = document.createElement('img');
+    leftIcon.className = 'tree-node-prolif-level-icon';
+    const rightIcon = document.createElement('span');
+    rightIcon.className = 'tree-node-prolif-icon';
     if (activeProlif) {
-      const modeIcon = document.createElement('span');
-      modeIcon.className = 'tree-node-prolif-icon';
-      modeIcon.innerHTML = activeMode?.icon ?? '';
-      const divider = document.createElement('span');
-      divider.className = 'tree-node-prolif-divider';
-      const levelIcon = document.createElement('img');
-      levelIcon.className = 'tree-node-prolif-level-icon';
       const level = PROLIFERATOR_LEVELS.find((lvl) => lvl.id === activeProlif.level);
-      levelIcon.src = level ? `assets/items/${level.itemId}.png` : '';
-      levelIcon.alt = '';
-      prolif.append(modeIcon, divider, levelIcon);
+      leftIcon.src = level ? `assets/items/${level.itemId}.png` : '';
+      rightIcon.innerHTML = activeMode?.icon ?? '';
     } else {
-      const prolifIcon = document.createElement('img');
-      prolifIcon.src = 'assets/proliferation-icon.png';
-      prolifIcon.alt = '';
-      prolif.appendChild(prolifIcon);
+      leftIcon.src = 'assets/proliferation-icon.png';
+      rightIcon.innerHTML = PROLIF_NONE_ICON;
     }
+    leftIcon.alt = '';
+    const divider = document.createElement('span');
+    divider.className = 'tree-node-prolif-divider';
+    prolif.append(leftIcon, divider, rightIcon);
     prolif.addEventListener('click', (event) => {
       event.stopPropagation();
       onToggleProlifMenu(node.path);

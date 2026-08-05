@@ -884,12 +884,19 @@ body {
    layoutTree.js (where it's positioned) and treeNode.js's renderRecipeHub.
    Centered on its position rather than left-edge-anchored (treeCanvas.js's
    positionNode), so it reads as a point the connectors pass through rather
-   than a card of its own. */
+   than a card of its own. A vertical stack (icon, then the proliferation
+   button below a thin divider) rather than a fixed square - width/height
+   are both content-driven, so it only grows as tall/wide as it needs to
+   (e.g. no divider or button row at all for a recipe with no proliferation
+   options), and stays correctly centered regardless via the transform in
+   positionNode. */
 .recipe-hub {
   position: absolute;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
+  padding: 6px;
   background: var(--bg-elevated);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-md);
@@ -903,13 +910,22 @@ body {
   -webkit-user-drag: none;
 }
 
-/* "Change recipe" and proliferation buttons - corner badges on the recipe
-   hub above, rather than the item card they used to straddle. Each gets
-   its own fixed corner, so unlike before there's no need to stack them -
-   top-right for edit, bottom-right for proliferation. */
-.tree-node-edit,
-.tree-node-prolif {
+/* Separates the icon from the proliferation button beneath it - only
+   present when that button is (see treeNode.js), so a recipe with nothing
+   to proliferate is just the icon, no empty space below it. */
+.recipe-hub-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border-soft);
+}
+
+/* "Change recipe" - a floating corner badge (top-right) on the recipe hub,
+   unlike the proliferation button below it which sits in-flow. Doesn't
+   need to react to anything else in the hub, so it's fine to float
+   regardless of whether the hub also has a proliferation row. */
+.tree-node-edit {
   position: absolute;
+  top: -8px;
   right: -8px;
   display: inline-flex;
   align-items: center;
@@ -925,24 +941,24 @@ body {
   z-index: 1;
 }
 
-.tree-node-edit {
-  top: -8px;
-}
-
+/* Proliferation control - an in-flow row below the hub's icon (see
+   .recipe-hub-divider above), not a floating badge like "change recipe."
+   No background/border of its own - it's not a distinct box nested inside
+   the hub, just a clickable row that happens to live there (a background
+   only ever shows up as a state cue: the subtle hover fill below, or the
+   tone tint once active). */
 .tree-node-prolif {
-  bottom: -8px;
-}
-
-/* Once a mode+level is applied the badge grows to fit "<mode icon> |
-   <proliferator icon>" instead of the generic single icon - grows toward
-   the hub's own left side (no chevron to avoid here, unlike the item card
-   this used to sit on), so `right` stays put and only `width` needs to
-   change. */
-.tree-node-prolif--active {
-  width: auto;
-  min-width: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 4px;
-  padding: 0 5px;
+  padding: 2px 4px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  font: inherit;
+  color: var(--text-secondary);
+  cursor: pointer;
 }
 
 .tree-node-edit svg {
@@ -955,21 +971,14 @@ body {
   border-color: var(--secondary-border);
 }
 
-.tree-node-prolif img {
-  width: 13px;
-  height: 13px;
-  object-fit: contain;
-}
-
 .tree-node-prolif:hover {
   color: var(--primary);
-  border-color: var(--primary-border);
+  background: var(--bg-panel);
 }
 
 .tree-node-prolif--active {
   color: var(--primary);
   background: var(--primary-dim);
-  border-color: var(--primary-border);
 }
 
 /* Speed Up is a throughput boost rather than an output boost, so it's
@@ -978,17 +987,15 @@ body {
 .tree-node-prolif--secondary {
   color: var(--secondary);
   background: var(--secondary-dim);
-  border-color: var(--secondary-border);
 }
 
 /* .tree-node-prolif:hover (above) always pulls toward primary, which is
-   right for the inactive badge and a primary-toned active one, but wrong
+   right for the inactive row and a primary-toned active one, but wrong
    for a secondary-toned one - it'd flash back to primary on hover instead
    of staying put. Same specificity as that rule, so source order (this
    comes after) is what makes it win. */
 .tree-node-prolif--secondary:hover {
   color: var(--secondary);
-  border-color: var(--secondary-border);
 }
 
 /* The badge's own "<mode icon> | <proliferator icon>" content, active
