@@ -26,7 +26,20 @@ import { getYieldMultiplier } from './proliferatorMultiplier.js';
 // elsewhere) - those aren't the same unit, but "one craft of this recipe"
 // always is. computeMachineCounts.js turns this ratio into real machines
 // once an actual target rate enters the picture.
-export function buildFactoryPlan(root, proliferation) {
+//
+// byproductReuse ({ "<lineKey>::<itemId>" -> boolean }, see factoryView.js)
+// matters here, not just for the bottom bar's raw-input totals: a single
+// craft produces *every* one of the recipe's results at once, so when two
+// different tree nodes each demand a different result of the very same
+// recipe (e.g. a symmetric recipe that outputs both Hydrogen and
+// Antimatter, with one branch of the tree asking for each), one shared
+// batch of crafts can satisfy both demands simultaneously - counting them
+// separately (the old plain sum) double-crafts. combineItemCrafts below
+// takes the max across whichever items are allowed to share a batch this
+// way instead of summing them, falling back to a dedicated add-on amount
+// for any item explicitly toggled to waste (opting out of being covered
+// by someone else's crafts).
+export function buildFactoryPlan(root, proliferation, byproductReuse) {
   const lines = new Map(); // key -> line
 
   function walk(node) {
@@ -42,13 +55,19 @@ export function buildFactoryPlan(root, proliferation) {
           recipe: node.recipe,
           mode: mode ?? null,
           level: level ?? null,
-          crafts: 0,
+          // Crafts needed to satisfy each item this line was actually
+          // asked to produce, kept separate per item until
+          // combineItemCrafts folds them into the line's final `crafts`
+          // below - summing them straight into one number is exactly the
+          // double-crafting bug this map exists to avoid.
+          craftsByItem: new Map(),
           nodePaths: [],
         });
       }
 
       const line = lines.get(key);
-      line.crafts += craftsForNode(node, mode, level);
+      const crafts = craftsForNode(node, mode, level);
+      line.craftsByItem.set(node.itemId, (line.craftsByItem.get(node.itemId) ?? 0) + crafts);
       line.nodePaths.push(node.path);
     }
 
@@ -59,7 +78,39 @@ export function buildFactoryPlan(root, proliferation) {
 
   walk(root);
 
-  return [...lines.values()].sort((a, b) => b.crafts - a.crafts);
+  const result = [...lines.values()].map((line) => ({
+    key: line.key,
+    recipe: line.recipe,
+    mode: line.mode,
+    level: line.level,
+    nodePaths: line.nodePaths,
+    crafts: combineItemCrafts(line, byproductReuse),
+  }));
+
+  return result.sort((a, b) => b.crafts - a.crafts);
+}
+
+// A line's final crafts figure: the biggest of whichever items are allowed
+// to share one batch of crafts (the recipe's primary result always can -
+// it's never byproduct-toggleable - plus any byproduct still toggled to
+// reuse), *plus* a dedicated amount tacked on for any item explicitly
+// toggled to waste, since opting out of reuse also means opting out of
+// being covered by someone else's crafts.
+function combineItemCrafts(line, byproductReuse) {
+  const primaryItemId = Object.keys(line.recipe.result)[0];
+  let shared = 0;
+  let dedicated = 0;
+
+  for (const [itemId, crafts] of line.craftsByItem) {
+    const reused = itemId === primaryItemId || (byproductReuse?.get(`${line.key}::${itemId}`) ?? true);
+    if (reused) {
+      shared = Math.max(shared, crafts);
+    } else {
+      dedicated += crafts;
+    }
+  }
+
+  return shared + dedicated;
 }
 
 // How many crafts of node.recipe this single node represents, in the same

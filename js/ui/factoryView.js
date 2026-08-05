@@ -59,11 +59,14 @@ export function renderFactoryView(container, treeState, registries, onBack) {
   // a session-wide fallback (see defaultBuildingPanel.js) that applies to
   // any line of that type without its own explicit per-card override.
   const defaultBuildingByType = new Map();
-  // Which of a line's byproducts count as internal supply for the bottom
-  // bar's raw-input totals (computeRawInputs.js) vs. are treated as waste -
+  // Which of a line's byproducts count as reusable rather than waste -
   // keyed by "<lineKey>::<itemId>" since one line can have more than one
   // byproduct and each toggles independently. Absent = reused (the
-  // default) - see isByproductReused below.
+  // default) - see isByproductReused below. Feeds two different things: it
+  // lets buildFactoryPlan.js share one batch of crafts across nodes that
+  // separately demand different results of the same recipe instead of
+  // double-crafting them, and it drives which byproducts count toward
+  // computeRawInputs.js's raw-input netting for the bottom bar.
   const byproductReuse = new Map();
   // Which card's proliferation popover is open, plus its in-progress
   // mode/level - same shape/rationale as treeView.js's openProlifMenu, just
@@ -83,7 +86,7 @@ export function renderFactoryView(container, treeState, registries, onBack) {
   }
 
   function computeLines(tree) {
-    const rawLines = buildFactoryPlan(tree, treeState.proliferation);
+    const rawLines = buildFactoryPlan(tree, treeState.proliferation, byproductReuse);
     const withBuildingSpeed = rawLines.map((line) => {
       const options = getBuildingOptions(line.recipe, registries);
       const buildingId = getSelectedBuilding(options, buildingChoice, line.key, defaultBuildingByType.get(line.recipe.type));
