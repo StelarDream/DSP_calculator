@@ -1,6 +1,7 @@
 import { formatLabel } from '../ui/format.js';
 import { CHEVRON_ICON, EDIT_ICON } from '../ui/icons.js';
 import { NODE_WIDTH, NODE_HEIGHT } from './constants.js';
+import { formatQty } from './formatQty.js';
 
 // A single fixed-size card in the tree canvas. Three flavors:
 //  - choice: "expand using this recipe" - see renderChoiceNode.
@@ -171,11 +172,4 @@ export function renderByproductNode(byproduct) {
   info.append(name, qty);
   el.append(icon, info);
   return el;
-}
-
-// Two decimals max, but drop the decimal entirely when it's a whole number
-// (most quantities are; fractional ones only show up from ratio scaling).
-function formatQty(qty) {
-  const rounded = Math.round(qty * 100) / 100;
-  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2);
 }

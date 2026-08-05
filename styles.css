@@ -481,10 +481,18 @@ body {
   color: var(--text-primary);
 }
 
-.tree-view-canvas {
-  position: relative;
+.tree-view-body {
+  display: flex;
+  gap: 16px;
   height: calc(100% - 68px);
   min-height: 320px;
+}
+
+.tree-view-canvas {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
   overflow: hidden;
   border: 1px dashed var(--border);
   border-radius: var(--radius-lg);
@@ -500,6 +508,93 @@ body {
   z-index: 1;
   display: flex;
   gap: 8px;
+}
+
+/* Aggregated "what actually has to come from outside the tree" totals -
+   see summarizeTree.js. Lives beside the canvas, not inside it, so it
+   isn't affected by pan/zoom. */
+.tree-resources {
+  flex: 0 0 260px;
+  height: 100%;
+  overflow-y: auto;
+  padding: 16px;
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+}
+
+.tree-resources-section + .tree-resources-section {
+  margin-top: 20px;
+}
+
+.tree-resources-title {
+  margin: 0 0 10px;
+  font-family: var(--font-accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.tree-resources-empty {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.tree-resources-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tree-resource-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tree-resource-icon {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.tree-resource-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-resource-pending {
+  flex: 0 0 auto;
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  color: var(--secondary);
+}
+
+.tree-resource-pending svg {
+  width: 100%;
+  height: 100%;
+}
+
+.tree-resource-qty {
+  flex: 0 0 auto;
+  font-family: var(--font-accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--secondary);
+}
+
+.tree-resource-row--leftover .tree-resource-qty {
+  color: var(--primary);
 }
 
 /* Sized to fit the whole laid-out tree - see treeCanvas.js. Positioned so

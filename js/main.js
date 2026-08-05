@@ -98,8 +98,15 @@ export async function init() {
   // invalid/stale (unknown item, removed recipe) - falls back to the
   // regular empty state rather than erroring out.
   function restoreSharedTree() {
-    const code = new URLSearchParams(location.search).get('tree');
+    const url = new URL(location.href);
+    const code = url.searchParams.get('tree');
     if (!code) return;
+
+    // Consumed either way, successful or not - strip just `tree` (leaving
+    // any other params, present now or added later, untouched) so a share
+    // link doesn't linger as a giant URL after it's been read.
+    url.searchParams.delete('tree');
+    history.replaceState(null, '', url);
 
     const restored = deserializeTreeState(code);
     if (!restored || !state.registries.objects.has(restored.subjectId)) return;

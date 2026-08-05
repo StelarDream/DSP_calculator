@@ -5,6 +5,8 @@ import { buildTree } from '../tree/buildTree.js';
 import { createTreeWorld, renderTreeInto } from '../tree/treeCanvas.js';
 import { createPanZoom } from '../tree/panZoom.js';
 import { serializeTreeState } from '../tree/serializeTree.js';
+import { summarizeTree } from '../tree/summarizeTree.js';
+import { createResourceSidebar, renderResourcesInto } from '../tree/resourceSidebar.js';
 
 // Full-pane recipe-tree view, swapped in over the normal detail pane when a
 // recipe card's tree button is clicked (or a shared link is opened).
@@ -19,9 +21,9 @@ export function renderTreeView(container, subjectId, recipe, registries, onBack,
   container.innerHTML = '';
   container.scrollTop = 0;
 
-  const { canvas, fit } = renderCanvas(subjectId, recipe, registries, initialState);
+  const { body, fit } = renderBody(subjectId, recipe, registries, initialState);
   container.appendChild(renderHeader(subjectId, onBack));
-  container.appendChild(canvas);
+  container.appendChild(body);
 
   // Only has real dimensions to fit against once attached to the document -
   // querying clientWidth/Height here forces the synchronous layout that
@@ -47,9 +49,14 @@ function renderHeader(subjectId, onBack) {
   return header;
 }
 
-function renderCanvas(subjectId, recipe, registries, initialState) {
+function renderBody(subjectId, recipe, registries, initialState) {
+  const body = document.createElement('div');
+  body.className = 'tree-view-body';
+
   const canvas = document.createElement('div');
   canvas.className = 'tree-view-canvas blueprint-grid';
+
+  const resources = createResourceSidebar();
 
   // Local to this tree view session - which recipe each node uses and
   // which nodes have been manually expanded/collapsed, overriding the
@@ -65,7 +72,8 @@ function renderCanvas(subjectId, recipe, registries, initialState) {
   const panZoom = createPanZoom(canvas, world);
 
   // Rebuilds the tree from current choices/overrides and repopulates the
-  // existing world element in place, so the pan/zoom transform survives.
+  // existing world element (and the resource totals) in place, so the
+  // pan/zoom transform survives.
   let size;
   function rerender() {
     const tree = buildTree(subjectId, 1, registries, { choices, overrides });
@@ -83,6 +91,7 @@ function renderCanvas(subjectId, recipe, registries, initialState) {
         rerender();
       },
     });
+    renderResourcesInto(resources, summarizeTree(tree));
   }
   rerender();
 
@@ -90,13 +99,15 @@ function renderCanvas(subjectId, recipe, registries, initialState) {
   const shareUrl = () => buildShareUrl(subjectId, recipe.id, choices, overrides);
   canvas.appendChild(renderToolbar(panZoom, fit, shareUrl));
 
-  return { canvas, fit };
+  body.append(canvas, resources);
+  return { body, fit };
 }
 
 function buildShareUrl(subjectId, recipeId, choices, overrides) {
   const code = serializeTreeState({ subjectId, recipeId, choices, overrides });
   const url = new URL(window.location.href);
-  url.search = '';
+  // Only ever touches `tree` - any other params (present now or added by
+  // future features) are left exactly as they are.
   url.searchParams.set('tree', code);
   return url.toString();
 }
