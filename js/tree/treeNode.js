@@ -121,7 +121,6 @@ export function renderRecipeHub(node, handlers = {}) {
   icon.src = `assets/recipe-types/${node.recipe.type}.png`;
   icon.alt = '';
   icon.title = formatLabel(node.recipe.type);
-  hub.appendChild(icon);
 
   // Floating corner badge (unlike the proliferation button below) - stays
   // put regardless of whether the hub also has a proliferation row, so it
@@ -141,14 +140,10 @@ export function renderRecipeHub(node, handlers = {}) {
     hub.appendChild(edit);
   }
 
-  // Sits in-flow below the icon (a thin divider between them), rather than
-  // floating as a corner badge like the edit button - room to grow when
-  // active without overlapping the icon above it.
+  // Sits in-flow to the *left* of the icon (a thin divider between them),
+  // rather than floating as a corner badge like the edit button - room to
+  // grow when active without overlapping the icon.
   if (proliferatable) {
-    const hubDivider = document.createElement('div');
-    hubDivider.className = 'recipe-hub-divider';
-    hub.appendChild(hubDivider);
-
     const prolif = document.createElement('button');
     prolif.type = 'button';
     prolif.className = 'tree-node-prolif';
@@ -160,37 +155,45 @@ export function renderRecipeHub(node, handlers = {}) {
       ? `Proliferation: ${modeLabel(activeProlif.mode)} (${levelLabel(activeProlif.level)})`
       : 'Add proliferation';
     prolif.setAttribute('aria-label', prolif.title);
-    // Always "<img icon> | <svg icon>" - active or not - so nothing about
-    // the row's size changes when proliferation gets toggled, only which
-    // icons it shows: the proliferator level + its mode once applied, or a
-    // generic hint + the same "None" glyph the picker's own None option
-    // uses (see proliferationPicker.js) while nothing's set yet.
-    const leftIcon = document.createElement('img');
-    leftIcon.className = 'tree-node-prolif-level-icon';
-    const rightIcon = document.createElement('span');
-    rightIcon.className = 'tree-node-prolif-icon';
+    // Always "<img icon> above <svg icon>" - active or not - so nothing
+    // about the button's size changes when proliferation gets toggled,
+    // only which icons it shows: the proliferator level + its mode once
+    // applied, or a generic hint + the same "None" glyph the picker's own
+    // None option uses (see proliferationPicker.js) while nothing's set.
+    const topIcon = document.createElement('img');
+    topIcon.className = 'tree-node-prolif-level-icon';
+    const bottomIcon = document.createElement('span');
+    bottomIcon.className = 'tree-node-prolif-icon';
     if (activeProlif) {
       const level = PROLIFERATOR_LEVELS.find((lvl) => lvl.id === activeProlif.level);
-      leftIcon.src = level ? `assets/items/${level.itemId}.png` : '';
-      rightIcon.innerHTML = activeMode?.icon ?? '';
+      topIcon.src = level ? `assets/items/${level.itemId}.png` : '';
+      bottomIcon.innerHTML = activeMode?.icon ?? '';
     } else {
-      leftIcon.src = 'assets/proliferation-icon.png';
-      rightIcon.innerHTML = PROLIF_NONE_ICON;
+      topIcon.src = 'assets/proliferation-icon.png';
+      bottomIcon.innerHTML = PROLIF_NONE_ICON;
     }
-    leftIcon.alt = '';
+    topIcon.alt = '';
     const divider = document.createElement('span');
     divider.className = 'tree-node-prolif-divider';
-    prolif.append(leftIcon, divider, rightIcon);
+    prolif.append(topIcon, divider, bottomIcon);
     prolif.addEventListener('click', (event) => {
       event.stopPropagation();
       onToggleProlifMenu(node.path);
     });
     hub.appendChild(prolif);
 
+    const hubDivider = document.createElement('div');
+    hubDivider.className = 'recipe-hub-divider';
+    hub.appendChild(hubDivider);
+
     if (menuOpen) {
       hub.appendChild(renderProlifMenu(node, availableModes, openProlifMenu, handlers));
     }
   }
+
+  // Appended last - after the proliferation button, if there is one - so
+  // it renders on the right of it, matching .recipe-hub's plain row order.
+  hub.appendChild(icon);
 
   return hub;
 }

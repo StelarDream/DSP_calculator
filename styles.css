@@ -884,16 +884,20 @@ body {
    layoutTree.js (where it's positioned) and treeNode.js's renderRecipeHub.
    Centered on its position rather than left-edge-anchored (treeCanvas.js's
    positionNode), so it reads as a point the connectors pass through rather
-   than a card of its own. A vertical stack (icon, then the proliferation
-   button below a thin divider) rather than a fixed square - width/height
-   are both content-driven, so it only grows as tall/wide as it needs to
-   (e.g. no divider or button row at all for a recipe with no proliferation
-   options), and stays correctly centered regardless via the transform in
-   positionNode. */
+   than a card of its own. A horizontal row (icon, then the proliferation
+   button beside it past a thin divider) rather than a fixed square -
+   width/height are both content-driven, so it only grows as wide as it
+   needs to (e.g. no divider or button at all for a recipe with no
+   proliferation options). Row rather than the column this used to be: the
+   icon is the tallest thing in it, so align-items: center here makes the
+   icon's own center land exactly on the row's center too, meaning simple
+   whole-box centering (positionNode's translate) already puts the icon on
+   the target point with no separate offset math needed - a column
+   (icon-above-button) doesn't have that property, since the box then
+   extends further below the icon than above it. */
 .recipe-hub {
   position: absolute;
   display: flex;
-  flex-direction: column;
   align-items: center;
   gap: 6px;
   padding: 6px;
@@ -910,12 +914,14 @@ body {
   -webkit-user-drag: none;
 }
 
-/* Separates the icon from the proliferation button beneath it - only
+/* Separates the icon from the proliferation button beside it - only
    present when that button is (see treeNode.js), so a recipe with nothing
-   to proliferate is just the icon, no empty space below it. */
+   to proliferate is just the icon, no empty space next to it. Stretches to
+   the row's own height (driven by the icon) rather than a fixed px value,
+   so it can't drift out of sync with the icon size. */
 .recipe-hub-divider {
-  width: 100%;
-  height: 1px;
+  align-self: stretch;
+  width: 1px;
   background: var(--border-soft);
 }
 
@@ -941,17 +947,20 @@ body {
   z-index: 1;
 }
 
-/* Proliferation control - an in-flow row below the hub's icon (see
-   .recipe-hub-divider above), not a floating badge like "change recipe."
-   No background/border of its own - it's not a distinct box nested inside
-   the hub, just a clickable row that happens to live there (a background
-   only ever shows up as a state cue: the subtle hover fill below, or the
-   tone tint once active). */
+/* Proliferation control - an in-flow item to the left of the hub's icon
+   (see .recipe-hub-divider below), not a floating badge like "change
+   recipe." No background/border of its own - it's not a distinct box
+   nested inside the hub, just a clickable column that happens to live
+   there (a background only ever shows up as a state cue: the subtle hover
+   fill below, or the tone tint once active). Its own two icons stack
+   vertically (see .tree-node-prolif-icon/-level-icon below) rather than
+   side by side, so the button stays narrow.*/
 .tree-node-prolif {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 2px;
   padding: 2px 4px;
   background: none;
   border: none;
@@ -998,8 +1007,9 @@ body {
   color: var(--secondary);
 }
 
-/* The badge's own "<mode icon> | <proliferator icon>" content, active
-   state only - see treeNode.js. */
+/* The button's own two stacked icons (proliferator level above its mode,
+   or the generic hint above "None" - see treeNode.js) - always both
+   present, active or not. */
 .tree-node-prolif-icon {
   display: inline-flex;
 }
@@ -1010,8 +1020,8 @@ body {
 }
 
 .tree-node-prolif-divider {
-  width: 1px;
-  height: 12px;
+  width: 12px;
+  height: 1px;
   background: currentColor;
   opacity: 0.35;
 }

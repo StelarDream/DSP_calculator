@@ -4,17 +4,6 @@
 export const NODE_WIDTH = 200;
 export const NODE_HEIGHT = 56;
 
-// The recipe hub (treeNode.js's renderRecipeHub) is anchored to its own
-// *icon*, not the whole box - the box also grows downward to fit a
-// proliferation row once the recipe has one (see .recipe-hub-divider in
-// styles.css), and centering the whole box on that would drag the icon
-// (and every edge connecting to it) down below where it visually belongs
-// every time that row appears. This is the icon's vertical center, in px
-// from the hub's own outer top edge: .recipe-hub's border (1px) + its
-// padding-top (6px) + half of .recipe-hub-icon's height (26px / 2 = 13px)
-// - keep in sync with styles.css if any of those change.
-export const HUB_ICON_OFFSET = 20;
-
 // Spacing between sibling rows and between depth columns - larger than the
 // node itself so cards have breathing room and connectors are easy to read.
 // COLUMN_WIDTH also has to leave room for the recipe hub (see treeNode.js's
