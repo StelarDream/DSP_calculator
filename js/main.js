@@ -5,6 +5,7 @@ import { renderFilters } from './ui/filters.js';
 import { renderList } from './ui/list.js';
 import { renderDetail } from './ui/detail.js';
 import { renderTreeView } from './ui/treeView.js';
+import { renderFactoryView } from './ui/factoryView.js';
 import { deserializeTreeState } from './tree/serializeTree.js';
 import { selectEntities } from './selectEntities.js';
 import { initSidebarCollapse } from './ui/sidebarCollapse.js';
@@ -32,8 +33,13 @@ export async function init() {
   }
 
   function updateDetail() {
+    if (state.view === 'factory' && state.factoryTreeState) {
+      renderFactoryView(detailContainer, state.factoryTreeState, enterTreeFromFactory);
+      return;
+    }
+
     if (state.view === 'tree' && state.treeRecipe) {
-      renderTreeView(detailContainer, state.selectedId, state.treeRecipe, state.registries, exitTreeView, state.treeInitialState);
+      renderTreeView(detailContainer, state.selectedId, state.treeRecipe, state.registries, exitTreeView, state.treeInitialState, enterFactoryView);
       return;
     }
 
@@ -53,6 +59,24 @@ export async function init() {
     state.view = 'detail';
     state.treeRecipe = null;
     state.treeInitialState = null;
+    updateDetail();
+  }
+
+  // Wired up to the tree view's Factory View button.
+  function enterFactoryView(treeState) {
+    state.view = 'factory';
+    state.factoryTreeState = treeState;
+    updateDetail();
+  }
+
+  // Wired up to Factory View's Back button - restores the tree exactly as
+  // it was when Factory View was opened.
+  function enterTreeFromFactory(treeState) {
+    state.view = 'tree';
+    state.selectedId = treeState.subjectId;
+    state.treeRecipe = treeState.recipe;
+    state.treeInitialState = { choices: treeState.choices, overrides: treeState.overrides, proliferation: treeState.proliferation };
+    state.factoryTreeState = null;
     updateDetail();
   }
 

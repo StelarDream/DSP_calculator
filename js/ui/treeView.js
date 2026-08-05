@@ -1,5 +1,5 @@
 import { formatLabel } from './format.js';
-import { BACK_ICON, ZOOM_IN_ICON, ZOOM_OUT_ICON, FIT_VIEW_ICON, SHARE_ICON, CHECK_ICON } from './icons.js';
+import { BACK_ICON, ZOOM_IN_ICON, ZOOM_OUT_ICON, FIT_VIEW_ICON, SHARE_ICON, CHECK_ICON, FACTORY_ICON } from './icons.js';
 import { renderIconButton } from './metaBar.js';
 import { buildTree } from '../tree/buildTree.js';
 import { createTreeWorld, renderTreeInto } from '../tree/treeCanvas.js';
@@ -24,12 +24,16 @@ let detachOutsideClick = null;
 // was clicked rather than always defaulting to the first one found.
 // initialState: { choices, overrides } to seed the tree with instead of
 // starting fresh - how a shared link restores its exact state.
-export function renderTreeView(container, subjectId, recipe, registries, onBack, initialState) {
+// onFactory: called with a { subjectId, recipe, choices, overrides,
+// proliferation } snapshot of the current tree when the header's Factory
+// View button is clicked - lets the caller switch views without this
+// module knowing anything about view-switching itself.
+export function renderTreeView(container, subjectId, recipe, registries, onBack, initialState, onFactory) {
   container.innerHTML = '';
   container.scrollTop = 0;
 
-  const { body, fit } = renderBody(subjectId, recipe, registries, initialState);
-  container.appendChild(renderHeader(subjectId, onBack));
+  const { body, fit, snapshot } = renderBody(subjectId, recipe, registries, initialState);
+  container.appendChild(renderHeader(subjectId, onBack, () => onFactory(snapshot())));
   container.appendChild(body);
 
   // Only has real dimensions to fit against once attached to the document -
@@ -38,7 +42,7 @@ export function renderTreeView(container, subjectId, recipe, registries, onBack,
   fit();
 }
 
-function renderHeader(subjectId, onBack) {
+function renderHeader(subjectId, onBack, onFactory) {
   const header = document.createElement('div');
   header.className = 'tree-view-header';
 
@@ -52,7 +56,13 @@ function renderHeader(subjectId, onBack) {
   title.className = 'tree-view-title';
   title.textContent = `Recipe Tree — ${formatLabel(subjectId ?? '')}`;
 
-  header.append(backBtn, title);
+  const factoryBtn = document.createElement('button');
+  factoryBtn.type = 'button';
+  factoryBtn.className = 'factory-view-btn';
+  factoryBtn.innerHTML = `${FACTORY_ICON}<span>Factory View</span>`;
+  factoryBtn.addEventListener('click', onFactory);
+
+  header.append(backBtn, title, factoryBtn);
   return header;
 }
 
@@ -232,8 +242,19 @@ function renderBody(subjectId, recipe, registries, initialState) {
   const shareUrl = () => buildShareUrl(subjectId, recipe.id, choices, overrides, proliferation);
   canvas.appendChild(renderToolbar(panZoom, fit, shareUrl));
 
+  // Snapshot of the live choice/override/proliferation maps, for handing
+  // off to Factory View (or restoring back into a fresh tree view) without
+  // sharing mutable references into this closure.
+  const snapshot = () => ({
+    subjectId,
+    recipe,
+    choices: new Map(choices),
+    overrides: new Map(overrides),
+    proliferation: new Map(proliferation),
+  });
+
   body.append(canvas, resources);
-  return { body, fit };
+  return { body, fit, snapshot };
 }
 
 function buildShareUrl(subjectId, recipeId, choices, overrides, proliferation) {

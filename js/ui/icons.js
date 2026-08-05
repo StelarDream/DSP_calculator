@@ -31,6 +31,10 @@ export const SHARE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentC
 // Small checkmark - flashed on the share button after a successful copy.
 export const CHECK_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
 
+// Factory building silhouette - the tree view's button into Factory View
+// (compiles the tree into machine/factory counts).
+export const FACTORY_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V10l5 3v-3l5 3V6l6 4v11z"/><path d="M3 21h18"/><path d="M8 21v-4M13 21v-4M18 21v-4"/></svg>`;
+
 // Question mark - flags a resource-sidebar row whose total still includes
 // at least one node with no recipe chosen yet (see summarizeTree.js).
 export const PENDING_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.9.5c0 1.5-2 1.5-2.4 3"/><circle cx="12" cy="17" r="0.3" fill="currentColor"/></svg>`;

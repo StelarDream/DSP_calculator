@@ -558,6 +558,49 @@ body {
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--text-primary);
+  flex: 1 1 auto;
+}
+
+.factory-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 22px;
+  background: transparent;
+  border: 2px solid var(--primary);
+  border-radius: 999px;
+  color: var(--primary);
+  font-family: var(--font-accent);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 0 10px var(--primary-border), inset 0 0 10px var(--primary-border);
+}
+
+.factory-view-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.factory-view-btn:hover {
+  box-shadow: 0 0 22px var(--primary), inset 0 0 16px var(--primary-border);
+  text-shadow: 0 0 8px var(--primary);
+}
+
+.factory-view-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(100% - 68px);
+  min-height: 320px;
+  color: var(--text-muted);
+}
+
+.factory-view-placeholder {
+  font-size: 1rem;
 }
 
 .tree-view-body {
