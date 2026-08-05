@@ -867,6 +867,16 @@ body {
   border-color: var(--secondary-border);
 }
 
+/* .tree-node-prolif:hover (above) always pulls toward primary, which is
+   right for the inactive badge and a primary-toned active one, but wrong
+   for a secondary-toned one - it'd flash back to primary on hover instead
+   of staying put. Same specificity as that rule, so source order (this
+   comes after) is what makes it win. */
+.tree-node-prolif--secondary:hover {
+  color: var(--secondary);
+  border-color: var(--secondary-border);
+}
+
 /* The badge's own "<mode icon> | <proliferator icon>" content, active
    state only - see treeNode.js. */
 .tree-node-prolif-icon {
