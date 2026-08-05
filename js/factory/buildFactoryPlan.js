@@ -38,6 +38,7 @@ export function buildFactoryPlan(root, proliferation) {
 
       if (!lines.has(key)) {
         lines.set(key, {
+          key,
           recipe: node.recipe,
           mode: mode ?? null,
           level: level ?? null,
@@ -72,7 +73,10 @@ function craftsForNode(node, mode, level) {
 
 // mode/level default to null so "never set" and "explicitly cleared" (both
 // { mode: null, level: null } and a plain missing entry) land on the same
-// key - see the module comment above.
-function lineKey(recipeId, mode, level) {
+// key - see the module comment above. Exported so callers that need to
+// predict a line's key *before* buildFactoryPlan runs again (e.g.
+// factoryView.js carrying a building choice over to the line a
+// proliferation edit just moved it to) don't have to duplicate the format.
+export function lineKey(recipeId, mode, level) {
   return `${recipeId}::${mode ?? 'none'}::${level ?? 'none'}`;
 }

@@ -1,9 +1,10 @@
 import { formatLabel } from './format.js';
 import { BACK_ICON } from './icons.js';
 import { buildTree } from '../tree/buildTree.js';
-import { formatQty } from '../tree/formatQty.js';
-import { buildFactoryPlan } from '../factory/buildFactoryPlan.js';
+import { buildFactoryPlan, lineKey } from '../factory/buildFactoryPlan.js';
 import { computeMachineCounts } from '../factory/computeMachineCounts.js';
+import { getBuildingOptions, getSelectedBuilding, getBuildingSpeed } from '../factory/buildingOptions.js';
+import { renderFactoryCard } from './factoryCard.js';
 
 // Target rate to compile against until the user types something else - an
 // arbitrary but reasonable starting point (see memory: factory-view-plan,
@@ -13,10 +14,13 @@ const DEFAULT_TARGET_RATE = 1;
 
 // Full-pane Factory View - reached from the tree view's Factory View button.
 // Compiles the current tree's per-node recipe/proliferation choices into
-// aggregated machine/factory-count lines (see memory: factory-view-plan).
+// aggregated machine/factory-count cards (see memory: factory-view-plan).
 // treeState: { subjectId, recipe, choices, overrides, proliferation } - a
 // snapshot of the tree the user was looking at, so "Back" can restore it
-// exactly via onBack(treeState).
+// exactly via onBack(treeState). Its `proliferation` map is a fresh copy
+// (see treeView.js's snapshot()) - Factory View mutates it directly when a
+// card's proliferation is re-edited, so those edits ride back into the
+// tree view too if the user hits Back afterward.
 export function renderFactoryView(container, treeState, registries, onBack) {
   container.innerHTML = '';
   container.scrollTop = 0;
@@ -26,25 +30,139 @@ export function renderFactoryView(container, treeState, registries, onBack) {
   const body = document.createElement('div');
   body.className = 'factory-view-body';
 
+  const main = document.createElement('div');
+  main.className = 'factory-view-main';
+
+  const sidebar = document.createElement('div');
+  sidebar.className = 'factory-sidebar';
+
   const planContainer = document.createElement('div');
 
   // Session-local to this render, same as treeView.js's own local state -
-  // Factory View doesn't persist across a Back/Factory View round-trip.
+  // Factory View doesn't persist across a Back/Factory View round-trip
+  // except through treeState.proliferation (see above).
   let targetRate = DEFAULT_TARGET_RATE;
+  // Which building a line uses, keyed by line.key - purely a Factory View
+  // choice (the tree has no notion of buildings), so unlike proliferation
+  // it never rides back into the tree.
+  const buildingChoice = new Map();
+  // Which card's proliferation popover is open, plus its in-progress
+  // mode/level - same shape/rationale as treeView.js's openProlifMenu, just
+  // keyed by line.key instead of a tree path.
+  let openProlifCard = null;
+
+  function computeLines() {
+    const tree = buildTree(treeState.subjectId, 1, registries, {
+      choices: treeState.choices,
+      overrides: treeState.overrides,
+      proliferation: treeState.proliferation,
+    });
+    const rawLines = buildFactoryPlan(tree, treeState.proliferation);
+    const withBuildingSpeed = rawLines.map((line) => {
+      const options = getBuildingOptions(line.recipe, registries);
+      const buildingId = getSelectedBuilding(options, buildingChoice, line.key);
+      return { ...line, building: buildingId, buildingSpeed: getBuildingSpeed(options, buildingId) };
+    });
+    return computeMachineCounts(withBuildingSpeed, targetRate);
+  }
 
   function rerenderPlan() {
+    const lines = computeLines();
     planContainer.innerHTML = '';
-    planContainer.appendChild(renderPlanTable(treeState, registries, targetRate));
+
+    if (lines.length === 0) {
+      const placeholder = document.createElement('p');
+      placeholder.className = 'factory-view-placeholder';
+      placeholder.textContent = 'Nothing to compile yet - expand the tree first.';
+      planContainer.appendChild(placeholder);
+      renderSidebar(sidebar, [], registries);
+      return;
+    }
+
+    const grid = document.createElement('div');
+    grid.className = 'factory-cards-grid';
+
+    for (const line of lines) {
+      grid.appendChild(renderFactoryCard(line, registries, buildingChoice, openProlifCard, {
+        onSelectBuilding(key, buildingId) {
+          buildingChoice.set(key, buildingId);
+          rerenderPlan();
+        },
+        onToggleProlifMenu(key) {
+          if (openProlifCard?.key === key) {
+            openProlifCard = null;
+          } else {
+            const target = lines.find((l) => l.key === key);
+            openProlifCard = { key, mode: target?.mode ?? null, level: target?.level ?? null };
+          }
+          rerenderPlan();
+        },
+        onSetProlifMode(key, mode) {
+          if (openProlifCard?.key !== key) return;
+          openProlifCard = { ...openProlifCard, mode };
+          commitProlif(key, lines);
+          rerenderPlan();
+        },
+        onSetProlifLevel(key, level) {
+          if (openProlifCard?.key !== key) return;
+          openProlifCard = { ...openProlifCard, level };
+          commitProlif(key, lines);
+          rerenderPlan();
+        },
+        onClearProliferation(key) {
+          const target = lines.find((l) => l.key === key);
+          if (target) {
+            for (const path of target.nodePaths) treeState.proliferation.set(path, { mode: null, level: null });
+            carryBuildingChoice(target, lineKey(target.recipe.id, null, null));
+          }
+          openProlifCard = null;
+          rerenderPlan();
+        },
+      }));
+    }
+
+    planContainer.appendChild(grid);
+    renderSidebar(sidebar, lines, registries);
+  }
+
+  // Only actually applies once both a mode and a level are chosen (in
+  // either order), same convention as treeView.js's own commitProlif -
+  // writes the new setting onto every node this line was aggregated from.
+  function commitProlif(key, lines) {
+    if (!openProlifCard?.mode || !openProlifCard?.level) return;
+    const target = lines.find((l) => l.key === key);
+    if (!target) return;
+    for (const path of target.nodePaths) {
+      treeState.proliferation.set(path, { mode: openProlifCard.mode, level: openProlifCard.level });
+    }
+    carryBuildingChoice(target, lineKey(target.recipe.id, openProlifCard.mode, openProlifCard.level));
+    openProlifCard = null;
+  }
+
+  // A proliferation edit changes which line (key) a card belongs to - by
+  // default that'd silently reset its building back to the new line's
+  // default (options[0]), which reads as "changing proliferation resets
+  // the building I picked." Carries the old line's choice over to the new
+  // key instead, unless the destination already has its own explicit pick
+  // (e.g. it already existed as a separate line before this edit).
+  function carryBuildingChoice(oldLine, newKey) {
+    if (newKey === oldLine.key) return;
+    if (buildingChoice.has(oldLine.key) && !buildingChoice.has(newKey)) {
+      buildingChoice.set(newKey, buildingChoice.get(oldLine.key));
+    }
+    buildingChoice.delete(oldLine.key);
   }
 
   // The rate input is created once and left alone on every keystroke -
-  // only the plan table below it re-renders, so typing doesn't fight the
-  // input for cursor position/focus.
-  body.appendChild(renderRateInput(treeState.subjectId, targetRate, (value) => {
+  // only the plan below it re-renders, so typing doesn't fight the input
+  // for cursor position/focus.
+  main.appendChild(renderRateInput(treeState.subjectId, targetRate, (value) => {
     targetRate = value;
     rerenderPlan();
   }));
-  body.appendChild(planContainer);
+  main.appendChild(planContainer);
+
+  body.append(main, sidebar);
   container.appendChild(body);
 
   rerenderPlan();
@@ -93,44 +211,65 @@ function renderRateInput(subjectId, targetRate, onChange) {
   return row;
 }
 
-// TEMPORARY: a bare table of the compiled factory lines and their machine
-// counts, just to validate buildFactoryPlan/computeMachineCounts against a
-// real tree. No machine picker or byproduct handling yet - see memory:
-// factory-view-plan for the real UI this gets replaced with.
-function renderPlanTable(treeState, registries, targetRate) {
-  const { subjectId, choices, overrides, proliferation } = treeState;
-  const tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation });
-  const lines = computeMachineCounts(buildFactoryPlan(tree, proliferation), targetRate);
+// Total building count across every line, both as a grand total and
+// broken down per building type - e.g. "3x Assembling Machine Mk.II". Each
+// line contributes its *currently selected* building (see buildingChoice),
+// ceil'd the same way an individual card's machine count is - you can't
+// build a fraction of a machine.
+function renderSidebar(sidebar, lines, registries) {
+  sidebar.innerHTML = '';
 
-  if (lines.length === 0) {
-    const placeholder = document.createElement('p');
-    placeholder.className = 'factory-view-placeholder';
-    placeholder.textContent = 'Nothing to compile yet - expand the tree first.';
-    return placeholder;
-  }
+  const heading = document.createElement('h3');
+  heading.className = 'tree-resources-title';
+  heading.textContent = 'Total Buildings';
+  sidebar.appendChild(heading);
 
-  const table = document.createElement('table');
-  table.className = 'factory-plan-table';
-  table.innerHTML = `
-    <thead>
-      <tr><th>Recipe</th><th>Proliferation</th><th>Crafts/sec</th><th>Machines</th></tr>
-    </thead>
-  `;
-  const tbody = document.createElement('tbody');
+  const perBuilding = new Map(); // buildingId -> count
+  let total = 0;
   for (const line of lines) {
-    const row = document.createElement('tr');
-    const prolif = line.mode ? `${formatLabel(line.mode)} (${line.level})` : '—';
-    row.innerHTML = `
-      <td>${formatLabel(Object.keys(line.recipe.result)[0] ?? '')}</td>
-      <td>${prolif}</td>
-      <td>${formatQty(line.craftsPerSec)}</td>
-      <td>${Number.isFinite(line.machines) ? Math.ceil(line.machines) : '—'}</td>
-    `;
-    tbody.appendChild(row);
+    if (!Number.isFinite(line.machines)) continue;
+    const count = Math.ceil(line.machines);
+    total += count;
+    const buildingId = line.building ?? null;
+    if (buildingId) perBuilding.set(buildingId, (perBuilding.get(buildingId) ?? 0) + count);
   }
-  table.appendChild(tbody);
 
-  const wrapper = document.createElement('div');
-  wrapper.appendChild(table);
-  return wrapper;
+  if (total === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'tree-resources-empty';
+    empty.textContent = 'None yet.';
+    sidebar.appendChild(empty);
+    return;
+  }
+
+  const grandTotal = document.createElement('p');
+  grandTotal.className = 'factory-sidebar-total';
+  grandTotal.textContent = `${total} total`;
+  sidebar.appendChild(grandTotal);
+
+  const list = document.createElement('div');
+  list.className = 'factory-sidebar-building-list';
+  for (const [buildingId, count] of perBuilding) {
+    const row = document.createElement('div');
+    row.className = 'factory-sidebar-building-row';
+
+    const icon = document.createElement('img');
+    icon.className = 'factory-sidebar-building-icon';
+    icon.src = registries.objects.get(buildingId)?.icon ?? '';
+    icon.alt = '';
+    row.appendChild(icon);
+
+    const name = document.createElement('span');
+    name.className = 'factory-sidebar-building-name';
+    name.textContent = formatLabel(buildingId);
+    row.appendChild(name);
+
+    const qty = document.createElement('span');
+    qty.className = 'factory-sidebar-building-qty';
+    qty.textContent = `×${count}`;
+    row.appendChild(qty);
+
+    list.appendChild(row);
+  }
+  sidebar.appendChild(list);
 }

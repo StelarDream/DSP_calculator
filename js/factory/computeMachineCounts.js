@@ -8,11 +8,15 @@ import { getSpeedMultiplier } from './proliferatorMultiplier.js';
 //
 // machines = craftsPerSec / craftsPerSecPerMachine, where:
 //   craftsPerSec           = line.crafts (per 1 root unit) * targetRate
-//   craftsPerSecPerMachine = speedMultiplier / recipe.time
-// Speed Up doesn't change how many crafts are needed (that's Extra Yield's
-// job, already folded into line.crafts by buildFactoryPlan) - it changes
-// how fast each machine gets through them, so fewer machines cover the
-// same craft rate.
+//   craftsPerSecPerMachine = buildingSpeed * proliferatorSpeed / recipe.time
+// Neither Speed Up nor the building's own base speed change how many
+// crafts are needed (that's Extra Yield's job, already folded into
+// line.crafts by buildFactoryPlan) - they change how fast each machine
+// gets through them, so fewer machines cover the same craft rate.
+//
+// buildingSpeed must already be attached to each line (see
+// buildingOptions.js's getBuildingSpeed) - this module doesn't know about
+// registries/building choices itself, just the numbers.
 //
 // A recipe with no craft time (shouldn't normally happen for a resolved
 // recipe node, but guards against bad data) reports Infinity rather than
@@ -21,7 +25,8 @@ export function computeMachineCounts(lines, targetRate) {
   return lines.map((line) => {
     const craftsPerSec = line.crafts * targetRate;
     const speedMultiplier = getSpeedMultiplier(line.recipe, line.mode, line.level);
-    const craftsPerSecPerMachine = line.recipe.time > 0 ? speedMultiplier / line.recipe.time : 0;
+    const machineSpeed = (line.buildingSpeed ?? 1) * speedMultiplier;
+    const craftsPerSecPerMachine = line.recipe.time > 0 ? machineSpeed / line.recipe.time : 0;
     const machines = craftsPerSecPerMachine > 0 ? craftsPerSec / craftsPerSecPerMachine : Infinity;
     return { ...line, craftsPerSec, machines };
   });
