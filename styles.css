@@ -591,16 +591,65 @@ body {
 }
 
 .factory-view-body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   height: calc(100% - 68px);
   min-height: 320px;
+  overflow: auto;
   color: var(--text-muted);
+}
+
+.factory-rate-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-family: var(--font-accent);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.factory-rate-input input {
+  width: 100px;
+  padding: 6px 10px;
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: var(--font-accent);
+  font-size: 0.9rem;
+}
+
+.factory-rate-input input:focus {
+  outline: none;
+  border-color: var(--primary-border);
 }
 
 .factory-view-placeholder {
   font-size: 1rem;
+}
+
+.factory-plan-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.factory-plan-table th,
+.factory-plan-table td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.factory-plan-table th {
+  color: var(--text-muted);
+  font-family: var(--font-accent);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+}
+
+.factory-plan-table td {
+  color: var(--text-primary);
 }
 
 .tree-view-body {

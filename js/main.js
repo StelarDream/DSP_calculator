@@ -34,7 +34,7 @@ export async function init() {
 
   function updateDetail() {
     if (state.view === 'factory' && state.factoryTreeState) {
-      renderFactoryView(detailContainer, state.factoryTreeState, enterTreeFromFactory);
+      renderFactoryView(detailContainer, state.factoryTreeState, state.registries, enterTreeFromFactory);
       return;
     }
 
