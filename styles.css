@@ -808,6 +808,21 @@ body {
   z-index: 1;
 }
 
+/* Once a mode+level is applied the badge grows to fit "<mode icon> |
+   <proliferator icon>" instead of the generic single icon. `right` above
+   is tuned for the plain 22px badge; growing width while keeping that
+   same `right` would eat into the card leftward and collide with the
+   chevron (see .tree-node-chevron), so the active badge instead gets a
+   fixed width and its own `right`, chosen to keep its *left* edge exactly
+   where the inactive badge's left edge sits - all the extra width goes
+   outward, away from the card, instead of inward. */
+.tree-node-prolif--active {
+  width: 46px;
+  right: -35px;
+  gap: 4px;
+  padding: 0 5px;
+}
+
 .tree-node-badge--stack-top {
   top: calc(50% - 13px);
 }
@@ -841,6 +856,39 @@ body {
   color: var(--primary);
   background: var(--primary-dim);
   border-color: var(--primary-border);
+}
+
+/* Speed Up is a throughput boost rather than an output boost, so it's
+   tinted secondary instead of primary - see PROLIF_MODES in treeNode.js
+   and js/ui/proliferation.js's matching .proliferation-stat--secondary. */
+.tree-node-prolif--secondary {
+  color: var(--secondary);
+  background: var(--secondary-dim);
+  border-color: var(--secondary-border);
+}
+
+/* The badge's own "<mode icon> | <proliferator icon>" content, active
+   state only - see treeNode.js. */
+.tree-node-prolif-icon {
+  display: inline-flex;
+}
+
+.tree-node-prolif-icon svg {
+  width: 11px;
+  height: 11px;
+}
+
+.tree-node-prolif-divider {
+  width: 1px;
+  height: 12px;
+  background: currentColor;
+  opacity: 0.35;
+}
+
+.tree-node-prolif-level-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
 }
 
 /* Mode/level picker opened by the proliferation badge - nested inside the
@@ -910,15 +958,32 @@ body {
   color: var(--primary);
 }
 
-.tree-node-prolif-clear {
-  align-self: center;
-  padding: 4px 0;
-  background: none;
-  border: none;
-  font-size: 0.75rem;
+/* Speed Up option - secondary tone instead of primary, same reasoning as
+   .tree-node-prolif--secondary above. */
+.tree-node-prolif-option--secondary:hover {
+  border-color: var(--secondary-border);
+  color: var(--secondary);
+}
+
+.tree-node-prolif-option--secondary.tree-node-prolif-option--active {
+  background: var(--secondary-dim);
+  border-color: var(--secondary-border);
+  color: var(--secondary);
+}
+
+/* "None" - sits first in the mode row as the explicit opt-out (replaces
+   the old standalone "Remove" link). Danger-tinted instead of primary so
+   it still reads as distinct from the yield/chance/speed options next to
+   it, active or not. */
+.tree-node-prolif-option--none:hover {
+  border-color: var(--danger);
   color: var(--danger);
-  cursor: pointer;
-  text-decoration: underline;
+}
+
+.tree-node-prolif-option--none.tree-node-prolif-option--active {
+  background: var(--bg-elevated);
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 .detail-header {

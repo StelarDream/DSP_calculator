@@ -1,15 +1,17 @@
 import { formatLabel } from '../ui/format.js';
-import { CHEVRON_ICON, EDIT_ICON, PROLIF_YIELD_ICON, PROLIF_CHANCE_ICON, PROLIF_SPEED_ICON } from '../ui/icons.js';
+import { CHEVRON_ICON, EDIT_ICON, PROLIF_YIELD_ICON, PROLIF_CHANCE_ICON, PROLIF_SPEED_ICON, PROLIF_NONE_ICON } from '../ui/icons.js';
 import { NODE_WIDTH, NODE_HEIGHT } from './constants.js';
 import { formatQty } from './formatQty.js';
 import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
 
 // Which proliferator effects a recipe *can* support, in display order -
 // matches js/ui/proliferation.js's convention for the flat recipe card.
+// `tone` also matches that file: yield/chance boost output (primary),
+// speed is a throughput boost (secondary) - same reasoning here.
 const PROLIF_MODES = [
-  { key: 'yield', icon: PROLIF_YIELD_ICON, label: 'Extra Yield' },
-  { key: 'chance', icon: PROLIF_CHANCE_ICON, label: 'Extra Product Chance' },
-  { key: 'speed', icon: PROLIF_SPEED_ICON, label: 'Speed Up' },
+  { key: 'yield', icon: PROLIF_YIELD_ICON, label: 'Extra Yield', tone: 'primary' },
+  { key: 'chance', icon: PROLIF_CHANCE_ICON, label: 'Extra Product Chance', tone: 'primary' },
+  { key: 'speed', icon: PROLIF_SPEED_ICON, label: 'Speed Up', tone: 'secondary' },
 ];
 
 // A single fixed-size card in the tree canvas. Three flavors:
@@ -133,20 +135,42 @@ export function renderTreeNode(node, handlers = {}) {
     el.appendChild(edit);
   }
 
+  const activeMode = activeProlif && PROLIF_MODES.find((mode) => mode.key === activeProlif.mode);
+
   if (proliferatable) {
     const prolif = document.createElement('button');
     prolif.type = 'button';
     prolif.className = 'tree-node-prolif';
     if (stacked) prolif.classList.add('tree-node-badge--stack-bottom');
     if (activeProlif) prolif.classList.add('tree-node-prolif--active');
+    // Tinted by the active mode's tone (speed = secondary, yield/chance =
+    // primary) - same convention as js/ui/proliferation.js's flat card.
+    if (activeMode) prolif.classList.add(`tree-node-prolif--${activeMode.tone}`);
     prolif.title = activeProlif
       ? `Proliferation: ${modeLabel(activeProlif.mode)} (${levelLabel(activeProlif.level)})`
       : 'Add proliferation';
     prolif.setAttribute('aria-label', prolif.title);
-    const prolifIcon = document.createElement('img');
-    prolifIcon.src = 'assets/proliferation-icon.png';
-    prolifIcon.alt = '';
-    prolif.appendChild(prolifIcon);
+    // Once a mode+level is actually applied, swap the generic badge icon
+    // for "<mode icon> | <proliferator icon>" so the badge itself shows
+    // what's active, not just that something is - matching the tooltip.
+    if (activeProlif) {
+      const modeIcon = document.createElement('span');
+      modeIcon.className = 'tree-node-prolif-icon';
+      modeIcon.innerHTML = activeMode?.icon ?? '';
+      const divider = document.createElement('span');
+      divider.className = 'tree-node-prolif-divider';
+      const levelIcon = document.createElement('img');
+      levelIcon.className = 'tree-node-prolif-level-icon';
+      const level = PROLIFERATOR_LEVELS.find((lvl) => lvl.id === activeProlif.level);
+      levelIcon.src = level ? `assets/items/${level.itemId}.png` : '';
+      levelIcon.alt = '';
+      prolif.append(modeIcon, divider, levelIcon);
+    } else {
+      const prolifIcon = document.createElement('img');
+      prolifIcon.src = 'assets/proliferation-icon.png';
+      prolifIcon.alt = '';
+      prolif.appendChild(prolifIcon);
+    }
     prolif.addEventListener('click', (event) => {
       event.stopPropagation();
       onToggleProlifMenu(node.path);
@@ -177,10 +201,25 @@ function renderProlifMenu(node, availableModes, openState, { onSetProlifMode, on
 
   const modeRow = document.createElement('div');
   modeRow.className = 'tree-node-prolif-row';
+
+  // Explicit opt-out, sitting right alongside the yield/chance/speed
+  // choices it's an alternative to - replaces the old standalone "Remove"
+  // link below the picker. Clears the node's proliferation entirely and
+  // closes the menu, same as the old Remove button did.
+  const none = document.createElement('button');
+  none.type = 'button';
+  none.className = 'tree-node-prolif-option tree-node-prolif-option--none';
+  if (!openState.mode && !openState.level) none.classList.add('tree-node-prolif-option--active');
+  none.title = 'None';
+  none.setAttribute('aria-label', 'None');
+  none.innerHTML = PROLIF_NONE_ICON;
+  none.addEventListener('click', () => onClearProliferation(node.path));
+  modeRow.appendChild(none);
+
   for (const mode of availableModes) {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'tree-node-prolif-option';
+    btn.className = `tree-node-prolif-option tree-node-prolif-option--${mode.tone}`;
     if (openState.mode === mode.key) btn.classList.add('tree-node-prolif-option--active');
     btn.title = mode.label;
     btn.setAttribute('aria-label', mode.label);
@@ -207,15 +246,6 @@ function renderProlifMenu(node, availableModes, openState, { onSetProlifMode, on
     levelRow.appendChild(btn);
   }
   menu.appendChild(levelRow);
-
-  if (openState.mode || openState.level) {
-    const clear = document.createElement('button');
-    clear.type = 'button';
-    clear.className = 'tree-node-prolif-clear';
-    clear.textContent = 'Remove';
-    clear.addEventListener('click', () => onClearProliferation(node.path));
-    menu.appendChild(clear);
-  }
 
   return menu;
 }
