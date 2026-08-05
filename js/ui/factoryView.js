@@ -120,7 +120,7 @@ export function renderFactoryView(container, treeState, registries, onBack) {
       placeholder.textContent = 'Nothing to compile yet - expand the tree first.';
       planContainer.appendChild(placeholder);
       renderSidebar(sidebar, [], registries, defaultBuildingByType, onSetDefaultBuilding);
-      renderBottomBar(bottomBar, [], registries);
+      renderBottomBar(bottomBar, { needed: [], extra: [] }, registries);
       return;
     }
 
@@ -350,32 +350,45 @@ function renderTotalsSection(lines, registries) {
   return section;
 }
 
-// Footer strip across the bottom of Factory View - every raw item the
-// compiled plan still needs from outside it (see computeRawInputs.js),
-// and how much of it per second at the current target rate. A horizontal
-// scroller rather than a grid - meant to be skimmed at a glance, not
-// browsed like the cards above it.
-function renderBottomBar(bottomBar, rawInputs, registries) {
+// Footer strip across the bottom of Factory View - two rows: every raw
+// item the compiled plan still needs from outside it, and (once there's
+// any) how much gets produced but never used - a reused byproduct's
+// leftover once it's covered demand elsewhere, plus every bit of any
+// byproduct toggled to waste (see computeRawInputs.js). Both in items/sec
+// at the current target rate.
+function renderBottomBar(bottomBar, { needed, extra }, registries) {
   bottomBar.innerHTML = '';
+  bottomBar.appendChild(renderBottomBarRow('Raw Inputs', needed, registries, 'needed'));
+  // Only shown once there's something to report - most plans with no
+  // byproducts (or all-reused ones with nothing left over) have nothing
+  // here, and an empty "Extra Created" row would just be noise.
+  if (extra.length > 0) {
+    bottomBar.appendChild(renderBottomBarRow('Extra Created', extra, registries, 'extra'));
+  }
+}
+
+function renderBottomBarRow(label, entries, registries, kind) {
+  const row = document.createElement('div');
+  row.className = 'factory-bottom-bar-row';
 
   const heading = document.createElement('h3');
   heading.className = 'factory-bottom-bar-title';
-  heading.textContent = 'Raw Inputs';
-  bottomBar.appendChild(heading);
+  heading.textContent = label;
+  row.appendChild(heading);
 
-  if (rawInputs.length === 0) {
+  if (entries.length === 0) {
     const empty = document.createElement('p');
     empty.className = 'tree-resources-empty';
     empty.textContent = 'None yet.';
-    bottomBar.appendChild(empty);
-    return;
+    row.appendChild(empty);
+    return row;
   }
 
   const list = document.createElement('div');
   list.className = 'factory-bottom-bar-list';
-  for (const { itemId, object, ratePerSec } of rawInputs) {
+  for (const { itemId, object, ratePerSec } of entries) {
     const chip = document.createElement('div');
-    chip.className = 'factory-bottom-bar-chip';
+    chip.className = `factory-bottom-bar-chip factory-bottom-bar-chip--${kind}`;
 
     const icon = document.createElement('img');
     icon.className = 'factory-bottom-bar-icon';
@@ -395,5 +408,6 @@ function renderBottomBar(bottomBar, rawInputs, registries) {
 
     list.appendChild(chip);
   }
-  bottomBar.appendChild(list);
+  row.appendChild(list);
+  return row;
 }

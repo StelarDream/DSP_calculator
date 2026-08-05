@@ -707,20 +707,32 @@ body {
   color: var(--secondary);
 }
 
-/* Footer strip - every raw item the compiled plan still needs from
-   outside it, and its rate (see computeRawInputs.js/renderBottomBar in
-   factoryView.js). A horizontal scroller of chips rather than a list -
+/* Footer strip - one row for every raw item the compiled plan still needs
+   from outside it, and (once there's any) a second for what gets produced
+   but never used (see computeRawInputs.js/renderBottomBar in
+   factoryView.js). Each row is its own horizontal scroller of chips -
    distinct from the cards/sidebar above it, meant to be skimmed. */
 .factory-bottom-bar {
   flex: 0 0 auto;
   display: flex;
-  align-items: center;
-  gap: 14px;
+  flex-direction: column;
+  gap: 10px;
   padding: 12px 16px;
   background: var(--bg-panel-alt);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
+}
+
+.factory-bottom-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   overflow-x: auto;
+}
+
+.factory-bottom-bar-row + .factory-bottom-bar-row {
+  padding-top: 10px;
+  border-top: 1px solid var(--border-soft);
 }
 
 .factory-bottom-bar-title {
@@ -770,6 +782,17 @@ body {
   font-weight: 600;
   font-size: 0.85rem;
   color: var(--secondary);
+}
+
+/* "Extra Created" chips - primary tone, same convention as the tree
+   sidebar's own Leftover rows (.tree-resource-row--leftover), so
+   "surplus" reads the same color across both views. */
+.factory-bottom-bar-chip--extra {
+  border-color: var(--primary-border);
+}
+
+.factory-bottom-bar-chip--extra .factory-bottom-bar-rate {
+  color: var(--primary);
 }
 
 /* "Default Buildings" panel - one labeled icon-row per recipe type with an
