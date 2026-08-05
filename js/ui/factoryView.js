@@ -1,7 +1,7 @@
 import { formatLabel } from './format.js';
 import { BACK_ICON } from './icons.js';
 import { buildTree } from '../tree/buildTree.js';
-import { buildFactoryPlan, lineKey } from '../factory/buildFactoryPlan.js';
+import { buildFactoryPlan, itemLineKey } from '../factory/buildFactoryPlan.js';
 import { computeMachineCounts } from '../factory/computeMachineCounts.js';
 import { getBuildingOptions, getSelectedBuilding, getBuildingSpeed } from '../factory/buildingOptions.js';
 import { computeRawInputs } from '../factory/computeRawInputs.js';
@@ -95,26 +95,8 @@ export function renderFactoryView(container, treeState, registries, onBack) {
     return computeMachineCounts(withBuildingSpeed, targetRate);
   }
 
-  // Every (nodePath, itemId) pair whose byproduct is currently toggled to
-  // waste - computeRawInputs.js excludes exactly these from its supply
-  // side. Built from the *line's* toggle (one choice per line+item) but
-  // expanded out to every contributing node path, since that's the level
-  // computeRawInputs actually walks at.
-  function wastedPathItems(lines) {
-    const wasted = new Set();
-    for (const line of lines) {
-      const itemIds = Object.keys(line.recipe.result).slice(1); // all but the primary result
-      for (const itemId of itemIds) {
-        if (isByproductReused(line.key, itemId)) continue;
-        for (const path of line.nodePaths) wasted.add(`${path}::${itemId}`);
-      }
-    }
-    return wasted;
-  }
-
   function rerenderPlan() {
-    const tree = buildCurrentTree();
-    const lines = computeLines(tree);
+    const lines = computeLines(buildCurrentTree());
     planContainer.innerHTML = '';
 
     if (lines.length === 0) {
@@ -165,7 +147,7 @@ export function renderFactoryView(container, treeState, registries, onBack) {
           const target = lines.find((l) => l.key === key);
           if (target) {
             for (const path of target.nodePaths) treeState.proliferation.set(path, { mode: null, level: null });
-            carryBuildingChoice(target, lineKey(target.recipe.id, null, null));
+            carryBuildingChoice(target, itemLineKey(target.recipe.id, null, null, target.itemId));
           }
           openProlifCard = null;
           rerenderPlan();
@@ -181,7 +163,7 @@ export function renderFactoryView(container, treeState, registries, onBack) {
     planContainer.appendChild(grid);
     renderSidebar(sidebar, lines, registries, defaultBuildingByType, onSetDefaultBuilding);
 
-    const rawInputs = computeRawInputs(tree, wastedPathItems(lines), targetRate);
+    const rawInputs = computeRawInputs(lines, registries, byproductReuse, treeState.subjectId);
     renderBottomBar(bottomBar, rawInputs, registries);
   }
 
@@ -200,7 +182,7 @@ export function renderFactoryView(container, treeState, registries, onBack) {
     for (const path of target.nodePaths) {
       treeState.proliferation.set(path, { mode: openProlifCard.mode, level: openProlifCard.level });
     }
-    carryBuildingChoice(target, lineKey(target.recipe.id, openProlifCard.mode, openProlifCard.level));
+    carryBuildingChoice(target, itemLineKey(target.recipe.id, openProlifCard.mode, openProlifCard.level, target.itemId));
     openProlifCard = null;
   }
 

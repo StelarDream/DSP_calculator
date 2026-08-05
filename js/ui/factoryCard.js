@@ -4,6 +4,7 @@ import { PROLIF_NONE_ICON, RESET_ICON } from './icons.js';
 import { PROLIF_MODES, renderProlifModeRow, renderProlifLevelRow, levelLabel } from '../tree/proliferationPicker.js';
 import { getBuildingOptions, getSelectedBuilding, isExplicitBuildingChoice } from '../factory/buildingOptions.js';
 import { computeLineRates } from '../factory/lineRates.js';
+import { linePrimaryItemId } from '../factory/buildFactoryPlan.js';
 import { renderBuildingIconRow } from './buildingPicker.js';
 
 // A single Factory View card - one per (recipe, proliferation) line from
@@ -59,14 +60,17 @@ function renderIconHeader(line, registries, buildingChoice, defaultBuildingByTyp
   arrow.textContent = '→';
   row.appendChild(arrow);
 
-  const firstResultId = Object.keys(line.recipe.result)[0];
-  row.appendChild(renderIconBox(recipeIconSrc(line.recipe, firstResultId, registries.objects), formatLabel(firstResultId ?? '')));
+  // The item this card is actually "for" - the recipe's own primary
+  // result normally, or whichever item a dedicated (split-off, see
+  // buildFactoryPlan.js) line exists for.
+  const cardItemId = linePrimaryItemId(line);
+  row.appendChild(renderIconBox(recipeIconSrc(line.recipe, cardItemId, registries.objects), formatLabel(cardItemId ?? '')));
 
   header.appendChild(row);
 
   const title = document.createElement('p');
   title.className = 'factory-card-title';
-  title.textContent = formatLabel(firstResultId ?? '');
+  title.textContent = formatLabel(cardItemId ?? '');
   header.appendChild(title);
 
   return header;
@@ -85,12 +89,12 @@ function renderIconBox(src, label) {
 
 // The recipe's own icon (the top-right badge) - same convention as
 // recipeCard.js's renderRecipeIcon: most recipes share their in-game icon
-// with their first result item, so that's the fallback; recipe.icon (an
+// with the item this card is for, so that's the fallback; recipe.icon (an
 // assets/recipe-icon/*.png name) only needs setting for the exceptions.
-function recipeIconSrc(recipe, firstResultId, objects) {
+function recipeIconSrc(recipe, cardItemId, objects) {
   return recipe.icon
     ? `assets/recipe-icon/${recipe.icon}.png`
-    : objects.get(firstResultId)?.icon ?? '';
+    : objects.get(cardItemId)?.icon ?? '';
 }
 
 function renderDivider() {
@@ -232,10 +236,10 @@ function renderMachinesSection(line) {
 function renderRatesSection(line, registries, handlers) {
   const wrap = document.createDocumentFragment();
   const { demand, output } = computeLineRates(line);
-  // The recipe's "main" result - same convention as the icon header/title
-  // (recipeCard.js's fallback rule). Every *other* result entry is a
-  // byproduct, and gets the reuse/waste toggle below.
-  const primaryItemId = Object.keys(line.recipe.result)[0];
+  // Same "item this card is for" resolution as the icon header/title.
+  // Every *other* result entry is a byproduct, and gets the reuse/waste
+  // toggle below.
+  const primaryItemId = linePrimaryItemId(line);
 
   wrap.appendChild(renderRateList('Demand', demand, registries, 'demand'));
   wrap.appendChild(renderRateList('Output', output, registries, 'output', { line, primaryItemId, handlers }));
