@@ -7,6 +7,7 @@ import { renderDetail } from './ui/detail.js';
 import { renderTreeView } from './ui/treeView.js';
 import { deserializeTreeState } from './tree/serializeTree.js';
 import { selectEntities } from './selectEntities.js';
+import { initSidebarCollapse } from './ui/sidebarCollapse.js';
 
 export async function init() {
   const tabButtons = document.querySelectorAll('.tab-btn');
@@ -14,6 +15,8 @@ export async function init() {
   const listContainer = document.getElementById('entity-list');
   const detailContainer = document.getElementById('detail');
   const searchInput = document.getElementById('search');
+
+  initSidebarCollapse(document.querySelector('.layout'), document.getElementById('sidebar-collapse-btn'));
 
   function updateFilters() {
     renderFilters(filtersContainer, state.tab, state.filter, (key) => {

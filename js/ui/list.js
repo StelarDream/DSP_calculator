@@ -15,6 +15,9 @@ export function renderList(container, entities, activeId, onSelect) {
     const button = document.createElement('button');
     button.className = 'entity-item' + (entity.id === activeId ? ' active' : '');
     button.dataset.id = entity.id;
+    // Falls back to being the only visible label when the sidebar is
+    // collapsed to icons only - see sidebarCollapse.js.
+    button.title = formatLabel(entity.id);
 
     const icon = document.createElement('img');
     icon.className = 'entity-item__icon';

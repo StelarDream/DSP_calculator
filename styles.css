@@ -238,10 +238,14 @@ body {
 
 .search-wrap {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 #search {
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   padding: 10px 14px;
   background: var(--bg-panel-alt);
   border: 1px solid var(--border);
@@ -260,6 +264,41 @@ body {
 #search:focus {
   border-color: var(--primary-border);
   box-shadow: var(--glow-primary);
+}
+
+/* Toggles .sidebar-collapsed on .layout - see sidebarCollapse.js. Chevron
+   points left (toward the sidebar edge) when expanded, i.e. "collapse this
+   way", and flips to point right once collapsed. */
+.sidebar-collapse-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-collapse-btn:hover {
+  border-color: var(--primary-border);
+  color: var(--primary);
+}
+
+.sidebar-collapse-btn svg {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.15s ease;
+  transform: rotate(180deg);
+}
+
+.layout.sidebar-collapsed .sidebar-collapse-btn svg {
+  transform: rotate(0deg);
 }
 
 .tabs {
@@ -397,6 +436,46 @@ body {
   text-align: center;
   color: var(--text-muted);
   font-size: 0.85rem;
+}
+
+/* Icon-only collapsed sidebar, toggled via .sidebar-collapse-btn (see
+   sidebarCollapse.js). Search box, tab labels, and filter chips hide;
+   only the entity icons and the toggle itself stay visible. */
+.layout.sidebar-collapsed {
+  grid-template-columns: 76px 1fr;
+}
+
+.layout.sidebar-collapsed .sidebar {
+  padding: 16px 10px;
+  align-items: center;
+}
+
+.layout.sidebar-collapsed .search-wrap {
+  justify-content: center;
+}
+
+.layout.sidebar-collapsed #search {
+  display: none;
+}
+
+.layout.sidebar-collapsed .tabs,
+.layout.sidebar-collapsed .filters {
+  display: none;
+}
+
+.layout.sidebar-collapsed .list {
+  width: 100%;
+  align-items: center;
+}
+
+.layout.sidebar-collapsed .entity-item__name,
+.layout.sidebar-collapsed .entity-item__tag {
+  display: none;
+}
+
+.layout.sidebar-collapsed .entity-item {
+  justify-content: center;
+  padding: 8px;
 }
 
 /* ---------------------------------- Detail pane ---------------------------------- */
@@ -1469,6 +1548,10 @@ button.meta-icon:hover {
 
   #sidebar-toggle:checked~.layout .sidebar {
     transform: translateX(0);
+  }
+
+  .layout.sidebar-collapsed .sidebar {
+    width: 76px;
   }
 
   .sidebar-backdrop {
