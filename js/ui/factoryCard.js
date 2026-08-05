@@ -1,27 +1,30 @@
 import { formatLabel } from './format.js';
 import { formatQty } from '../tree/formatQty.js';
-import { PROLIF_NONE_ICON } from './icons.js';
+import { PROLIF_NONE_ICON, RESET_ICON } from './icons.js';
 import { PROLIF_MODES, renderProlifModeRow, renderProlifLevelRow, levelLabel } from '../tree/proliferationPicker.js';
-import { getBuildingOptions, getSelectedBuilding } from '../factory/buildingOptions.js';
+import { getBuildingOptions, getSelectedBuilding, isExplicitBuildingChoice } from '../factory/buildingOptions.js';
 import { computeLineRates } from '../factory/lineRates.js';
+import { renderBuildingIconRow } from './buildingPicker.js';
 
 // A single Factory View card - one per (recipe, proliferation) line from
 // buildFactoryPlan.js. Vertical, sectioned by dividers: building (icon +
 // picker when there's more than one option), proliferation (current
 // setting, click to re-edit), machines needed, then demand/output rates.
 //
-// handlers: { onSelectBuilding(lineKey, buildingId), onToggleProlifMenu
-// (lineKey), onSetProlifMode(lineKey, mode), onSetProlifLevel(lineKey,
-// level), onClearProliferation(lineKey) } - all keyed by line.key since a
-// prolif edit changes which line a card even belongs to (see
-// factoryView.js).
-export function renderFactoryCard(line, registries, buildingChoice, openProlifCard, handlers) {
+// handlers: { onSelectBuilding(lineKey, buildingId), onResetBuilding
+// (lineKey), onToggleProlifMenu(lineKey), onSetProlifMode(lineKey, mode),
+// onSetProlifLevel(lineKey, level), onClearProliferation(lineKey) } - all
+// keyed by line.key since a prolif edit changes which line a card even
+// belongs to (see factoryView.js). defaultBuildingByType is the sidebar's
+// per-recipe-type picker (see defaultBuildingPanel.js) - the fallback a
+// line uses when it has no explicit per-card override of its own.
+export function renderFactoryCard(line, registries, buildingChoice, defaultBuildingByType, openProlifCard, handlers) {
   const card = document.createElement('div');
   card.className = 'factory-card';
 
-  card.appendChild(renderIconHeader(line, registries, buildingChoice));
+  card.appendChild(renderIconHeader(line, registries, buildingChoice, defaultBuildingByType));
   card.appendChild(renderDivider());
-  card.appendChild(renderBuildingSection(line, registries, buildingChoice, handlers));
+  card.appendChild(renderBuildingSection(line, registries, buildingChoice, defaultBuildingByType, handlers));
   card.appendChild(renderDivider());
   card.appendChild(renderProlifSection(line, openProlifCard, handlers));
   card.appendChild(renderDivider());
@@ -36,7 +39,7 @@ export function renderFactoryCard(line, registries, buildingChoice, openProlifCa
 // style, with an arrow between them reading "this building makes this" -
 // clearer at a glance than the old overlapping-badge layout, and treats
 // both icons as equally important instead of one being a corner afterthought.
-function renderIconHeader(line, registries, buildingChoice) {
+function renderIconHeader(line, registries, buildingChoice, defaultBuildingByType) {
   const header = document.createElement('div');
   header.className = 'factory-card-icon-header';
 
@@ -44,7 +47,7 @@ function renderIconHeader(line, registries, buildingChoice) {
   row.className = 'factory-card-icon-row';
 
   const options = getBuildingOptions(line.recipe, registries);
-  const selected = getSelectedBuilding(options, buildingChoice, line.key);
+  const selected = getSelectedBuilding(options, buildingChoice, line.key, defaultBuildingByType.get(line.recipe.type));
   const buildingSrc = selected ? registries.objects.get(selected)?.icon ?? '' : '';
   row.appendChild(renderIconBox(buildingSrc, selected ? formatLabel(selected) : ''));
 
@@ -112,10 +115,10 @@ function renderSection(label) {
 // rather than switching layouts depending on whether there's a real
 // choice. Only an actual absence of any known building falls back to a
 // plain message.
-function renderBuildingSection(line, registries, buildingChoice, { onSelectBuilding }) {
+function renderBuildingSection(line, registries, buildingChoice, defaultBuildingByType, { onSelectBuilding, onResetBuilding }) {
   const section = renderSection('Building');
   const options = getBuildingOptions(line.recipe, registries);
-  const selected = getSelectedBuilding(options, buildingChoice, line.key);
+  const selected = getSelectedBuilding(options, buildingChoice, line.key, defaultBuildingByType.get(line.recipe.type));
 
   if (options.length === 0) {
     const empty = document.createElement('p');
@@ -125,23 +128,37 @@ function renderBuildingSection(line, registries, buildingChoice, { onSelectBuild
     return section;
   }
 
-  const row = document.createElement('div');
-  row.className = 'factory-building-row';
-  for (const option of options) {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'factory-building-option';
-    if (option.building === selected) btn.classList.add('factory-building-option--active');
-    btn.title = formatLabel(option.building);
-    btn.setAttribute('aria-label', formatLabel(option.building));
-    const img = document.createElement('img');
-    img.src = registries.objects.get(option.building)?.icon ?? '';
-    img.alt = '';
-    btn.appendChild(img);
-    btn.addEventListener('click', () => onSelectBuilding(line.key, option.building));
-    row.appendChild(btn);
+  const explicit = isExplicitBuildingChoice(options, buildingChoice, line.key);
+  const label = section.querySelector('.factory-card-section-label');
+
+  if (!explicit) {
+    // Flags a line still running on its auto-selected building (whether
+    // that's the sidebar's per-type default or the plain options[0]
+    // fallback) rather than one the user actually picked on *this* card -
+    // most useful on multi-option recipes (a real reminder "you haven't
+    // chosen yet"), but shown for single-option ones too since there's
+    // nothing to pick there either.
+    const badge = document.createElement('span');
+    badge.className = 'factory-card-default-badge';
+    badge.textContent = 'Default';
+    badge.title = 'Using the default building - not manually chosen';
+    label?.appendChild(badge);
+  } else {
+    // The mirror image of the badge above - once a card has its own
+    // explicit pick, offer a one-click way back to whatever the default
+    // would otherwise be, rather than making the user re-click through the
+    // icon row themselves.
+    const reset = document.createElement('button');
+    reset.type = 'button';
+    reset.className = 'factory-card-reset-building';
+    reset.title = 'Back to default building';
+    reset.setAttribute('aria-label', 'Back to default building');
+    reset.innerHTML = RESET_ICON;
+    reset.addEventListener('click', () => onResetBuilding(line.key));
+    label?.appendChild(reset);
   }
-  section.appendChild(row);
+
+  section.appendChild(renderBuildingIconRow(options, selected, registries, (buildingId) => onSelectBuilding(line.key, buildingId)));
   return section;
 }
 

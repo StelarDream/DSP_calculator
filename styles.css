@@ -699,6 +699,14 @@ body {
   color: var(--secondary);
 }
 
+/* "Default Buildings" panel - one labeled icon-row per recipe type with an
+   actual choice to make (see defaultBuildingPanel.js), same "settings
+   panel pinned in the sidebar" convention as the tree view's Default
+   Proliferation section. */
+.factory-default-building-row + .factory-default-building-row {
+  margin-top: 14px;
+}
+
 /* Card grid - vertical cards, wrapping as the pane widens. */
 .factory-cards-grid {
   display: grid;
@@ -774,6 +782,9 @@ body {
 }
 
 .factory-card-section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin: 0 0 8px;
   font-family: var(--font-accent);
   font-size: 0.68rem;
@@ -781,6 +792,49 @@ body {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-muted);
+}
+
+/* "Default" - a line still running its auto-selected building rather than
+   one the user actually picked (see buildingOptions.js's
+   isExplicitBuildingChoice). Sits inline with the "Building" section
+   label rather than on the icons themselves, since it's a statement about
+   the whole line's state, not any one option. */
+.factory-card-default-badge {
+  padding: 1px 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--text-secondary);
+}
+
+/* "Back to default" - the mirror image of the badge above, shown once a
+   card has its own explicit building pick instead of the badge (see
+   renderBuildingSection in factoryCard.js). Small enough to sit inline
+   with the section label without competing with it. */
+.factory-card-reset-building {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.factory-card-reset-building svg {
+  width: 13px;
+  height: 13px;
+}
+
+.factory-card-reset-building:hover {
+  color: var(--primary);
 }
 
 .factory-card-empty {

@@ -44,3 +44,7 @@ export const PROLIF_YIELD_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="c
 // "No effect" - the proliferation picker's explicit opt-out, sitting
 // alongside the yield/speed mode options (see treeNode.js).
 export const PROLIF_NONE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.5 5.5l13 13"/></svg>`;
+
+// Counter-clockwise reset arrow - "back to default", e.g. clearing a
+// Factory View card's explicit building pick (see factoryCard.js).
+export const RESET_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>`;

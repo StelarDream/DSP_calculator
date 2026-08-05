@@ -6,16 +6,22 @@ export function getBuildingOptions(recipe, registries) {
   return registries.factories.byRecipeType.get(recipe.type) ?? [];
 }
 
-// The chosen (or default - first option) building id for a line, given the
-// session's { lineKey -> buildingId } picks. Falls back to whatever the
-// user last picked only if it's still a valid option for this recipe type -
-// a stale pick (e.g. from before a proliferation edit moved this line to a
-// different recipe entirely - can't happen today since key includes
-// recipe.id, but harmless to guard anyway) silently falls back to the
-// default rather than pointing at nothing.
-export function getSelectedBuilding(options, buildingChoice, lineKey) {
+// The chosen building id for a line, in priority order:
+//   1. an explicit per-card pick (buildingChoice, keyed by line)
+//   2. the sidebar's per-recipe-type default (defaultBuildingId, see
+//      defaultBuildingPanel.js) - "like proliferation," a tree/session-wide
+//      fallback that applies unless a specific line overrides it
+//   3. plain options[0], if neither of the above is set (or valid)
+// Each tier is only used if it actually names a still-valid option for
+// this recipe type - a stale pick (e.g. left over from before a
+// proliferation edit moved this line to a different recipe entirely -
+// can't happen today since key includes recipe.id, but harmless to guard
+// anyway) silently falls through to the next tier rather than pointing at
+// nothing.
+export function getSelectedBuilding(options, buildingChoice, lineKey, defaultBuildingId) {
   const picked = buildingChoice.get(lineKey);
   if (picked && options.some((opt) => opt.building === picked)) return picked;
+  if (defaultBuildingId && options.some((opt) => opt.building === defaultBuildingId)) return defaultBuildingId;
   return options[0]?.building ?? null;
 }
 
@@ -25,4 +31,14 @@ export function getBuildingSpeed(options, buildingId) {
   const option = options.find((opt) => opt.building === buildingId);
   if (!option) return 1;
   return (option.speed.min + option.speed.max) / 2;
+}
+
+// Whether the line's current building is one the user actually picked,
+// rather than the auto-selected default (getSelectedBuilding's own
+// options[0] fallback) - same validity check that function uses, so a
+// stale pick reads as "not explicit" too, not just a plain missing entry.
+// Drives the card's "Default" badge (see factoryCard.js).
+export function isExplicitBuildingChoice(options, buildingChoice, lineKey) {
+  const picked = buildingChoice.get(lineKey);
+  return Boolean(picked) && options.some((opt) => opt.building === picked);
 }

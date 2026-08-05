@@ -5,6 +5,7 @@ import { buildFactoryPlan, lineKey } from '../factory/buildFactoryPlan.js';
 import { computeMachineCounts } from '../factory/computeMachineCounts.js';
 import { getBuildingOptions, getSelectedBuilding, getBuildingSpeed } from '../factory/buildingOptions.js';
 import { renderFactoryCard } from './factoryCard.js';
+import { renderDefaultBuildingSection } from './defaultBuildingPanel.js';
 
 // Target rate to compile against until the user types something else - an
 // arbitrary but reasonable starting point (see memory: factory-view-plan,
@@ -46,6 +47,10 @@ export function renderFactoryView(container, treeState, registries, onBack) {
   // choice (the tree has no notion of buildings), so unlike proliferation
   // it never rides back into the tree.
   const buildingChoice = new Map();
+  // Sidebar-level default building per recipe TYPE - "like proliferation,"
+  // a session-wide fallback (see defaultBuildingPanel.js) that applies to
+  // any line of that type without its own explicit per-card override.
+  const defaultBuildingByType = new Map();
   // Which card's proliferation popover is open, plus its in-progress
   // mode/level - same shape/rationale as treeView.js's openProlifMenu, just
   // keyed by line.key instead of a tree path.
@@ -60,7 +65,7 @@ export function renderFactoryView(container, treeState, registries, onBack) {
     const rawLines = buildFactoryPlan(tree, treeState.proliferation);
     const withBuildingSpeed = rawLines.map((line) => {
       const options = getBuildingOptions(line.recipe, registries);
-      const buildingId = getSelectedBuilding(options, buildingChoice, line.key);
+      const buildingId = getSelectedBuilding(options, buildingChoice, line.key, defaultBuildingByType.get(line.recipe.type));
       return { ...line, building: buildingId, buildingSpeed: getBuildingSpeed(options, buildingId) };
     });
     return computeMachineCounts(withBuildingSpeed, targetRate);
@@ -75,7 +80,7 @@ export function renderFactoryView(container, treeState, registries, onBack) {
       placeholder.className = 'factory-view-placeholder';
       placeholder.textContent = 'Nothing to compile yet - expand the tree first.';
       planContainer.appendChild(placeholder);
-      renderSidebar(sidebar, [], registries);
+      renderSidebar(sidebar, [], registries, defaultBuildingByType, onSetDefaultBuilding);
       return;
     }
 
@@ -83,9 +88,13 @@ export function renderFactoryView(container, treeState, registries, onBack) {
     grid.className = 'factory-cards-grid';
 
     for (const line of lines) {
-      grid.appendChild(renderFactoryCard(line, registries, buildingChoice, openProlifCard, {
+      grid.appendChild(renderFactoryCard(line, registries, buildingChoice, defaultBuildingByType, openProlifCard, {
         onSelectBuilding(key, buildingId) {
           buildingChoice.set(key, buildingId);
+          rerenderPlan();
+        },
+        onResetBuilding(key) {
+          buildingChoice.delete(key);
           rerenderPlan();
         },
         onToggleProlifMenu(key) {
@@ -122,7 +131,12 @@ export function renderFactoryView(container, treeState, registries, onBack) {
     }
 
     planContainer.appendChild(grid);
-    renderSidebar(sidebar, lines, registries);
+    renderSidebar(sidebar, lines, registries, defaultBuildingByType, onSetDefaultBuilding);
+  }
+
+  function onSetDefaultBuilding(type, buildingId) {
+    defaultBuildingByType.set(type, buildingId);
+    rerenderPlan();
   }
 
   // Only actually applies once both a mode and a level are chosen (in
@@ -216,13 +230,25 @@ function renderRateInput(subjectId, targetRate, onChange) {
 // line contributes its *currently selected* building (see buildingChoice),
 // ceil'd the same way an individual card's machine count is - you can't
 // build a fraction of a machine.
-function renderSidebar(sidebar, lines, registries) {
+function renderSidebar(sidebar, lines, registries, defaultBuildingByType, onSetDefaultBuilding) {
   sidebar.innerHTML = '';
+  sidebar.appendChild(renderTotalsSection(lines, registries));
+
+  // Pinned after the totals, same "settings panel last" convention as the
+  // tree view's own sidebar (see defaultProliferationPanel.js) - null when
+  // no recipe type among the current lines actually has a choice to make.
+  const defaultsSection = renderDefaultBuildingSection(lines, registries, defaultBuildingByType, onSetDefaultBuilding);
+  if (defaultsSection) sidebar.appendChild(defaultsSection);
+}
+
+function renderTotalsSection(lines, registries) {
+  const section = document.createElement('div');
+  section.className = 'tree-resources-section';
 
   const heading = document.createElement('h3');
   heading.className = 'tree-resources-title';
   heading.textContent = 'Total Buildings';
-  sidebar.appendChild(heading);
+  section.appendChild(heading);
 
   const perBuilding = new Map(); // buildingId -> count
   let total = 0;
@@ -238,14 +264,14 @@ function renderSidebar(sidebar, lines, registries) {
     const empty = document.createElement('p');
     empty.className = 'tree-resources-empty';
     empty.textContent = 'None yet.';
-    sidebar.appendChild(empty);
-    return;
+    section.appendChild(empty);
+    return section;
   }
 
   const grandTotal = document.createElement('p');
   grandTotal.className = 'factory-sidebar-total';
   grandTotal.textContent = `${total} total`;
-  sidebar.appendChild(grandTotal);
+  section.appendChild(grandTotal);
 
   const list = document.createElement('div');
   list.className = 'factory-sidebar-building-list';
@@ -271,5 +297,6 @@ function renderSidebar(sidebar, lines, registries) {
 
     list.appendChild(row);
   }
-  sidebar.appendChild(list);
+  section.appendChild(list);
+  return section;
 }
