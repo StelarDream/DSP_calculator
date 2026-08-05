@@ -43,9 +43,6 @@
             "speed": 2
         }
     },
-    "fractionating": {
-        "fractionator": {}
-    },
     "colliding": {
         "miniature-particle-collider": {}
     }
