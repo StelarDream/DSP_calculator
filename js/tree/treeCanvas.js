@@ -1,5 +1,5 @@
 import { layoutTree } from './layoutTree.js';
-import { renderTreeNode, renderByproductNode } from './treeNode.js';
+import { renderTreeNode, renderRecipeHub, renderByproductNode } from './treeNode.js';
 import { NODE_WIDTH } from './constants.js';
 
 // Padding around the laid-out tree so cards/edges aren't flush against the
@@ -31,9 +31,11 @@ export function renderTreeInto(world, root, handlers) {
   world.style.height = `${worldHeight}px`;
 
   world.appendChild(renderEdges(edges, byproductEdges, worldWidth, worldHeight));
-  for (const { node, x, y, isByproduct } of nodes) {
-    const card = isByproduct ? renderByproductNode(node) : renderTreeNode(node, handlers);
-    world.appendChild(positionNode(card, x, y));
+  for (const { node, x, y, isByproduct, isHub } of nodes) {
+    const card = isByproduct ? renderByproductNode(node)
+      : isHub ? renderRecipeHub(node, handlers)
+      : renderTreeNode(node, handlers);
+    world.appendChild(positionNode(card, x, y, isHub));
   }
 
   return { width: worldWidth, height: worldHeight };
@@ -62,10 +64,15 @@ function renderEdges(edges, byproductEdges, width, height) {
   return svg;
 }
 
-// Right edge of the parent to left edge of the child, as a horizontal
-// bezier - the classic smooth org-chart connector.
-function edgePath({ from, to }) {
-  const x1 = from.x + NODE_WIDTH + PADDING;
+// Right edge of the `from` side to the left edge of the `to` side, as a
+// horizontal bezier - the classic smooth org-chart connector. `to` is
+// always a plain left-edge point, whether that's a child card or a hub
+// (see layoutTree.js - a hub's stored position is already its center, same
+// convention as a card's left edge, so it needs no extra offset either
+// way). `from` only needs the +NODE_WIDTH offset to reach a card's right
+// edge when it's an actual card - fromIsHub means it's already a point.
+function edgePath({ from, to, fromIsHub }) {
+  const x1 = from.x + (fromIsHub ? 0 : NODE_WIDTH) + PADDING;
   const y1 = from.y + PADDING;
   const x2 = to.x + PADDING;
   const y2 = to.y + PADDING;
@@ -73,12 +80,12 @@ function edgePath({ from, to }) {
   return `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
 }
 
-// From the ingredient card (from) to its byproduct (to) - the same craft
-// that consumes that ingredient is what produces the byproduct. Since the
-// ingredient sits one column *deeper* than the byproduct (which shares its
-// column with the product node), this flows right-to-left: left edge of
-// the ingredient to right edge of the byproduct card - the normal
-// left-to-right bezier, mirrored.
+// From the recipe hub (from) to its byproduct (to) - the hub is the single
+// shared point for everything that craft makes, byproduct included. Since
+// the hub sits one column *deeper* than the byproduct (which shares its
+// column with the product node), this flows right-to-left: the hub's point
+// to the right edge of the byproduct card - the normal left-to-right
+// bezier, mirrored.
 function byproductEdgePath({ from, to }) {
   const x1 = from.x + PADDING;
   const y1 = from.y + PADDING;
@@ -88,9 +95,12 @@ function byproductEdgePath({ from, to }) {
   return `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
 }
 
-function positionNode(card, x, y) {
+// Item/byproduct cards are left-edge-anchored (their stored x *is* the left
+// edge) and only centered vertically. A hub's stored position is already
+// its center on both axes, so it gets centered outright instead.
+function positionNode(card, x, y, isHub) {
   card.style.left = `${x + PADDING}px`;
   card.style.top = `${y + PADDING}px`;
-  card.style.transform = 'translateY(-50%)';
+  card.style.transform = isHub ? 'translate(-50%, -50%)' : 'translateY(-50%)';
   return card;
 }

@@ -1,6 +1,6 @@
 import { formatLabel } from '../ui/format.js';
 import { CHEVRON_ICON, EDIT_ICON } from '../ui/icons.js';
-import { NODE_WIDTH, NODE_HEIGHT } from './constants.js';
+import { NODE_WIDTH, NODE_HEIGHT, HUB_SIZE } from './constants.js';
 import { formatQty } from './formatQty.js';
 import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
 import { PROLIF_MODES, renderProlifModeRow, renderProlifLevelRow, modeLabel, levelLabel } from './proliferationPicker.js';
@@ -9,42 +9,21 @@ import { PROLIF_MODES, renderProlifModeRow, renderProlifLevelRow, modeLabel, lev
 //  - choice: "expand using this recipe" - see renderChoiceNode.
 //  - leaf/cycle: plain, non-interactive card.
 //  - craftable: div[role="button"] with a chevron, toggling expand/collapse
-//    via handlers.onToggle(path, wasCollapsed) on click. (A real <button>
-//    can't be used here since a resolved node can nest actual <button>s -
-//    the "change recipe" and "proliferation" badges - inside it.)
+//    via handlers.onToggle(path, wasCollapsed) on click.
+// Everything about *how* a resolved node is made - the recipe/machine icon,
+// "change recipe", proliferation - lives on the separate recipe hub between
+// this card and its children instead (see renderRecipeHub, layoutTree.js,
+// treeCanvas.js), keeping this card down to just "what" and "how much."
 export function renderTreeNode(node, handlers = {}) {
   if (node.isChoice) return renderChoiceNode(node, handlers.onChoose);
 
-  const { onToggle, onEdit, proliferation, openProlifMenu, onToggleProlifMenu } = handlers;
+  const { onToggle } = handlers;
   const expandable = !node.isLeaf && typeof onToggle === 'function';
-  // Only makes sense once resolved to a specific recipe (not mid-choice)
-  // and expanded (so there's actually a visible branch to relabel).
-  const editable = expandable && !node.isCollapsed && !node.needsChoice
-    && node.recipeOptions.length > 1 && typeof onEdit === 'function';
-
-  // Same "resolved to a specific recipe" requirement as editable, plus the
-  // recipe actually needs to support at least one proliferator effect -
-  // "only display the available modes" starts with not showing the badge
-  // at all when there are none.
-  const availableModes = node.recipe ? PROLIF_MODES.filter((mode) => node.recipe.proliferation[mode.key]) : [];
-  const proliferatable = !node.isCollapsed && !node.needsChoice && availableModes.length > 0
-    && typeof onToggleProlifMenu === 'function';
-  const currentProlif = proliferatable ? proliferation?.get(node.path) : null;
-  // Guards against a stale setting whose mode the *current* recipe (after
-  // an edit) no longer supports - shown as "off" rather than a mismatch.
-  const activeProlif = currentProlif && availableModes.some((m) => m.key === currentProlif.mode) ? currentProlif : null;
-  const menuOpen = proliferatable && openProlifMenu?.path === node.path;
 
   const el = document.createElement('div');
   el.className = 'tree-node';
   if (node.isLeaf) el.classList.add('tree-node--leaf');
   if (node.isCycle) el.classList.add('tree-node--cycle');
-  // Each node card is its own stacking context (it has a transform - see
-  // treeCanvas.js's positionNode), so a child's z-index only wins against
-  // its own siblings, not other node cards painted later in the world.
-  // Bump the whole card above the rest while its popover is open so the
-  // popover doesn't end up visually tangled with a neighboring row.
-  if (menuOpen) el.classList.add('tree-node--menu-open');
   el.style.width = `${NODE_WIDTH}px`;
   el.style.height = `${NODE_HEIGHT}px`;
 
@@ -61,26 +40,10 @@ export function renderTreeNode(node, handlers = {}) {
     });
   }
 
-  const iconWrap = document.createElement('div');
-  iconWrap.className = 'tree-node-icon-wrap';
-
   const icon = document.createElement('img');
   icon.className = 'tree-node-icon';
   icon.src = node.object?.icon ?? '';
   icon.alt = '';
-  iconWrap.appendChild(icon);
-
-  // Only known once a node is expanded *and* resolved to a specific recipe
-  // (not mid-choice, not collapsed) - see buildTree.js. Shows which
-  // building/crafting-table type is responsible for this node.
-  if (node.recipe) {
-    const badge = document.createElement('img');
-    badge.className = 'tree-node-type-badge';
-    badge.src = `assets/recipe-types/${node.recipe.type}.png`;
-    badge.alt = '';
-    badge.title = formatLabel(node.recipe.type);
-    iconWrap.appendChild(badge);
-  }
 
   const info = document.createElement('div');
   info.className = 'tree-node-info';
@@ -108,7 +71,7 @@ export function renderTreeNode(node, handlers = {}) {
   }
 
   info.append(name, qty);
-  el.append(iconWrap, info);
+  el.append(icon, info);
 
   if (expandable) {
     const chevron = document.createElement('span');
@@ -118,35 +81,69 @@ export function renderTreeNode(node, handlers = {}) {
     el.appendChild(chevron);
   }
 
-  // Both badges sit in the same spot (the card's right edge, where its
-  // branch to the children begins) - stacked on top of each other when
-  // both are present, otherwise centered alone.
-  const stacked = editable && proliferatable;
+  return el;
+}
+
+// The recipe hub - only ever placed (by layoutTree.js) between a node and
+// its children once the node's actually resolved to a recipe, so node.recipe
+// is guaranteed here. Shows the recipe/machine type as a big icon (this is
+// its whole reason to exist, unlike the small corner badge it replaces), plus
+// the "change recipe" and proliferation controls that used to live on the
+// item card itself.
+export function renderRecipeHub(node, handlers = {}) {
+  const { onEdit, proliferation, openProlifMenu, onToggleProlifMenu } = handlers;
+
+  // Only worth offering when there's actually more than one recipe to
+  // switch between - same rule the old item-card badge used.
+  const editable = node.recipeOptions.length > 1 && typeof onEdit === 'function';
+
+  // Which proliferator effects *this* recipe can support - "only display
+  // the available modes" starts with not showing the button at all when
+  // there are none.
+  const availableModes = PROLIF_MODES.filter((mode) => node.recipe.proliferation[mode.key]);
+  const proliferatable = availableModes.length > 0 && typeof onToggleProlifMenu === 'function';
+  const currentProlif = proliferatable ? proliferation?.get(node.path) : null;
+  // Guards against a stale setting whose mode the *current* recipe (after
+  // an edit) no longer supports - shown as "off" rather than a mismatch.
+  const activeProlif = currentProlif && availableModes.some((m) => m.key === currentProlif.mode) ? currentProlif : null;
+  const activeMode = activeProlif && PROLIF_MODES.find((mode) => mode.key === activeProlif.mode);
+  const menuOpen = proliferatable && openProlifMenu?.path === node.path;
+
+  const hub = document.createElement('div');
+  hub.className = 'recipe-hub';
+  // Own stacking context (see the transform in treeCanvas.js's
+  // positionNode) - bumped above neighboring hubs/cards while its popover
+  // is open, same reasoning as the old .tree-node--menu-open.
+  if (menuOpen) hub.classList.add('recipe-hub--menu-open');
+  hub.style.width = `${HUB_SIZE}px`;
+  hub.style.height = `${HUB_SIZE}px`;
+
+  const icon = document.createElement('img');
+  icon.className = 'recipe-hub-icon';
+  icon.src = `assets/recipe-types/${node.recipe.type}.png`;
+  icon.alt = '';
+  icon.title = formatLabel(node.recipe.type);
+  hub.appendChild(icon);
 
   if (editable) {
     const edit = document.createElement('button');
     edit.type = 'button';
     edit.className = 'tree-node-edit';
-    if (stacked) edit.classList.add('tree-node-badge--stack-top');
     edit.title = 'Change recipe';
     edit.setAttribute('aria-label', 'Change recipe');
     edit.innerHTML = EDIT_ICON;
-    // Stop it reaching the card's own click (which would toggle collapse)
-    // and reopen the choice step for this node instead.
+    // Stop it reaching the canvas's pan handling.
     edit.addEventListener('click', (event) => {
       event.stopPropagation();
       onEdit(node.path);
     });
-    el.appendChild(edit);
+    hub.appendChild(edit);
   }
-
-  const activeMode = activeProlif && PROLIF_MODES.find((mode) => mode.key === activeProlif.mode);
 
   if (proliferatable) {
     const prolif = document.createElement('button');
     prolif.type = 'button';
     prolif.className = 'tree-node-prolif';
-    if (stacked) prolif.classList.add('tree-node-badge--stack-bottom');
     if (activeProlif) prolif.classList.add('tree-node-prolif--active');
     // Tinted by the active mode's tone (speed = secondary, yield/chance =
     // primary) - same convention as js/ui/proliferation.js's flat card.
@@ -180,18 +177,18 @@ export function renderTreeNode(node, handlers = {}) {
       event.stopPropagation();
       onToggleProlifMenu(node.path);
     });
-    el.appendChild(prolif);
+    hub.appendChild(prolif);
 
     if (menuOpen) {
-      el.appendChild(renderProlifMenu(node, availableModes, openProlifMenu, handlers));
+      hub.appendChild(renderProlifMenu(node, availableModes, openProlifMenu, handlers));
     }
   }
 
-  return el;
+  return hub;
 }
 
-// The mode/level picker - opened by the proliferation badge. Nested inside
-// the node (not a floating overlay) so it inherits the same pan/zoom
+// The mode/level picker - opened by the proliferation button. Nested inside
+// the hub (not a floating overlay) so it inherits the same pan/zoom
 // transform as everything else in the world, same reasoning as the choice
 // cards. Neither axis is "applied" until both a mode and a level are set;
 // selecting either one, once the other's already chosen, commits and stays
@@ -199,9 +196,9 @@ export function renderTreeNode(node, handlers = {}) {
 function renderProlifMenu(node, availableModes, openState, { onSetProlifMode, onSetProlifLevel, onClearProliferation }) {
   const menu = document.createElement('div');
   menu.className = 'tree-node-prolif-menu';
-  // Nothing inside here should reach the card's own click (collapse) or
-  // the canvas's pointerdown (pan) - button/[role=button] already guards
-  // pan, but the card's own click listener still needs stopping.
+  // Nothing inside here should reach the canvas's pointerdown (pan) -
+  // button/[role=button] already guards pan, but stop it explicitly anyway
+  // since this sits inside the hub rather than a plain card.
   menu.addEventListener('click', (event) => event.stopPropagation());
 
   menu.appendChild(renderProlifModeRow(openState, availableModes, {

@@ -801,37 +801,11 @@ body {
   color: var(--danger);
 }
 
-.tree-node-icon-wrap {
-  position: relative;
-  flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
-}
-
 .tree-node-icon {
-  /* Fixed size on the img itself, not just via .tree-node-icon-wrap - the
-     choice card (renderChoiceNode) uses this class directly with no wrapper. */
   flex: 0 0 auto;
   width: 30px;
   height: 30px;
   object-fit: contain;
-  -webkit-user-drag: none;
-}
-
-/* Which building/crafting-table type produces this node - see
-   node.recipe in treeNode.js. Overlaps the item icon's corner rather than
-   taking its own space, since the card is already tight on width. */
-.tree-node-type-badge {
-  position: absolute;
-  right: -5px;
-  bottom: -5px;
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
-  padding: 1px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-soft);
-  border-radius: 4px;
   -webkit-user-drag: none;
 }
 
@@ -906,23 +880,42 @@ body {
   transform: rotate(90deg);
 }
 
-/* "Change recipe" badge - straddles the card's right edge, right where its
-   branch line to the children begins. */
-/* Both sit in the same spot on a node's right edge, where its branch to
-   the children begins - stacked on top of each other (via the
-   --stack-top/--stack-bottom modifiers) when both are present on the same
-   card, otherwise centered alone. */
+/* The junction node between a resolved item card and its children - see
+   layoutTree.js (where it's positioned) and treeNode.js's renderRecipeHub.
+   Centered on its position rather than left-edge-anchored (treeCanvas.js's
+   positionNode), so it reads as a point the connectors pass through rather
+   than a card of its own. */
+.recipe-hub {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+}
+
+.recipe-hub-icon {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  -webkit-user-drag: none;
+}
+
+/* "Change recipe" and proliferation buttons - corner badges on the recipe
+   hub above, rather than the item card they used to straddle. Each gets
+   its own fixed corner, so unlike before there's no need to stack them -
+   top-right for edit, bottom-right for proliferation. */
 .tree-node-edit,
 .tree-node-prolif {
   position: absolute;
-  right: -11px;
-  top: 50%;
-  transform: translateY(-50%);
+  right: -8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   padding: 0;
   background: var(--bg-panel);
   border: 1px solid var(--border);
@@ -932,27 +925,24 @@ body {
   z-index: 1;
 }
 
+.tree-node-edit {
+  top: -8px;
+}
+
+.tree-node-prolif {
+  bottom: -8px;
+}
+
 /* Once a mode+level is applied the badge grows to fit "<mode icon> |
-   <proliferator icon>" instead of the generic single icon. `right` above
-   is tuned for the plain 22px badge; growing width while keeping that
-   same `right` would eat into the card leftward and collide with the
-   chevron (see .tree-node-chevron), so the active badge instead gets a
-   fixed width and its own `right`, chosen to keep its *left* edge exactly
-   where the inactive badge's left edge sits - all the extra width goes
-   outward, away from the card, instead of inward. */
+   <proliferator icon>" instead of the generic single icon - grows toward
+   the hub's own left side (no chevron to avoid here, unlike the item card
+   this used to sit on), so `right` stays put and only `width` needs to
+   change. */
 .tree-node-prolif--active {
-  width: 46px;
-  right: -35px;
+  width: auto;
+  min-width: 20px;
   gap: 4px;
   padding: 0 5px;
-}
-
-.tree-node-badge--stack-top {
-  top: calc(50% - 13px);
-}
-
-.tree-node-badge--stack-bottom {
-  top: calc(50% + 13px);
 }
 
 .tree-node-edit svg {
@@ -1026,12 +1016,16 @@ body {
 }
 
 /* Mode/level picker opened by the proliferation badge - nested inside the
-   node card so it inherits the tree's pan/zoom transform. */
+   recipe hub so it inherits the tree's pan/zoom transform. Fixed width and
+   centered under the hub, rather than stretching to its parent's width
+   like it did on the item card - the hub itself is far narrower than that
+   card was. */
 .tree-node-prolif-menu {
   position: absolute;
   bottom: 100%;
-  left: 0;
-  width: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 190px;
   margin-bottom: 6px;
   z-index: 2;
   display: flex;
@@ -1044,10 +1038,10 @@ body {
   box-shadow: var(--shadow-panel);
 }
 
-/* See treeNode.js - lets the popover (and the rest of this card) paint
-   above every other node card in the tree instead of whichever happened
-   to be appended later in the DOM. */
-.tree-node--menu-open {
+/* See treeNode.js/treeCanvas.js - lets the hub (and its popover) paint
+   above every other hub/card in the tree instead of whichever happened to
+   be appended later in the DOM. */
+.recipe-hub--menu-open {
   z-index: 10;
 }
 

@@ -1,4 +1,4 @@
-import { ROW_HEIGHT, COLUMN_WIDTH } from './constants.js';
+import { ROW_HEIGHT, COLUMN_WIDTH, NODE_WIDTH, HUB_SIZE } from './constants.js';
 
 // Left-to-right node-link layout, in two passes:
 //
@@ -69,17 +69,34 @@ export function layoutTree(root) {
   const byproductEdges = [];
 
   (function collect(node) {
-    nodes.push({ node, ...positions.get(node.path) });
+    const pos = positions.get(node.path);
+    nodes.push({ node, ...pos });
+
+    // The recipe hub - see constants.js/treeNode.js - sits centered in the
+    // gap between this node and its children, and only exists once there's
+    // an actual resolved recipe to show (leaf, collapsed, and needsChoice
+    // nodes all have node.recipe === null - see buildTree.js - so that
+    // alone is the right gate, no need to re-check those separately) and
+    // something on the other side of it to connect to.
+    const hasHub = Boolean(node.recipe) && node.children.length > 0;
+    const hubPos = hasHub
+      ? { x: pos.x + NODE_WIDTH + (COLUMN_WIDTH - NODE_WIDTH - HUB_SIZE) / 2, y: pos.y }
+      : null;
+
+    if (hasHub) {
+      nodes.push({ node, ...hubPos, isHub: true });
+      edges.push({ from: pos, to: hubPos });
+    }
 
     const spots = byproductSpots.get(node.path);
     if (spots) {
-      // A byproduct comes from the same craft that consumes the
-      // ingredient(s) - so the connector reads better anchored to the
-      // first real ingredient than to the product node itself. Falls back
-      // to the node's own position on the (unlikely) chance it has none.
-      const anchor = node.children.length > 0
-        ? positions.get(node.children[0].path)
-        : positions.get(node.path);
+      // A byproduct comes from the same craft as everything else this node
+      // makes - the hub *is* that craft, so anchoring here (rather than
+      // arbitrarily picking one ingredient, the old behavior) is both more
+      // accurate and unambiguous regardless of how many ingredients there
+      // are. Falls back to the node's own position on the (unlikely)
+      // chance there's no hub to anchor to.
+      const anchor = hasHub ? hubPos : pos;
       node.byproducts.forEach((byproduct, i) => {
         nodes.push({ node: byproduct, ...spots[i], isByproduct: true });
         byproductEdges.push({ from: anchor, to: spots[i] });
@@ -87,7 +104,10 @@ export function layoutTree(root) {
     }
 
     for (const child of node.children) {
-      edges.push({ from: positions.get(node.path), to: positions.get(child.path) });
+      // Routed through the hub when there is one - fromIsHub tells
+      // treeCanvas.js's edgePath not to offset by a full card width, since
+      // a hub's position is already a center point, not a card's left edge.
+      edges.push({ from: hasHub ? hubPos : pos, to: positions.get(child.path), fromIsHub: hasHub });
       collect(child);
     }
   })(root);
