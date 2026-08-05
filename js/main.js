@@ -117,6 +117,6 @@ export async function init() {
     state.selectedId = restored.subjectId;
     state.view = 'tree';
     state.treeRecipe = recipe;
-    state.treeInitialState = { choices: restored.choices, overrides: restored.overrides };
+    state.treeInitialState = { choices: restored.choices, overrides: restored.overrides, proliferation: restored.proliferation };
   }
 }

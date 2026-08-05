@@ -58,14 +58,20 @@ function renderBody(subjectId, recipe, registries, initialState) {
 
   const resources = createResourceSidebar();
 
-  // Local to this tree view session - which recipe each node uses and
-  // which nodes have been manually expanded/collapsed, overriding the
-  // default-depth rule. Seeded from a shared link when there is one,
-  // otherwise starts fresh with just the root's recipe (the one the tree
-  // button was clicked from).
+  // Local to this tree view session - which recipe each node uses, which
+  // nodes have been manually expanded/collapsed (overriding the
+  // default-depth rule), and any proliferation applied per node. Seeded
+  // from a shared link when there is one, otherwise starts fresh with just
+  // the root's recipe (the one the tree button was clicked from).
   const choices = new Map(initialState?.choices);
   const overrides = new Map(initialState?.overrides);
+  const proliferation = new Map(initialState?.proliferation);
   choices.set(subjectId, recipe.id);
+
+  // Which node's proliferation picker is open, plus its in-progress
+  // mode/level - null when none is. Only committed into `proliferation`
+  // once both axes are set (see onSetProlifMode/onSetProlifLevel).
+  let openProlifMenu = null;
 
   const world = createTreeWorld();
   canvas.appendChild(world);
@@ -90,21 +96,59 @@ function renderBody(subjectId, recipe, registries, initialState) {
         choices.delete(path);
         rerender();
       },
+      proliferation,
+      openProlifMenu,
+      onToggleProlifMenu(path) {
+        if (openProlifMenu?.path === path) {
+          openProlifMenu = null;
+        } else {
+          const existing = proliferation.get(path);
+          openProlifMenu = { path, mode: existing?.mode ?? null, level: existing?.level ?? null };
+        }
+        rerender();
+      },
+      onSetProlifMode(path, mode) {
+        if (openProlifMenu?.path !== path) return;
+        openProlifMenu = { ...openProlifMenu, mode };
+        commitProlif(path);
+        rerender();
+      },
+      onSetProlifLevel(path, level) {
+        if (openProlifMenu?.path !== path) return;
+        openProlifMenu = { ...openProlifMenu, level };
+        commitProlif(path);
+        rerender();
+      },
+      onClearProliferation(path) {
+        proliferation.delete(path);
+        openProlifMenu = null;
+        rerender();
+      },
     });
     renderResourcesInto(resources, summarizeTree(tree));
   }
+
+  // Only actually applies once both a mode and a level are chosen (in
+  // either order) - the menu stays open either way, so partial picks just
+  // sit there highlighted until completed.
+  function commitProlif(path) {
+    if (openProlifMenu?.mode && openProlifMenu?.level) {
+      proliferation.set(path, { mode: openProlifMenu.mode, level: openProlifMenu.level });
+    }
+  }
+
   rerender();
 
   const fit = () => panZoom.fitToView(size.width, size.height);
-  const shareUrl = () => buildShareUrl(subjectId, recipe.id, choices, overrides);
+  const shareUrl = () => buildShareUrl(subjectId, recipe.id, choices, overrides, proliferation);
   canvas.appendChild(renderToolbar(panZoom, fit, shareUrl));
 
   body.append(canvas, resources);
   return { body, fit };
 }
 
-function buildShareUrl(subjectId, recipeId, choices, overrides) {
-  const code = serializeTreeState({ subjectId, recipeId, choices, overrides });
+function buildShareUrl(subjectId, recipeId, choices, overrides, proliferation) {
+  const code = serializeTreeState({ subjectId, recipeId, choices, overrides, proliferation });
   const url = new URL(window.location.href);
   // Only ever touches `tree` - any other params (present now or added by
   // future features) are left exactly as they are.

@@ -784,7 +784,12 @@ body {
 
 /* "Change recipe" badge - straddles the card's right edge, right where its
    branch line to the children begins. */
-.tree-node-edit {
+/* Both sit in the same spot on a node's right edge, where its branch to
+   the children begins - stacked on top of each other (via the
+   --stack-top/--stack-bottom modifiers) when both are present on the same
+   card, otherwise centered alone. */
+.tree-node-edit,
+.tree-node-prolif {
   position: absolute;
   right: -11px;
   top: 50%;
@@ -803,6 +808,14 @@ body {
   z-index: 1;
 }
 
+.tree-node-badge--stack-top {
+  top: calc(50% - 13px);
+}
+
+.tree-node-badge--stack-bottom {
+  top: calc(50% + 13px);
+}
+
 .tree-node-edit svg {
   width: 13px;
   height: 13px;
@@ -811,6 +824,101 @@ body {
 .tree-node-edit:hover {
   color: var(--secondary);
   border-color: var(--secondary-border);
+}
+
+.tree-node-prolif img {
+  width: 13px;
+  height: 13px;
+  object-fit: contain;
+}
+
+.tree-node-prolif:hover {
+  color: var(--primary);
+  border-color: var(--primary-border);
+}
+
+.tree-node-prolif--active {
+  color: var(--primary);
+  background: var(--primary-dim);
+  border-color: var(--primary-border);
+}
+
+/* Mode/level picker opened by the proliferation badge - nested inside the
+   node card so it inherits the tree's pan/zoom transform. */
+.tree-node-prolif-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  width: 100%;
+  margin-bottom: 6px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+}
+
+/* See treeNode.js - lets the popover (and the rest of this card) paint
+   above every other node card in the tree instead of whichever happened
+   to be appended later in the DOM. */
+.tree-node--menu-open {
+  z-index: 10;
+}
+
+.tree-node-prolif-row {
+  display: flex;
+  gap: 6px;
+}
+
+.tree-node-prolif-option {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.tree-node-prolif-option svg {
+  width: 16px;
+  height: 16px;
+}
+
+.tree-node-prolif-option img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.tree-node-prolif-option:hover {
+  border-color: var(--primary-border);
+  color: var(--primary);
+}
+
+.tree-node-prolif-option--active {
+  background: var(--primary-dim);
+  border-color: var(--primary-border);
+  color: var(--primary);
+}
+
+.tree-node-prolif-clear {
+  align-self: center;
+  padding: 4px 0;
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  color: var(--danger);
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .detail-header {
