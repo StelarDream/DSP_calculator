@@ -85,12 +85,17 @@ export function layoutTree(root) {
     // (see treeCanvas.js's positionNode), not a left edge, so this needs no
     // adjustment for the hub's own width the way a left-edge box would.
     // Vertically it's centered between the extremes of everything it
-    // actually connects - its ingredients, plus any byproducts - rather
-    // than tied to this node's own row, so the fan-out to both looks
-    // balanced instead of leaning on whichever side happens to have more.
+    // actually connects - this node itself, its ingredients, and any
+    // byproducts - so every edge meeting at the hub fans out from a
+    // genuinely balanced point. Node included on purpose, not just
+    // children/byproducts: when there's no byproduct they'd already be
+    // centered on the node's own row anyway (so this changes nothing), but
+    // once a byproduct pins the node's row to the *top* of its block
+    // instead (see assign() above), leaving the node out biased the center
+    // down toward the byproduct/children cluster and away from it.
     let hubPos = null;
     if (hasHub) {
-      const ys = node.children.map((child) => positions.get(child.path).y);
+      const ys = [pos.y, ...node.children.map((child) => positions.get(child.path).y)];
       if (spots) ys.push(...spots.map((spot) => spot.y));
       const centerY = (Math.min(...ys) + Math.max(...ys)) / 2;
       hubPos = { x: pos.x + NODE_WIDTH + (COLUMN_WIDTH - NODE_WIDTH) / 2, y: centerY };
