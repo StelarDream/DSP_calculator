@@ -854,8 +854,20 @@ body {
 }
 
 .tree-node-qty {
+  display: block;
   font-size: 0.78rem;
   color: var(--secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The "| ×4 -1" part of a yield-reduced qty (see treeNode.js) - dimmer and
+   smaller than the actual qty it's annotating, and the first thing to give
+   up its space to the ellipsis above if the card's too narrow for both. */
+.tree-node-qty-yield {
+  font-size: 0.7rem;
+  color: var(--text-muted);
 }
 
 .tree-node-ingredients {

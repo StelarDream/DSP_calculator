@@ -77,6 +77,14 @@ function renderBody(subjectId, recipe, registries, initialState) {
   const proliferation = new Map(initialState?.proliferation);
   choices.set(subjectId, recipe.id);
 
+  // Paths whose node has resolved to a recipe at least once - lets
+  // applyDefaultProliferation tell "this node just came into existence"
+  // apart from "this node has existed for a while and simply has no
+  // proliferation set" (e.g. it was expanded before any default was
+  // configured, or under an earlier default that didn't apply to it). Only
+  // the former should ever get the default auto-applied - see below.
+  const settledPaths = new Set();
+
   // Which node's proliferation picker is open, plus its in-progress
   // mode/level - null when none is. Only committed into `proliferation`
   // once both axes are set (see onSetProlifMode/onSetProlifLevel).
@@ -96,8 +104,14 @@ function renderBody(subjectId, recipe, registries, initialState) {
   // pan/zoom transform survives.
   let size;
   function rerender() {
-    const tree = buildTree(subjectId, 1, registries, { choices, overrides });
-    applyDefaultProliferation(tree);
+    let tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation });
+    if (applyDefaultProliferation(tree)) {
+      // Defaults just got stamped onto newly-resolved nodes - rebuild so
+      // any Extra Yield among them is reflected in *this* render's
+      // quantities too, not just their badges (buildTree.js reads
+      // `proliferation` while computing qty - see its yield handling).
+      tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation });
+    }
     size = renderTreeInto(world, tree, {
       onToggle(path, wasCollapsed) {
         overrides.set(path, wasCollapsed);
@@ -160,22 +174,34 @@ function renderBody(subjectId, recipe, registries, initialState) {
     });
   }
 
-  // Stamps the current default (if any) onto every node that resolves to a
-  // recipe and doesn't already have its own proliferation entry - covers
-  // both nodes that just appeared (freshly expanded, or a choice just
-  // picked) and nodes left unset from before the default was configured.
-  // Explicit per-node choices (including an explicit "None") always win,
-  // since those already have an entry in `proliferation`. Silently does
-  // nothing for a node whose recipe can't support the default's mode - it
-  // stays unset rather than being forced onto an unsupported effect, and
-  // stays eligible to pick up the default later if its recipe changes.
+  // Stamps the current default (if any) onto a node the *first* time it
+  // ever resolves to a recipe - i.e. a genuinely new node, whether that's
+  // this tree's initial expand, a node just expanded past its collapsed
+  // state, or a choice just picked. Uses settledPaths rather than just
+  // "no proliferation entry yet" so a node someone deliberately left
+  // unset doesn't get the default retroactively stamped onto it the next
+  // time the default changes or the tree simply rerenders. Silently does
+  // nothing (settled either way) when the recipe can't support the
+  // default's mode, rather than forcing an unsupported effect onto it.
+  // Returns whether it actually stamped anything, so rerender() knows to
+  // rebuild the tree - buildTree.js reads `proliferation` while computing
+  // quantities (Extra Yield), so a freshly-applied default needs a second
+  // pass to show up there too, not just on the node's badge.
   function applyDefaultProliferation(node) {
-    if (!node) return;
-    if (node.recipe && !proliferation.has(node.path) && defaultProlif.mode && defaultProlif.level
-      && node.recipe.proliferation[defaultProlif.mode]) {
-      proliferation.set(node.path, { mode: defaultProlif.mode, level: defaultProlif.level });
+    if (!node) return false;
+    let changed = false;
+    if (node.recipe && !settledPaths.has(node.path)) {
+      settledPaths.add(node.path);
+      if (!proliferation.has(node.path) && defaultProlif.mode && defaultProlif.level
+        && node.recipe.proliferation[defaultProlif.mode]) {
+        proliferation.set(node.path, { mode: defaultProlif.mode, level: defaultProlif.level });
+        changed = true;
+      }
     }
-    for (const child of node.children) applyDefaultProliferation(child);
+    for (const child of node.children) {
+      if (applyDefaultProliferation(child)) changed = true;
+    }
+    return changed;
   }
 
   // Only actually applies once both a mode and a level are chosen (in

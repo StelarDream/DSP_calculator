@@ -1,8 +1,9 @@
 import { DEFAULT_EXPAND_DEPTH } from './constants.js';
+import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
 
 // Recursively expands an item into a tree of what it takes to craft it.
-// Pure function of (registries + the two override maps) - no DOM, easy to
-// reason about and re-run on every interaction.
+// Pure function of (registries + the two override maps, plus proliferation)
+// - no DOM, easy to reason about and re-run on every interaction.
 //
 // A node is a leaf purely because the item isn't craftable (no recipe
 // produces it) - collectable/raw items included. Craftable items always
@@ -12,12 +13,15 @@ import { DEFAULT_EXPAND_DEPTH } from './constants.js';
 // is "I'll produce this myself" (bought, stockpiled, whatever), so which
 // recipe it *would* use is moot until you actually expand it.
 //
-// choices:   Map<path, recipeId>  - which recipe an expanded node uses, once
-//            decided. Nodes with >1 option and no entry yet render as a
-//            choice step instead of guessing - see buildChoiceNode.
-// overrides: Map<path, boolean>   - manual expand/collapse toggles. Absent
-//            entries fall back to the DEFAULT_EXPAND_DEPTH rule.
-export function buildTree(rootItemId, qty, registries, { choices = new Map(), overrides = new Map() } = {}) {
+// choices:       Map<path, recipeId>  - which recipe an expanded node uses,
+//                once decided. Nodes with >1 option and no entry yet render
+//                as a choice step instead of guessing - see buildChoiceNode.
+// overrides:     Map<path, boolean>   - manual expand/collapse toggles.
+//                Absent entries fall back to the DEFAULT_EXPAND_DEPTH rule.
+// proliferation: Map<path, {mode, level}> - per-node proliferation settings
+//                (see treeView.js). Only `mode: 'yield'` feeds into the
+//                quantity math here - see applyYield below for why.
+export function buildTree(rootItemId, qty, registries, { choices = new Map(), overrides = new Map(), proliferation = new Map() } = {}) {
   return buildNode({
     itemId: rootItemId,
     qty,
@@ -27,10 +31,11 @@ export function buildTree(rootItemId, qty, registries, { choices = new Map(), ov
     registries,
     choices,
     overrides,
+    proliferation,
   });
 }
 
-function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, overrides }) {
+function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, overrides, proliferation, qtyBeforeYield }) {
   const object = registries.objects.get(itemId);
   const recipeOptions = registries.recipes.byResultItem.get(itemId) ?? [];
   const isLeaf = recipeOptions.length === 0;
@@ -40,6 +45,11 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
     itemId,
     object,
     qty,
+    // Only set when a parent's Extra Yield made this node's own qty smaller
+    // than it'd otherwise be - see the ingredient loop below and
+    // treeNode.js's display of it. Undefined (not just equal to qty) is
+    // the "nothing to show" case, not zero savings.
+    qtyBeforeYield,
     depth,
     isLeaf,
     isCycle: false,
@@ -78,6 +88,17 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
   const outputQty = node.recipe.result[itemId] ?? 1;
   const scale = qty / outputQty;
 
+  // Extra Yield boosts every result of a craft (main product *and* any
+  // byproduct) by the same multiplier, so it doesn't change how much
+  // byproduct comes out for a given target qty - fewer crafts happen, but
+  // each makes proportionally more, and the two cancel out. It only
+  // reduces how many crafts are needed, which is what shrinks the
+  // *ingredient* side: same inputs per craft, fewer crafts. So byproducts
+  // keep using the plain `scale` above, and only ingredients use
+  // `yieldScale` below.
+  const yieldMultiplier = applyYield(node.recipe, path, proliferation);
+  const yieldScale = qty / (outputQty * yieldMultiplier);
+
   // Anything else this recipe outputs besides the item we asked for - e.g.
   // Energetic Graphite's Refining recipe also spits out surplus Hydrogen.
   // Purely informational (see treeNode.js) - not part of the tree proper.
@@ -91,6 +112,10 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
 
   for (const [ingredientId, ingredientQty] of Object.entries(node.recipe.ingredients)) {
     const childPath = `${path}>${ingredientId}`;
+    const childQty = ingredientQty * yieldScale;
+    // Only worth showing "reduced from X" when yield actually shrank it -
+    // an untouched node (yieldMultiplier === 1) has nothing to annotate.
+    const childQtyBeforeYield = yieldMultiplier > 1 ? ingredientQty * scale : undefined;
 
     if (ancestors.has(ingredientId)) {
       // Recipe loops back onto one of its own ancestors (e.g. a byproduct
@@ -99,7 +124,8 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
         path: childPath,
         itemId: ingredientId,
         object: registries.objects.get(ingredientId),
-        qty: ingredientQty * scale,
+        qty: childQty,
+        qtyBeforeYield: childQtyBeforeYield,
         depth: depth + 1,
         isLeaf: true,
         isCycle: true,
@@ -116,17 +142,30 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
 
     node.children.push(buildNode({
       itemId: ingredientId,
-      qty: ingredientQty * scale,
+      qty: childQty,
+      qtyBeforeYield: childQtyBeforeYield,
       path: childPath,
       depth: depth + 1,
       ancestors: new Set([...ancestors, ingredientId]),
       registries,
       choices,
       overrides,
+      proliferation,
     }));
   }
 
   return node;
+}
+
+// How much more a single craft yields at this node, if it's got Extra
+// Yield active - 1 (no change) otherwise. Guards against a stale setting
+// left behind by a recipe edit the same way treeNode.js's activeProlif
+// does: only counts if the *current* recipe actually supports yield.
+function applyYield(recipe, path, proliferation) {
+  const setting = proliferation.get(path);
+  if (setting?.mode !== 'yield' || !setting.level || !recipe.proliferation.yield) return 1;
+  const level = PROLIFERATOR_LEVELS.find((l) => l.id === setting.level);
+  return level?.yield ?? 1;
 }
 
 // A pseudo-node standing in for "expand using this recipe" - not a real

@@ -93,6 +93,20 @@ export function renderTreeNode(node, handlers = {}) {
   qty.className = 'tree-node-qty';
   qty.textContent = `×${formatQty(node.qty)}`;
 
+  // Set only when a parent's Extra Yield actually shrank this node's own
+  // qty below what it'd otherwise need - see buildTree.js. Appends the
+  // pre-yield figure and the amount saved, e.g. "×3 | ×4 -1", so the
+  // saving is visible right where it happened instead of only implied by
+  // the smaller number.
+  if (node.qtyBeforeYield > node.qty) {
+    const saved = node.qtyBeforeYield - node.qty;
+    const yieldNote = document.createElement('span');
+    yieldNote.className = 'tree-node-qty-yield';
+    yieldNote.textContent = ` | ×${formatQty(node.qtyBeforeYield)} -${formatQty(saved)}`;
+    qty.title = `Extra Yield reduces this from ×${formatQty(node.qtyBeforeYield)} to ×${formatQty(node.qty)} (saves ×${formatQty(saved)})`;
+    qty.appendChild(yieldNote);
+  }
+
   info.append(name, qty);
   el.append(iconWrap, info);
 
