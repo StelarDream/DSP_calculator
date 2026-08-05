@@ -592,9 +592,17 @@ body {
 
 .factory-view-body {
   display: flex;
+  flex-direction: column;
   gap: 16px;
   height: calc(100% - 68px);
   min-height: 320px;
+}
+
+.factory-view-row {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 16px;
+  min-height: 0;
 }
 
 .factory-view-main {
@@ -696,6 +704,71 @@ body {
   font-family: var(--font-accent);
   font-weight: 600;
   font-size: 0.9rem;
+  color: var(--secondary);
+}
+
+/* Footer strip - every raw item the compiled plan still needs from
+   outside it, and its rate (see computeRawInputs.js/renderBottomBar in
+   factoryView.js). A horizontal scroller of chips rather than a list -
+   distinct from the cards/sidebar above it, meant to be skimmed. */
+.factory-bottom-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+}
+
+.factory-bottom-bar-title {
+  flex: 0 0 auto;
+  margin: 0;
+  font-family: var(--font-accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.factory-bottom-bar-list {
+  flex: 1 1 auto;
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+}
+
+.factory-bottom-bar-chip {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.factory-bottom-bar-icon {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.factory-bottom-bar-name {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.factory-bottom-bar-rate {
+  font-family: var(--font-accent);
+  font-weight: 600;
+  font-size: 0.85rem;
   color: var(--secondary);
 }
 
@@ -987,6 +1060,42 @@ body {
 
 .factory-rate-row--output .factory-rate-value {
   color: var(--primary);
+}
+
+/* "Reused | Wasted" - a byproduct output row's toggle (see
+   renderByproductToggle in factoryCard.js). Sits between the item name and
+   its rate, only ever on non-primary Output rows. Reused reads as a quiet
+   confirmation (muted, matches the rest of the row); Wasted is flagged in
+   the danger tone since it's the "this isn't helping anything else" state. */
+.factory-byproduct-toggle {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  font-family: var(--font-accent);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.factory-byproduct-toggle:hover {
+  border-color: var(--primary-border);
+  color: var(--primary);
+}
+
+.factory-byproduct-toggle--waste {
+  background: var(--danger-dim);
+  border-color: var(--danger-border);
+  color: var(--danger);
+}
+
+.factory-byproduct-toggle--waste:hover {
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 .tree-view-body {

@@ -4,6 +4,8 @@ import { buildTree } from '../tree/buildTree.js';
 import { buildFactoryPlan, lineKey } from '../factory/buildFactoryPlan.js';
 import { computeMachineCounts } from '../factory/computeMachineCounts.js';
 import { getBuildingOptions, getSelectedBuilding, getBuildingSpeed } from '../factory/buildingOptions.js';
+import { computeRawInputs } from '../factory/computeRawInputs.js';
+import { formatQty } from '../tree/formatQty.js';
 import { renderFactoryCard } from './factoryCard.js';
 import { renderDefaultBuildingSection } from './defaultBuildingPanel.js';
 
@@ -31,11 +33,17 @@ export function renderFactoryView(container, treeState, registries, onBack) {
   const body = document.createElement('div');
   body.className = 'factory-view-body';
 
+  const row = document.createElement('div');
+  row.className = 'factory-view-row';
+
   const main = document.createElement('div');
   main.className = 'factory-view-main';
 
   const sidebar = document.createElement('div');
   sidebar.className = 'factory-sidebar';
+
+  const bottomBar = document.createElement('div');
+  bottomBar.className = 'factory-bottom-bar';
 
   const planContainer = document.createElement('div');
 
@@ -51,17 +59,30 @@ export function renderFactoryView(container, treeState, registries, onBack) {
   // a session-wide fallback (see defaultBuildingPanel.js) that applies to
   // any line of that type without its own explicit per-card override.
   const defaultBuildingByType = new Map();
+  // Which of a line's byproducts count as internal supply for the bottom
+  // bar's raw-input totals (computeRawInputs.js) vs. are treated as waste -
+  // keyed by "<lineKey>::<itemId>" since one line can have more than one
+  // byproduct and each toggles independently. Absent = reused (the
+  // default) - see isByproductReused below.
+  const byproductReuse = new Map();
   // Which card's proliferation popover is open, plus its in-progress
   // mode/level - same shape/rationale as treeView.js's openProlifMenu, just
   // keyed by line.key instead of a tree path.
   let openProlifCard = null;
 
-  function computeLines() {
-    const tree = buildTree(treeState.subjectId, 1, registries, {
+  function isByproductReused(key, itemId) {
+    return byproductReuse.get(`${key}::${itemId}`) ?? true;
+  }
+
+  function buildCurrentTree() {
+    return buildTree(treeState.subjectId, 1, registries, {
       choices: treeState.choices,
       overrides: treeState.overrides,
       proliferation: treeState.proliferation,
     });
+  }
+
+  function computeLines(tree) {
     const rawLines = buildFactoryPlan(tree, treeState.proliferation);
     const withBuildingSpeed = rawLines.map((line) => {
       const options = getBuildingOptions(line.recipe, registries);
@@ -71,8 +92,26 @@ export function renderFactoryView(container, treeState, registries, onBack) {
     return computeMachineCounts(withBuildingSpeed, targetRate);
   }
 
+  // Every (nodePath, itemId) pair whose byproduct is currently toggled to
+  // waste - computeRawInputs.js excludes exactly these from its supply
+  // side. Built from the *line's* toggle (one choice per line+item) but
+  // expanded out to every contributing node path, since that's the level
+  // computeRawInputs actually walks at.
+  function wastedPathItems(lines) {
+    const wasted = new Set();
+    for (const line of lines) {
+      const itemIds = Object.keys(line.recipe.result).slice(1); // all but the primary result
+      for (const itemId of itemIds) {
+        if (isByproductReused(line.key, itemId)) continue;
+        for (const path of line.nodePaths) wasted.add(`${path}::${itemId}`);
+      }
+    }
+    return wasted;
+  }
+
   function rerenderPlan() {
-    const lines = computeLines();
+    const tree = buildCurrentTree();
+    const lines = computeLines(tree);
     planContainer.innerHTML = '';
 
     if (lines.length === 0) {
@@ -81,6 +120,7 @@ export function renderFactoryView(container, treeState, registries, onBack) {
       placeholder.textContent = 'Nothing to compile yet - expand the tree first.';
       planContainer.appendChild(placeholder);
       renderSidebar(sidebar, [], registries, defaultBuildingByType, onSetDefaultBuilding);
+      renderBottomBar(bottomBar, [], registries);
       return;
     }
 
@@ -127,11 +167,19 @@ export function renderFactoryView(container, treeState, registries, onBack) {
           openProlifCard = null;
           rerenderPlan();
         },
+        isByproductReused,
+        onToggleByproductReuse(key, itemId) {
+          byproductReuse.set(`${key}::${itemId}`, !isByproductReused(key, itemId));
+          rerenderPlan();
+        },
       }));
     }
 
     planContainer.appendChild(grid);
     renderSidebar(sidebar, lines, registries, defaultBuildingByType, onSetDefaultBuilding);
+
+    const rawInputs = computeRawInputs(tree, wastedPathItems(lines), targetRate);
+    renderBottomBar(bottomBar, rawInputs, registries);
   }
 
   function onSetDefaultBuilding(type, buildingId) {
@@ -176,7 +224,8 @@ export function renderFactoryView(container, treeState, registries, onBack) {
   }));
   main.appendChild(planContainer);
 
-  body.append(main, sidebar);
+  row.append(main, sidebar);
+  body.append(row, bottomBar);
   container.appendChild(body);
 
   rerenderPlan();
@@ -299,4 +348,52 @@ function renderTotalsSection(lines, registries) {
   }
   section.appendChild(list);
   return section;
+}
+
+// Footer strip across the bottom of Factory View - every raw item the
+// compiled plan still needs from outside it (see computeRawInputs.js),
+// and how much of it per second at the current target rate. A horizontal
+// scroller rather than a grid - meant to be skimmed at a glance, not
+// browsed like the cards above it.
+function renderBottomBar(bottomBar, rawInputs, registries) {
+  bottomBar.innerHTML = '';
+
+  const heading = document.createElement('h3');
+  heading.className = 'factory-bottom-bar-title';
+  heading.textContent = 'Raw Inputs';
+  bottomBar.appendChild(heading);
+
+  if (rawInputs.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'tree-resources-empty';
+    empty.textContent = 'None yet.';
+    bottomBar.appendChild(empty);
+    return;
+  }
+
+  const list = document.createElement('div');
+  list.className = 'factory-bottom-bar-list';
+  for (const { itemId, object, ratePerSec } of rawInputs) {
+    const chip = document.createElement('div');
+    chip.className = 'factory-bottom-bar-chip';
+
+    const icon = document.createElement('img');
+    icon.className = 'factory-bottom-bar-icon';
+    icon.src = object?.icon ?? '';
+    icon.alt = '';
+    chip.appendChild(icon);
+
+    const name = document.createElement('span');
+    name.className = 'factory-bottom-bar-name';
+    name.textContent = formatLabel(itemId);
+    chip.appendChild(name);
+
+    const rate = document.createElement('span');
+    rate.className = 'factory-bottom-bar-rate';
+    rate.textContent = `${formatQty(ratePerSec)}/s`;
+    chip.appendChild(rate);
+
+    list.appendChild(chip);
+  }
+  bottomBar.appendChild(list);
 }
