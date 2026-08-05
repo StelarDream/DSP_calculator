@@ -1,7 +1,10 @@
 import { fetchJSON } from './utils.js';
 
 // Recipe: { id, type, result: {itemId: qty}, ingredients: {itemId: qty}, time,
-//   replicator (manually makeable by hand), proliferation: {speed, yield} }
+//   replicator (manually makeable by hand), proliferation: {speed, yield},
+//   icon (optional - name of a assets/recipe-icon/*.png override; most
+//   recipes share their icon with their first result item instead, see
+//   recipeCard.js) }
 export async function loadRecipes() {
   const raw = await fetchJSON('data/recipes.json');
 
@@ -16,6 +19,7 @@ export async function loadRecipes() {
       speed: entry.proliferation?.speed ?? false,
       yield: entry.proliferation?.yield ?? false,
     },
+    icon: entry.icon ?? null,
   }));
 
   // Which recipes produce a given item.

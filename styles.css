@@ -1475,6 +1475,28 @@ img.meta-stat-icon {
   color: var(--danger);
 }
 
+/* The recipe's own icon - sits first in the left meta line, boxed like a
+   little thumbnail so it reads as "the recipe" rather than another stat.
+   See renderRecipeIcon in recipeCard.js. */
+.recipe-icon-box {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 3px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+}
+
+.recipe-icon-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 /* "Proliferation: <icon> Extra Yield | <icon> Speed Up" - a labeled group
    of effect stats, tinted per-effect (see proliferation.js). */
 .proliferation-group {

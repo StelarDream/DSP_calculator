@@ -27,7 +27,7 @@ function renderHeader(recipe, registries, onSelect, onGenerateTree) {
 }
 
 function renderMeta(recipe, registries, onSelect) {
-  const left = [];
+  const left = [renderRecipeIcon(recipe, registries.objects)];
   // Time is only shown when it differs from the default (0s) - see
   // js/data/recipes.js for where that default comes from.
   if (recipe.time !== 0) left.push(renderStat(svgIcon(CLOCK_ICON), `${recipe.time}s`));
@@ -55,6 +55,25 @@ function renderMeta(recipe, registries, onSelect) {
   }
 
   return renderMetaBar(left, right);
+}
+
+// The recipe's own icon, boxed to read as a small thumbnail distinct from
+// the plain svg/img stats next to it. Most recipes share their in-game icon
+// with their first result item, so that's the fallback; `recipe.icon` (an
+// assets/recipe-icon/*.png name) only needs setting for the exceptions.
+function renderRecipeIcon(recipe, objects) {
+  const firstResultId = Object.keys(recipe.result)[0];
+  const src = recipe.icon
+    ? `assets/recipe-icon/${recipe.icon}.png`
+    : objects.get(firstResultId)?.icon ?? '';
+
+  const box = document.createElement('span');
+  box.className = 'recipe-icon-box';
+  const img = document.createElement('img');
+  img.src = src;
+  img.alt = '';
+  box.appendChild(img);
+  return box;
 }
 
 function renderGrid(recipe, objects, onSelect) {
