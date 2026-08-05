@@ -148,8 +148,8 @@ export function renderRecipeHub(node, handlers = {}) {
     prolif.type = 'button';
     prolif.className = 'tree-node-prolif';
     if (activeProlif) prolif.classList.add('tree-node-prolif--active');
-    // Tinted by the active mode's tone (speed = secondary, yield/chance =
-    // primary) - same convention as js/ui/proliferation.js's flat card.
+    // Tinted by the active mode's tone (speed = secondary, yield = primary)
+    // - same convention as js/ui/proliferation.js's flat card.
     if (activeMode) prolif.classList.add(`tree-node-prolif--${activeMode.tone}`);
     prolif.title = activeProlif
       ? `Proliferation: ${modeLabel(activeProlif.mode)} (${levelLabel(activeProlif.level)})`
@@ -214,7 +214,7 @@ function renderProlifMenu(node, availableModes, openState, { onSetProlifMode, on
 
   menu.appendChild(renderProlifModeRow(openState, availableModes, {
     onSelectMode: (mode) => onSetProlifMode(node.path, mode),
-    // Explicit opt-out, sitting right alongside the yield/chance/speed
+    // Explicit opt-out, sitting right alongside the yield/speed
     // choices it's an alternative to - replaces the old standalone "Remove"
     // link below the picker. Clears the node's proliferation and closes
     // the menu, same as the old Remove button did.

@@ -1210,7 +1210,7 @@ body {
 
 /* "None" - sits first in the mode row as the explicit opt-out (replaces
    the old standalone "Remove" link). Danger-tinted instead of primary so
-   it still reads as distinct from the yield/chance/speed options next to
+   it still reads as distinct from the yield/speed options next to
    it, active or not. */
 .tree-node-prolif-option--none:hover {
   border-color: var(--danger);
@@ -1369,7 +1369,7 @@ body {
 }
 
 /* Two-sided meta bar at the top of recipe/collectable cards: left = numeric
-   stats (time, chance, rarity), right = type + icon-only list of the
+   stats (time, rarity), right = type + icon-only list of the
    buildings/collectors that handle it. */
 .meta-bar {
   display: flex;

@@ -1,14 +1,13 @@
-import { PROLIF_YIELD_ICON, PROLIF_CHANCE_ICON, PROLIF_SPEED_ICON, PROLIF_NONE_ICON } from '../ui/icons.js';
+import { PROLIF_YIELD_ICON, PROLIF_SPEED_ICON, PROLIF_NONE_ICON } from '../ui/icons.js';
 import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
 
 // Which proliferator effects exist, in display order - matches
 // js/ui/proliferation.js's convention for the flat recipe card. `tone` also
-// matches that file: yield/chance boost output (primary), speed is a
-// throughput boost (secondary). Shared by the per-node picker (treeNode.js)
-// and the tree-wide default picker (defaultProliferationPanel.js).
+// matches that file: yield boosts output (primary), speed is a throughput
+// boost (secondary). Shared by the per-node picker (treeNode.js) and the
+// tree-wide default picker (defaultProliferationPanel.js).
 export const PROLIF_MODES = [
   { key: 'yield', icon: PROLIF_YIELD_ICON, label: 'Extra Yield', tone: 'primary' },
-  { key: 'chance', icon: PROLIF_CHANCE_ICON, label: 'Extra Product Chance', tone: 'primary' },
   { key: 'speed', icon: PROLIF_SPEED_ICON, label: 'Speed Up', tone: 'secondary' },
 ];
 

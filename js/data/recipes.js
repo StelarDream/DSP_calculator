@@ -1,7 +1,7 @@
 import { fetchJSON } from './utils.js';
 
-// Recipe: { id, type, result: {itemId: qty}, ingredients: {itemId: qty}, chance, time,
-//   replicator (manually makeable by hand), proliferation: {speed, chance, yield} }
+// Recipe: { id, type, result: {itemId: qty}, ingredients: {itemId: qty}, time,
+//   replicator (manually makeable by hand), proliferation: {speed, yield} }
 export async function loadRecipes() {
   const raw = await fetchJSON('data/recipes.json');
 
@@ -10,12 +10,10 @@ export async function loadRecipes() {
     type: entry.type,
     result: entry.result,
     ingredients: entry.ingredients,
-    chance: entry.chance ?? 1,
     time: entry.time ?? 0,
     replicator: entry.replicator ?? false,
     proliferation: {
       speed: entry.proliferation?.speed ?? false,
-      chance: entry.proliferation?.chance ?? false,
       yield: entry.proliferation?.yield ?? false,
     },
   }));

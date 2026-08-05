@@ -1,4 +1,4 @@
-// Two-sided meta bar: left = numeric stats (time, chance), right = type +
+// Two-sided meta bar: left = numeric stats (time), right = type +
 // icon-only list of the buildings that handle it. Used by recipe cards.
 export function renderMetaBar(left, right) {
   const bar = document.createElement('div');

@@ -2,7 +2,7 @@ import { formatLabel } from './format.js';
 import { renderEntityRow } from './entityRow.js';
 import { renderMetaBar, renderStat, renderIconRow, renderIconButton, svgIcon, imgIcon } from './metaBar.js';
 import { renderProliferationGroup } from './proliferation.js';
-import { CLOCK_ICON, CHANCE_ICON, TREE_ICON } from './icons.js';
+import { CLOCK_ICON, TREE_ICON } from './icons.js';
 
 // onGenerateTree: called with the recipe when the tree button is clicked -
 // placeholder hook for the recipe-tree generator, wired up by the caller.
@@ -28,10 +28,9 @@ function renderHeader(recipe, registries, onSelect, onGenerateTree) {
 
 function renderMeta(recipe, registries, onSelect) {
   const left = [];
-  // Time/chance are only shown when they differ from the defaults (0s /
-  // guaranteed) - see js/data/recipes.js for where those defaults come from.
+  // Time is only shown when it differs from the default (0s) - see
+  // js/data/recipes.js for where that default comes from.
   if (recipe.time !== 0) left.push(renderStat(svgIcon(CLOCK_ICON), `${recipe.time}s`));
-  if (recipe.chance !== 1) left.push(renderStat(svgIcon(CHANCE_ICON), formatChance(recipe.chance)));
 
   const proliferation = renderProliferationGroup(recipe.proliferation);
   if (proliferation) left.push(proliferation);
@@ -90,6 +89,3 @@ function renderSide(label, entries, objects, onSelect) {
   return side;
 }
 
-function formatChance(chance) {
-  return `${Number((chance * 100).toFixed(2))}%`;
-}
