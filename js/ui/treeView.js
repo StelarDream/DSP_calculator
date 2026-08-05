@@ -8,6 +8,12 @@ import { serializeTreeState } from '../tree/serializeTree.js';
 import { summarizeTree } from '../tree/summarizeTree.js';
 import { createResourceSidebar, renderResourcesInto } from '../tree/resourceSidebar.js';
 
+// Ensures at most one "close the proliferation menu on an outside click"
+// listener is ever attached to document - it doesn't get garbage-collected
+// just because a later renderTreeView call replaced the tree view's own
+// DOM, so each call must detach the previous one before adding its own.
+let detachOutsideClick = null;
+
 // Full-pane recipe-tree view, swapped in over the normal detail pane when a
 // recipe card's tree button is clicked (or a shared link is opened).
 // subjectId: the object whose page the recipe card was on (still highlighted
@@ -50,6 +56,8 @@ function renderHeader(subjectId, onBack) {
 }
 
 function renderBody(subjectId, recipe, registries, initialState) {
+  detachOutsideClick?.();
+
   const body = document.createElement('div');
   body.className = 'tree-view-body';
 
@@ -136,6 +144,19 @@ function renderBody(subjectId, recipe, registries, initialState) {
       proliferation.set(path, { mode: openProlifMenu.mode, level: openProlifMenu.level });
     }
   }
+
+  // Closes the proliferation menu on a click anywhere outside it - the
+  // badge and the menu's own contents already stop their clicks from
+  // bubbling this far (see treeNode.js), so this only ever sees genuine
+  // "elsewhere" clicks.
+  function onDocumentClick(event) {
+    if (!openProlifMenu) return;
+    if (event.target.closest('.tree-node-prolif-menu, .tree-node-prolif')) return;
+    openProlifMenu = null;
+    rerender();
+  }
+  document.addEventListener('click', onDocumentClick);
+  detachOutsideClick = () => document.removeEventListener('click', onDocumentClick);
 
   rerender();
 
