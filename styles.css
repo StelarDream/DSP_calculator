@@ -676,6 +676,27 @@ body {
   color: var(--primary);
 }
 
+/* "Proliferators Needed" section - each row shows the exact fractional
+   count (how many points get sprayed, divided by one item's capacity)
+   next to the rounded-up count that's what you'd actually need to have on
+   hand, since you can't hold a fraction of an item. */
+.tree-resource-qty--proliferator {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: inherit;
+}
+
+.tree-resource-qty-exact {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.tree-resource-qty-rounded {
+  color: var(--secondary);
+}
+
 /* Default Proliferation panel - reuses the per-node picker's row/option
    classes (see proliferationPicker.js) but sits flush in the sidebar
    instead of inside a floating .tree-node-prolif-menu, so it needs its own

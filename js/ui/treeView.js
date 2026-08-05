@@ -6,6 +6,7 @@ import { createTreeWorld, renderTreeInto } from '../tree/treeCanvas.js';
 import { createPanZoom } from '../tree/panZoom.js';
 import { serializeTreeState } from '../tree/serializeTree.js';
 import { summarizeTree } from '../tree/summarizeTree.js';
+import { summarizeProliferatorUsage } from '../tree/summarizeProliferators.js';
 import { createResourceSidebar, renderResourcesInto } from '../tree/resourceSidebar.js';
 
 // Ensures at most one "close the proliferation menu on an outside click"
@@ -143,7 +144,7 @@ function renderBody(subjectId, recipe, registries, initialState) {
         rerender();
       },
     });
-    renderResourcesInto(resources, summarizeTree(tree), defaultProlif, {
+    renderResourcesInto(resources, summarizeTree(tree), summarizeProliferatorUsage(tree, proliferation), defaultProlif, {
       onSetMode(mode) {
         defaultProlif = { ...defaultProlif, mode };
         rerender();
