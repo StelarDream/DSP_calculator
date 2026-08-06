@@ -127,32 +127,36 @@ export function layoutTree(root) {
     // column and the next - a hub's stored position is a *center* point
     // (see treeCanvas.js's positionNode), not a left edge, so this needs no
     // adjustment for the hub's own width the way a left-edge box would.
-    // Vertically it's centered between the extremes of everything it
-    // actually connects - this node itself, its ingredients, and any
-    // byproducts - so every edge meeting at the hub fans out from a
-    // genuinely balanced point. Node included on purpose, not just
-    // children/byproducts: when there's no byproduct they'd already be
-    // centered on the node's own row anyway (so this changes nothing), but
-    // once a byproduct pins the node's row to the *top* of its block
-    // instead (see assign() above), leaving the node out biased the center
-    // down toward the byproduct/children cluster and away from it. Still
-    // meaningful with no children/byproducts at all (isFullySupplied,
-    // reuse-hub-only) - ys just collapses to [pos.y], anchoring the reuse
-    // hub level with the node's own row.
     //
-    // Snapped to the nearest half-row *before* any split below: centering
-    // on a mix of pinned-top (byproduct) and offset-centered (children)
-    // rows routinely lands on a quarter-row fraction, which a further
-    // +-half-row split then carries straight through - a real, visible
-    // bug (two nodes with more than one child each ended up a quarter-row
-    // off from where either hub actually belonged). Snapping first means
-    // the two split positions always land on the same half-row grid
-    // everything else in this block was already placed on.
+    // Vertically it's centered on the node's own extent - its own row plus
+    // any byproduct rows - deliberately *not* on where its children end up.
+    // A hub represents this node's own craft, not a summary of its whole
+    // subtree, and children can end up almost anywhere depending on what
+    // *their* own children need: a child with its own multi-recipe choice
+    // or deep chain gets centered well below its row-in-isolation (see
+    // assign()'s per-node centering), which used to drag this node's hub
+    // down along with it even though nothing about this node's own craft
+    // changed. Real, reported bug: expanding a child's own options taller
+    // visibly pulled the parent's hub *and* reuse hub down with it, off of
+    // where the node and its byproduct actually sat. Children still get
+    // their edges (routed through the hub below) - they just don't get a
+    // vote in where the hub itself sits.
+    //
+    // Without a byproduct there's only one row to anchor to (pos.y) and
+    // nothing to average, but that's already correct: assign() centers a
+    // no-byproduct node's own row on its children itself, so pos.y already
+    // *is* the right anchor point without this needing to look at children
+    // directly.
+    //
+    // Snapped to the nearest half-row *before* any split below: byproduct
+    // rows are always whole-row multiples, but rounding guards against
+    // float drift the same half-row split below would otherwise carry
+    // straight through.
     let hubPos = null;
     let choiceHubPos = null;
     let reuseHubPos = null;
     if (hasPrimaryHub || hasReuseHub) {
-      const ys = [pos.y, ...node.children.map((child) => positions.get(child.path).y)];
+      const ys = [pos.y];
       if (spots) ys.push(...spots.map((spot) => spot.y));
       const half = ROW_HEIGHT / 2;
       const rawCenterY = (Math.min(...ys) + Math.max(...ys)) / 2;
