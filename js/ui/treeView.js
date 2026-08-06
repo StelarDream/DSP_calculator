@@ -8,6 +8,7 @@ import { serializeTreeState } from '../tree/serializeTree.js';
 import { summarizeTree } from '../tree/summarizeTree.js';
 import { summarizeProliferatorUsage } from '../tree/summarizeProliferators.js';
 import { createResourceSidebar, renderResourcesInto } from '../tree/resourceSidebar.js';
+import { detectByproductReuseCandidates } from '../tree/byproductReuseCandidates.js';
 
 // Ensures at most one "close the proliferation menu on an outside click"
 // listener is ever attached to document - it doesn't get garbage-collected
@@ -25,9 +26,9 @@ let detachOutsideClick = null;
 // initialState: { choices, overrides } to seed the tree with instead of
 // starting fresh - how a shared link restores its exact state.
 // onFactory: called with a { subjectId, recipe, choices, overrides,
-// proliferation } snapshot of the current tree when the header's Factory
-// View button is clicked - lets the caller switch views without this
-// module knowing anything about view-switching itself.
+// proliferation, byproductReuse } snapshot of the current tree when the
+// header's Factory View button is clicked - lets the caller switch views
+// without this module knowing anything about view-switching itself.
 export function renderTreeView(container, subjectId, recipe, registries, onBack, initialState, onFactory) {
   container.innerHTML = '';
   container.scrollTop = 0;
@@ -85,6 +86,15 @@ function renderBody(subjectId, recipe, registries, initialState) {
   const choices = new Map(initialState?.choices);
   const overrides = new Map(initialState?.overrides);
   const proliferation = new Map(initialState?.proliferation);
+  // Which nodes have opted OUT of sharing a batch of crafts with whatever
+  // else in the tree produces their item as a byproduct - keyed by path,
+  // absent = reused (the default). Only relevant for nodes
+  // detectByproductReuseCandidates below actually flags as sharing an
+  // exact (recipe, proliferation) with some other differently-targeted
+  // node - see byproductReuseCandidates.js and the toggle button in
+  // treeNode.js's recipe hub. Purely a tree-level decision now; Factory
+  // View (buildFactoryPlan.js) just reads it, never sets it.
+  const byproductReuse = new Map(initialState?.byproductReuse);
   choices.set(subjectId, recipe.id);
 
   // Paths whose node has resolved to a recipe at least once - lets
@@ -122,6 +132,7 @@ function renderBody(subjectId, recipe, registries, initialState) {
       // `proliferation` while computing qty - see its yield handling).
       tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation });
     }
+    const reuseCandidates = detectByproductReuseCandidates(tree, proliferation);
     size = renderTreeInto(world, tree, {
       onToggle(path, wasCollapsed) {
         overrides.set(path, wasCollapsed);
@@ -165,6 +176,12 @@ function renderBody(subjectId, recipe, registries, initialState) {
         // below doesn't turn right around and reapply the default to it.
         proliferation.set(path, { mode: null, level: null });
         openProlifMenu = null;
+        rerender();
+      },
+      byproductReuse,
+      reuseCandidates,
+      onToggleByproductReuse(path) {
+        byproductReuse.set(path, !(byproductReuse.get(path) ?? true));
         rerender();
       },
     });
@@ -239,26 +256,27 @@ function renderBody(subjectId, recipe, registries, initialState) {
   rerender();
 
   const fit = () => panZoom.fitToView(size.width, size.height);
-  const shareUrl = () => buildShareUrl(subjectId, recipe.id, choices, overrides, proliferation);
+  const shareUrl = () => buildShareUrl(subjectId, recipe.id, choices, overrides, proliferation, byproductReuse);
   canvas.appendChild(renderToolbar(panZoom, fit, shareUrl));
 
-  // Snapshot of the live choice/override/proliferation maps, for handing
-  // off to Factory View (or restoring back into a fresh tree view) without
-  // sharing mutable references into this closure.
+  // Snapshot of the live choice/override/proliferation/byproductReuse
+  // maps, for handing off to Factory View (or restoring back into a fresh
+  // tree view) without sharing mutable references into this closure.
   const snapshot = () => ({
     subjectId,
     recipe,
     choices: new Map(choices),
     overrides: new Map(overrides),
     proliferation: new Map(proliferation),
+    byproductReuse: new Map(byproductReuse),
   });
 
   body.append(canvas, resources);
   return { body, fit, snapshot };
 }
 
-function buildShareUrl(subjectId, recipeId, choices, overrides, proliferation) {
-  const code = serializeTreeState({ subjectId, recipeId, choices, overrides, proliferation });
+function buildShareUrl(subjectId, recipeId, choices, overrides, proliferation, byproductReuse) {
+  const code = serializeTreeState({ subjectId, recipeId, choices, overrides, proliferation, byproductReuse });
   const url = new URL(window.location.href);
   // Only ever touches `tree` - any other params (present now or added by
   // future features) are left exactly as they are.

@@ -14,12 +14,13 @@ import { renderBuildingIconRow } from './buildingPicker.js';
 //
 // handlers: { onSelectBuilding(lineKey, buildingId), onResetBuilding
 // (lineKey), onToggleProlifMenu(lineKey), onSetProlifMode(lineKey, mode),
-// onSetProlifLevel(lineKey, level), onClearProliferation(lineKey),
-// isByproductReused(lineKey, itemId), onToggleByproductReuse(lineKey,
-// itemId) } - all keyed by line.key (the byproduct ones also by itemId,
-// since one line can have more than one byproduct) since a prolif edit
-// changes which line a card even belongs to (see factoryView.js).
-// defaultBuildingByType is the sidebar's per-recipe-type picker (see
+// onSetProlifLevel(lineKey, level), onClearProliferation(lineKey) } - all
+// keyed by line.key since a prolif edit changes which line a card even
+// belongs to (see factoryView.js). Byproduct reuse is no longer a
+// per-card control here at all - it's decided on the tree node itself
+// (see treeView.js/treeNode.js's own toggle) and simply shows up as
+// however many cards buildFactoryPlan.js ends up compiling. defaultBuild-
+// ingByType is the sidebar's per-recipe-type picker (see
 // defaultBuildingPanel.js) - the fallback a line uses when it has no
 // explicit per-card override of its own.
 export function renderFactoryCard(line, registries, buildingChoice, defaultBuildingByType, openProlifCard, handlers) {
@@ -34,7 +35,7 @@ export function renderFactoryCard(line, registries, buildingChoice, defaultBuild
   card.appendChild(renderDivider());
   card.appendChild(renderMachinesSection(line));
   card.appendChild(renderDivider());
-  card.appendChild(renderRatesSection(line, registries, handlers));
+  card.appendChild(renderRatesSection(line, registries));
 
   return card;
 }
@@ -233,29 +234,19 @@ function renderMachinesSection(line) {
   return section;
 }
 
-function renderRatesSection(line, registries, handlers) {
+function renderRatesSection(line, registries) {
   const wrap = document.createDocumentFragment();
   const { demand, output } = computeLineRates(line);
-  // Same "item this card is for" resolution as the icon header/title.
-  // Every *other* result entry is a byproduct, and gets the reuse/waste
-  // toggle below.
-  const primaryItemId = linePrimaryItemId(line);
 
   wrap.appendChild(renderRateList('Demand', demand, registries, 'demand'));
-  wrap.appendChild(renderRateList('Output', output, registries, 'output', { line, primaryItemId, handlers }));
+  wrap.appendChild(renderRateList('Output', output, registries, 'output'));
 
   const section = document.createElement('div');
   section.appendChild(wrap);
   return section;
 }
 
-// byproductToggle (only set for the Output list) is { line, primaryItemId,
-// handlers } - every output row whose item isn't the primary result gets a
-// "Reused | Wasted" toggle (default reused, see factoryView.js), letting
-// this specific line's contribution of that byproduct opt out of the
-// bottom bar's raw-input netting without affecting any other line that
-// happens to produce the same item.
-function renderRateList(label, entries, registries, kind, byproductToggle) {
+function renderRateList(label, entries, registries, kind) {
   const section = renderSection(label);
   const list = document.createElement('div');
   list.className = 'factory-rate-list';
@@ -275,10 +266,6 @@ function renderRateList(label, entries, registries, kind, byproductToggle) {
     name.textContent = formatLabel(itemId);
     row.appendChild(name);
 
-    if (byproductToggle && itemId !== byproductToggle.primaryItemId) {
-      row.appendChild(renderByproductToggle(itemId, byproductToggle));
-    }
-
     const rate = document.createElement('span');
     rate.className = 'factory-rate-value';
     rate.textContent = `${formatQty(ratePerSec)}/s`;
@@ -289,22 +276,4 @@ function renderRateList(label, entries, registries, kind, byproductToggle) {
 
   section.appendChild(list);
   return section;
-}
-
-function renderByproductToggle(itemId, { line, handlers }) {
-  const reused = handlers.isByproductReused(line.key, itemId);
-
-  const toggle = document.createElement('button');
-  toggle.type = 'button';
-  toggle.className = 'factory-byproduct-toggle';
-  if (!reused) toggle.classList.add('factory-byproduct-toggle--waste');
-  toggle.textContent = reused ? 'Reused' : 'Wasted';
-  toggle.title = reused
-    ? "Counts toward the bottom bar's raw-input totals elsewhere - click to treat as waste instead"
-    : "Treated as waste - doesn't reduce raw input demand elsewhere. Click to reuse it instead";
-  toggle.addEventListener('click', (event) => {
-    event.stopPropagation();
-    handlers.onToggleByproductReuse(line.key, itemId);
-  });
-  return toggle;
 }

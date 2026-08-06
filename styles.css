@@ -1085,42 +1085,6 @@ body {
   color: var(--primary);
 }
 
-/* "Reused | Wasted" - a byproduct output row's toggle (see
-   renderByproductToggle in factoryCard.js). Sits between the item name and
-   its rate, only ever on non-primary Output rows. Reused reads as a quiet
-   confirmation (muted, matches the rest of the row); Wasted is flagged in
-   the danger tone since it's the "this isn't helping anything else" state. */
-.factory-byproduct-toggle {
-  flex: 0 0 auto;
-  padding: 2px 8px;
-  background: var(--bg-panel-alt);
-  border: 1px solid var(--border-soft);
-  border-radius: 999px;
-  font-family: var(--font-accent);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  cursor: pointer;
-}
-
-.factory-byproduct-toggle:hover {
-  border-color: var(--primary-border);
-  color: var(--primary);
-}
-
-.factory-byproduct-toggle--waste {
-  background: var(--danger-dim);
-  border-color: var(--danger-border);
-  color: var(--danger);
-}
-
-.factory-byproduct-toggle--waste:hover {
-  border-color: var(--danger);
-  color: var(--danger);
-}
-
 .tree-view-body {
   display: flex;
   gap: 16px;
@@ -1536,6 +1500,45 @@ body {
   font: inherit;
   color: var(--text-secondary);
   cursor: pointer;
+}
+
+/* "Reuse this byproduct" - same in-flow, no-background-by-default
+   convention as .tree-node-prolif, sitting to its left (see
+   byproductReuseCandidates.js/treeNode.js's recipe hub). Quiet while
+   reused (the default - nothing to draw attention to), flagged in the
+   danger tone once opted out, since that's the "heads up, this is now
+   crafting independently" state worth noticing at a glance. */
+.tree-node-reuse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.tree-node-reuse svg {
+  width: 15px;
+  height: 15px;
+}
+
+.tree-node-reuse:hover {
+  color: var(--primary);
+  background: var(--bg-panel);
+}
+
+.tree-node-reuse--off {
+  color: var(--danger);
+  background: var(--danger-dim);
+}
+
+.tree-node-reuse--off:hover {
+  color: var(--danger);
 }
 
 .tree-node-edit svg {
