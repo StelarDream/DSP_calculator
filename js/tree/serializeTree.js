@@ -9,14 +9,13 @@
 // to debug, and "reasonably short" is enough for a v1 share link. Worth
 // swapping for a tighter encoding later if links turn out to be unwieldy
 // for deep trees.
-export function serializeTreeState({ subjectId, recipeId, choices, overrides, proliferation, reuse }) {
+export function serializeTreeState({ subjectId, recipeId, choices, overrides, proliferation }) {
   const payload = {
     root: subjectId,
     recipe: recipeId,
     choices: Array.from(choices.entries()),
     overrides: Array.from(overrides.entries()),
     proliferation: Array.from((proliferation ?? new Map()).entries()),
-    reuse: Array.from((reuse ?? new Map()).entries()),
   };
   // encodeURIComponent first since btoa only handles Latin1 - item ids are
   // ASCII today, but this keeps it from breaking silently if that changes.
@@ -35,11 +34,9 @@ export function deserializeTreeState(code) {
       recipeId: payload.recipe,
       choices: new Map(payload.choices),
       overrides: new Map(payload.overrides),
-      // Absent on links created before proliferation/reuse existed -
-      // defaults to empty rather than failing to restore the rest of an
-      // older link.
+      // Absent on links created before proliferation existed - defaults to
+      // empty rather than failing to restore the rest of an older link.
       proliferation: new Map(payload.proliferation ?? []),
-      reuse: new Map(payload.reuse ?? []),
     };
   } catch {
     return null;

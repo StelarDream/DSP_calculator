@@ -48,12 +48,3 @@ export const PROLIF_NONE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="cu
 // Counter-clockwise reset arrow - "back to default", e.g. clearing a
 // Factory View card's explicit building pick (see factoryCard.js).
 export const RESET_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>`;
-
-// Recycle arrows - the tree view's byproduct-reuse marker (see
-// reuseMarker.js), badging a demand node that's drawing from a byproduct
-// elsewhere in the same tree.
-export const REUSE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h8l-2-2M15 7l-2 2"/><path d="M17 17H9l2 2M9 17l2-2"/><path d="M4.5 15a8 8 0 0 1 0-6M19.5 9a8 8 0 0 1 0 6"/></svg>`;
-
-// Triangle exclamation - flags a reuse marker whose stored amount exceeds
-// what's currently available (see reuseAllocation.js's "clamp + warn").
-export const WARNING_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 22 20H2z"/><path d="M12 9.5v5"/><circle cx="12" cy="17.3" r="0.3" fill="currentColor"/></svg>`;

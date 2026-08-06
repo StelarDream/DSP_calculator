@@ -75,12 +75,7 @@ export async function init() {
     state.view = 'tree';
     state.selectedId = treeState.subjectId;
     state.treeRecipe = treeState.recipe;
-    state.treeInitialState = {
-      choices: treeState.choices,
-      overrides: treeState.overrides,
-      proliferation: treeState.proliferation,
-      reuse: treeState.reuse,
-    };
+    state.treeInitialState = { choices: treeState.choices, overrides: treeState.overrides, proliferation: treeState.proliferation };
     state.factoryTreeState = null;
     updateDetail();
   }
@@ -149,11 +144,6 @@ export async function init() {
     state.selectedId = restored.subjectId;
     state.view = 'tree';
     state.treeRecipe = recipe;
-    state.treeInitialState = {
-      choices: restored.choices,
-      overrides: restored.overrides,
-      proliferation: restored.proliferation,
-      reuse: restored.reuse,
-    };
+    state.treeInitialState = { choices: restored.choices, overrides: restored.overrides, proliferation: restored.proliferation };
   }
 }
