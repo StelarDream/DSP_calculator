@@ -109,6 +109,10 @@ function renderBody(subjectId, recipe, registries, initialState) {
   // they're separate controls on the same hub.
   let openReuseMenu = null;
 
+  // Which node's collapsed choice-hub popover is open - null when none is
+  // (see layoutTree.js's _choiceCollapsed, treeNode.js's renderChoiceHub).
+  let openChoiceMenu = null;
+
   // The tree-wide default from the sidebar's "Default Proliferation" panel
   // - stamped onto newly-resolved nodes by applyDefaultProliferation below.
   // Session-local like everything else here; not seeded from a shared link.
@@ -147,6 +151,11 @@ function renderBody(subjectId, recipe, registries, initialState) {
       },
       onEdit(path) {
         choices.delete(path);
+        rerender();
+      },
+      openChoiceMenu,
+      onToggleChoiceMenu(path) {
+        openChoiceMenu = openChoiceMenu?.path === path ? null : { path };
         rerender();
       },
       proliferation,
@@ -274,6 +283,10 @@ function renderBody(subjectId, recipe, registries, initialState) {
     }
     if (openReuseMenu && !event.target.closest('.tree-node-reuse-menu, .tree-node-reuse')) {
       openReuseMenu = null;
+      changed = true;
+    }
+    if (openChoiceMenu && !event.target.closest('.tree-node-choice-menu, .tree-node-choice-toggle')) {
+      openChoiceMenu = null;
       changed = true;
     }
     if (changed) rerender();

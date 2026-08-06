@@ -1,5 +1,5 @@
 import { layoutTree } from './layoutTree.js';
-import { renderTreeNode, renderRecipeHub, renderReuseHub, renderByproductNode } from './treeNode.js';
+import { renderTreeNode, renderRecipeHub, renderReuseHub, renderChoiceHub, renderByproductNode } from './treeNode.js';
 import { NODE_WIDTH } from './constants.js';
 
 // Padding around the laid-out tree so cards/edges aren't flush against the
@@ -24,19 +24,20 @@ export function createTreeWorld() {
 export function renderTreeInto(world, root, handlers) {
   world.innerHTML = '';
 
-  const { nodes, edges, byproductEdges, width, height } = layoutTree(root);
+  const { nodes, edges, byproductEdges, width, height } = layoutTree(root, handlers.openChoiceMenu);
   const worldWidth = width + PADDING * 2;
   const worldHeight = height + PADDING * 2;
   world.style.width = `${worldWidth}px`;
   world.style.height = `${worldHeight}px`;
 
   world.appendChild(renderEdges(edges, byproductEdges, worldWidth, worldHeight));
-  for (const { node, x, y, isByproduct, isHub, isReuseHub } of nodes) {
+  for (const { node, x, y, isByproduct, isHub, isChoiceHub, isReuseHub } of nodes) {
     const card = isByproduct ? renderByproductNode(node)
       : isReuseHub ? renderReuseHub(node, handlers)
+      : isChoiceHub ? renderChoiceHub(node, handlers)
       : isHub ? renderRecipeHub(node, handlers)
       : renderTreeNode(node, handlers);
-    world.appendChild(positionNode(card, x, y, isHub || isReuseHub));
+    world.appendChild(positionNode(card, x, y, isHub || isChoiceHub || isReuseHub));
   }
 
   return { width: worldWidth, height: worldHeight };

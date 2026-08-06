@@ -1,5 +1,5 @@
 import { formatLabel } from '../ui/format.js';
-import { CHEVRON_ICON, EDIT_ICON, PROLIF_NONE_ICON, REUSE_ICON } from '../ui/icons.js';
+import { CHEVRON_ICON, EDIT_ICON, PROLIF_NONE_ICON, REUSE_ICON, PENDING_ICON } from '../ui/icons.js';
 import { NODE_WIDTH, NODE_HEIGHT } from './constants.js';
 import { formatQty } from './formatQty.js';
 import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
@@ -73,22 +73,10 @@ export function renderTreeNode(node, handlers = {}) {
     qty.appendChild(yieldNote);
   }
 
-  // Set only once a reuse override actually applies - see buildTree.js's
-  // suppliedFromLeftover. Shows how much of this node's own qty is being
-  // covered from leftover instead of produced, e.g. "×10 (5 from leftover)"
-  // - or, once reuse covers all of it, "×10 (all from leftover)" since
-  // there's no remaining production amount worth restating.
-  if (node.suppliedFromLeftover > 0) {
-    const reuseNote = document.createElement('span');
-    reuseNote.className = 'tree-node-qty-reuse';
-    reuseNote.textContent = node.isFullySupplied
-      ? ' (all from leftover)'
-      : ` (${formatQty(node.suppliedFromLeftover)} from leftover)`;
-    qty.title = node.isFullySupplied
-      ? `All ×${formatQty(node.qty)} supplied from leftover elsewhere in the tree - nothing produced here`
-      : `×${formatQty(node.suppliedFromLeftover)} of this supplied from leftover elsewhere in the tree`;
-    qty.appendChild(reuseNote);
-  }
+  // Deliberately *not* shown here (used to be) - see renderReuseHub's own
+  // badge instead. Keeping it there instead of duplicating it on the card
+  // means there's exactly one place a reused amount is displayed, right on
+  // the control that lets you change it.
 
   info.append(name, qty);
   el.append(icon, info);
@@ -279,6 +267,19 @@ export function renderReuseHub(node, handlers = {}) {
     event.stopPropagation();
     onToggleReuseMenu(node.path);
   });
+
+  // The reused amount itself - moved here from the item card (a card used
+  // to append "(5 from leftover)" to its own qty) so there's exactly one
+  // place displaying it, right on the control that changes it. Only shown
+  // once there's actually a nonzero amount - an inactive reuse hub (offered
+  // because leftover's available, not yet used) shows just the icon.
+  if (currentReuse > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'tree-node-reuse-badge';
+    badge.textContent = `×${formatQty(currentReuse)}`;
+    reuse.appendChild(badge);
+  }
+
   hub.appendChild(reuse);
 
   if (menuOpen) {
@@ -289,6 +290,49 @@ export function renderReuseHub(node, handlers = {}) {
         onClear: () => onClearReuse(node.path),
       },
     ));
+  }
+
+  return hub;
+}
+
+// The choice hub - stands in for a needsChoice node's real choice cards
+// once it's already had reuse applied and been adjusted since (see
+// layoutTree.js's _choiceCollapsed): showing the full card spread again
+// on every little tweak was the actual complaint this replaced. Clicking
+// it opens a popover with the exact same cards (real recipe options plus
+// "Just reuse" if reusePool.js's injectReuseChoices found any leftover)
+// that would otherwise be laid out as tree siblings - same content,
+// different container. A first-ever view of a choice (no reuse touched
+// yet) never reaches this at all; layoutTree.js keeps the cards inline
+// then, same as always.
+export function renderChoiceHub(node, handlers = {}) {
+  const { openChoiceMenu, onToggleChoiceMenu, onChoose, onApplyReuse } = handlers;
+  const menuOpen = openChoiceMenu?.path === node.path;
+
+  const hub = document.createElement('div');
+  hub.className = 'choice-hub';
+  if (menuOpen) hub.classList.add('choice-hub--menu-open');
+
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'tree-node-choice-toggle';
+  toggle.title = 'Pick a recipe';
+  toggle.setAttribute('aria-label', 'Pick a recipe');
+  toggle.innerHTML = PENDING_ICON;
+  toggle.addEventListener('click', (event) => {
+    event.stopPropagation();
+    onToggleChoiceMenu(node.path);
+  });
+  hub.appendChild(toggle);
+
+  if (menuOpen) {
+    const menu = document.createElement('div');
+    menu.className = 'tree-node-choice-menu';
+    menu.addEventListener('click', (event) => event.stopPropagation());
+    for (const child of node.children) {
+      menu.appendChild(child.isReuseChoice ? renderReuseChoiceNode(child, onApplyReuse) : renderChoiceNode(child, onChoose));
+    }
+    hub.appendChild(menu);
   }
 
   return hub;
