@@ -1,27 +1,70 @@
 import { getYieldMultiplier } from './proliferatorMultiplier.js';
-import { groupNodesByRecipe } from './groupNodesByRecipe.js';
+import { isItemReused } from './byproductReuse.js';
 
 // Compiles a built tree (see buildTree.js) down to Factory View's
 // aggregated lines - the "compile" step described in the Factory View plan.
 //
-// Nodes first bucket by (recipe, proliferation) via groupNodesByRecipe.js -
-// two nodes sharing a recipe only fold into the same bucket if their
-// proliferation matches exactly. Each bucket then splits into one or more
-// *lines* (what actually becomes a card) via splitBucketIntoLines below -
-// a single recipe can produce more than one card once its "reuse this
-// byproduct" toggle (see treeView.js/treeNode.js) is switched off for one
-// of the items it produces.
+// A tree node gets its own factory line whenever it's actually running a
+// recipe (resolved, expanded, not a cycle guard) - collapsed/leaf/
+// needsChoice nodes contribute nothing here, mirroring summarizeTree.js's
+// notion of "leaf-like".
 //
-// byproductReuse (Map<path, boolean>, from treeState - see treeView.js) is
-// the tree-level toggle: which nodes have opted OUT of sharing a batch of
-// crafts with whatever else produces their item as a byproduct elsewhere.
-// Absent = reused (the default).
+// Nodes first bucket by (recipe, proliferation) - two nodes sharing a
+// recipe only fold into the same bucket if their proliferation matches
+// *exactly*: same mode AND same level. Different level (or one
+// proliferated, one not) keeps them in separate buckets, since Speed
+// Up/Extra Yield change the effective machine throughput and so can't
+// share one machine-count calculation. "No proliferation" and an explicit
+// opt-out ({ mode: null, level: null }, see treeView.js's
+// onClearProliferation) are treated as the same "no effect" bucket -
+// there's no throughput difference between them.
+//
+// Each bucket then splits into one or more *lines* (what actually becomes
+// a card) via splitBucketIntoLines below - a single recipe can produce
+// more than one card once byproduct reuse is toggled off for something.
 export function buildFactoryPlan(root, proliferation, byproductReuse) {
-  const buckets = groupNodesByRecipe(root, proliferation);
+  const buckets = new Map(); // baseKey -> bucket
+
+  function walk(node) {
+    const runsRecipe = node.recipe && !node.isCollapsed && !node.needsChoice && !node.isCycle && !node.isLeaf;
+
+    if (runsRecipe) {
+      const { mode, level } = proliferation.get(node.path) ?? {};
+      const baseKey = lineKey(node.recipe.id, mode, level);
+
+      if (!buckets.has(baseKey)) {
+        buckets.set(baseKey, {
+          recipe: node.recipe,
+          mode: mode ?? null,
+          level: level ?? null,
+          // Crafts needed to satisfy each item this bucket was actually
+          // asked to produce, and which node paths asked for it - kept
+          // separate per item until splitBucketIntoLines below decides how
+          // to fold or split them into real lines. Summing them straight
+          // into one number (the old approach) is exactly the
+          // double-crafting bug this exists to avoid.
+          craftsByItem: new Map(),
+          pathsByItem: new Map(),
+        });
+      }
+
+      const bucket = buckets.get(baseKey);
+      const crafts = craftsForNode(node, mode, level);
+      bucket.craftsByItem.set(node.itemId, (bucket.craftsByItem.get(node.itemId) ?? 0) + crafts);
+      if (!bucket.pathsByItem.has(node.itemId)) bucket.pathsByItem.set(node.itemId, []);
+      bucket.pathsByItem.get(node.itemId).push(node.path);
+    }
+
+    for (const child of node.children) {
+      walk(child);
+    }
+  }
+
+  walk(root);
 
   const result = [];
-  for (const bucket of buckets.values()) {
-    result.push(...splitBucketIntoLines(bucket, byproductReuse));
+  for (const [baseKey, bucket] of buckets) {
+    result.push(...splitBucketIntoLines(baseKey, bucket, byproductReuse));
   }
 
   return result.sort((a, b) => b.crafts - a.crafts);
@@ -33,60 +76,67 @@ export function buildFactoryPlan(root, proliferation, byproductReuse) {
 //   whichever other results are still toggled to reuse - one shared batch
 //   of crafts, sized to whichever of those items has the biggest
 //   independent demand (the rest come along for free as its byproducts,
-//   since one craft always produces every result at once - this is also
-//   what "even partially" covering a smaller demand falls out of
-//   automatically, no separate partial-credit logic needed).
-// - A separate *dedicated* line per item whose node(s) explicitly opted
-//   out of reuse - meaning the user wants that item produced by its own
+//   since one craft always produces every result at once).
+// - A separate *dedicated* line per item explicitly toggled to waste -
+//   "wasted" means the user wants that item produced by its own
 //   independent batch of crafts rather than sharing with anything else,
-//   which reads far more honestly as its own card (own building choice,
-//   own machine count) than as a hidden add-on folded into the shared
-//   line's numbers.
+//   and that reads far more honestly as its own card (own building
+//   choice, own machine count) than as a hidden add-on folded into the
+//   shared line's numbers.
 //
 // `line.itemId` marks which item a dedicated line exists for - null on
 // the shared line, whose display still defaults to the recipe's own
 // primary result (Object.keys(recipe.result)[0], see linePrimaryItemId
 // below) since that item can never itself be toggled to waste and so is
 // always present in the shared group.
-function splitBucketIntoLines(bucket, byproductReuse) {
-  const { key: baseKey, recipe, mode, level, nodesByItem } = bucket;
+function splitBucketIntoLines(baseKey, bucket, byproductReuse) {
+  const { recipe, mode, level, craftsByItem, pathsByItem } = bucket;
   const primaryItemId = Object.keys(recipe.result)[0];
 
   const lines = [];
   let sharedCrafts = 0;
   let sharedPaths = [];
 
-  for (const [itemId, nodes] of nodesByItem) {
-    const crafts = nodes.reduce((sum, node) => sum + craftsForNode(node, mode, level), 0);
-    const paths = nodes.map((node) => node.path);
-    // An item counts as reused only if *every* node targeting it agrees -
-    // in the overwhelmingly common case there's just one such node, but a
-    // lone opt-out among several shouldn't be silently overruled by the
-    // others.
-    const reused = itemId === primaryItemId || paths.every((path) => byproductReuse?.get(path) ?? true);
-
-    if (reused) {
+  for (const [itemId, crafts] of craftsByItem) {
+    if (isItemReused(byproductReuse, baseKey, itemId, primaryItemId)) {
       sharedCrafts = Math.max(sharedCrafts, crafts);
-      sharedPaths = sharedPaths.concat(paths);
+      sharedPaths = sharedPaths.concat(pathsByItem.get(itemId));
     } else {
-      lines.push({ key: itemLineKey(recipe.id, mode, level, itemId), recipe, mode, level, itemId, crafts, nodePaths: paths });
+      lines.push({
+        key: itemLineKey(recipe.id, mode, level, itemId),
+        recipe,
+        mode,
+        level,
+        itemId,
+        crafts,
+        nodePaths: pathsByItem.get(itemId),
+      });
     }
   }
 
-  // Always true in practice (the primary result's node, if it has one,
-  // can never be toggled to waste) - guarded anyway rather than assumed,
-  // so a bucket with nothing left in the shared group simply doesn't get
-  // a shared card instead of showing an empty one.
+  // Always true in practice (the primary result can never be toggled to
+  // waste, see factoryCard.js's renderRateList) - guarded anyway rather
+  // than assumed, so a bucket with nothing left in the shared group
+  // simply doesn't get a shared card instead of showing an empty one.
   if (sharedPaths.length > 0) {
-    lines.push({ key: baseKey, recipe, mode, level, itemId: null, crafts: sharedCrafts, nodePaths: sharedPaths });
+    lines.push({
+      key: baseKey,
+      recipe,
+      mode,
+      level,
+      itemId: null,
+      crafts: sharedCrafts,
+      nodePaths: sharedPaths,
+    });
   }
 
   return lines;
 }
 
-// Which item a line should be identified by for display (see
-// factoryCard.js) - the item it was split off for if it's a dedicated
-// line, otherwise the recipe's own primary result.
+// Which item a line should be identified by for display and for deciding
+// which of its Output rows get a reuse/waste toggle (see factoryCard.js) -
+// the item it was split off for if it's a dedicated line, otherwise the
+// recipe's own primary result.
 export function linePrimaryItemId(line) {
   return line.itemId ?? Object.keys(line.recipe.result)[0];
 }
@@ -100,15 +150,21 @@ function craftsForNode(node, mode, level) {
   return node.qty / (outputQty * yieldMultiplier);
 }
 
-// Same key format as groupNodesByRecipe.js's bucketKey, extended for a
-// dedicated (single-item) line - itemId null or undefined collapses back
-// to the plain shared-line key, so callers that don't know in advance
-// whether they're dealing with a shared or dedicated line can always
-// reach for this one. Exported so callers that need to predict a line's
-// key *before* buildFactoryPlan runs again (e.g. factoryView.js carrying
-// a building choice over to the line a proliferation edit just moved it
-// to) don't have to duplicate the format.
+// mode/level default to null so "never set" and "explicitly cleared" (both
+// { mode: null, level: null } and a plain missing entry) land on the same
+// key - see the module comment above. Exported so callers that need to
+// predict a line's key *before* buildFactoryPlan runs again (e.g.
+// factoryView.js carrying a building choice over to the line a
+// proliferation edit just moved it to) don't have to duplicate the format.
+export function lineKey(recipeId, mode, level) {
+  return `${recipeId}::${mode ?? 'none'}::${level ?? 'none'}`;
+}
+
+// Same as lineKey, but for a dedicated (single-item) line - itemId null
+// or undefined collapses back to the plain shared-line key, so callers
+// that don't know in advance whether they're dealing with a shared or
+// dedicated line can always reach for this one.
 export function itemLineKey(recipeId, mode, level, itemId) {
-  const base = `${recipeId}::${mode ?? 'none'}::${level ?? 'none'}`;
+  const base = lineKey(recipeId, mode, level);
   return itemId ? `${base}::${itemId}` : base;
 }

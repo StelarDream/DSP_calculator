@@ -1,5 +1,5 @@
 import { formatLabel } from '../ui/format.js';
-import { CHEVRON_ICON, EDIT_ICON, PROLIF_NONE_ICON, REUSE_ICON } from '../ui/icons.js';
+import { CHEVRON_ICON, EDIT_ICON, PROLIF_NONE_ICON } from '../ui/icons.js';
 import { NODE_WIDTH, NODE_HEIGHT } from './constants.js';
 import { formatQty } from './formatQty.js';
 import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
@@ -91,18 +91,11 @@ export function renderTreeNode(node, handlers = {}) {
 // the "change recipe" and proliferation controls that used to live on the
 // item card itself.
 export function renderRecipeHub(node, handlers = {}) {
-  const { onEdit, proliferation, openProlifMenu, onToggleProlifMenu, byproductReuse, reuseCandidates, onToggleByproductReuse } = handlers;
+  const { onEdit, proliferation, openProlifMenu, onToggleProlifMenu } = handlers;
 
   // Only worth offering when there's actually more than one recipe to
   // switch between - same rule the old item-card badge used.
   const editable = node.recipeOptions.length > 1 && typeof onEdit === 'function';
-
-  // Only nodes byproductReuseCandidates.js actually flagged as sharing an
-  // exact (recipe, proliferation) with some other differently-targeted
-  // node get this control - see its own module comment for why. Absent
-  // from the map (never toggled) still reads as reused, the default.
-  const isReuseCandidate = reuseCandidates?.has(node.path) && typeof onToggleByproductReuse === 'function';
-  const isReused = isReuseCandidate ? (byproductReuse?.get(node.path) ?? true) : true;
 
   // Which proliferator effects *this* recipe can support - "only display
   // the available modes" starts with not showing the button at all when
@@ -145,32 +138,6 @@ export function renderRecipeHub(node, handlers = {}) {
       onEdit(node.path);
     });
     hub.appendChild(edit);
-  }
-
-  // In-flow, same row as the proliferation button below (and the icon) -
-  // "reuse this byproduct" toggle, only shown on nodes
-  // byproductReuseCandidates.js flagged. Reused (the default, no toggling
-  // needed) stays quiet; opted-out is flagged so it reads as a deliberate
-  // choice rather than something easy to miss.
-  if (isReuseCandidate) {
-    const reuse = document.createElement('button');
-    reuse.type = 'button';
-    reuse.className = 'tree-node-reuse';
-    if (!isReused) reuse.classList.add('tree-node-reuse--off');
-    reuse.title = isReused
-      ? 'Reusing a byproduct that covers this - click to craft independently instead'
-      : 'Crafting independently - click to reuse a byproduct that covers this instead';
-    reuse.setAttribute('aria-label', reuse.title);
-    reuse.innerHTML = REUSE_ICON;
-    reuse.addEventListener('click', (event) => {
-      event.stopPropagation();
-      onToggleByproductReuse(node.path);
-    });
-    hub.appendChild(reuse);
-
-    const reuseDivider = document.createElement('div');
-    reuseDivider.className = 'recipe-hub-divider';
-    hub.appendChild(reuseDivider);
   }
 
   // Sits in-flow to the *left* of the icon (a thin divider between them),

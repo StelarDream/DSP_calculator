@@ -48,8 +48,3 @@ export const PROLIF_NONE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="cu
 // Counter-clockwise reset arrow - "back to default", e.g. clearing a
 // Factory View card's explicit building pick (see factoryCard.js).
 export const RESET_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>`;
-
-// Two looping arrows - "reuse this byproduct" toggle on a tree node whose
-// item can also be covered by a byproduct produced elsewhere in the tree
-// (see byproductReuseCandidates.js/treeNode.js's recipe hub).
-export const REUSE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2 21 6 17 10"/><path d="M3 12v-2a4 4 0 0 1 4-4h14"/><path d="M7 22 3 18 7 14"/><path d="M21 12v2a4 4 0 0 1-4 4H3"/></svg>`;

@@ -18,15 +18,12 @@ const DEFAULT_TARGET_RATE = 1;
 // Full-pane Factory View - reached from the tree view's Factory View button.
 // Compiles the current tree's per-node recipe/proliferation choices into
 // aggregated machine/factory-count cards (see memory: factory-view-plan).
-// treeState: { subjectId, recipe, choices, overrides, proliferation,
-// byproductReuse } - a snapshot of the tree the user was looking at, so
-// "Back" can restore it exactly via onBack(treeState). `proliferation` is
-// a fresh copy (see treeView.js's snapshot()) - Factory View mutates it
-// directly when a card's proliferation is re-edited, so those edits ride
-// back into the tree view too if the user hits Back afterward.
-// `byproductReuse` is read-only here - which byproducts get shared rather
-// than run as their own dedicated line is decided on the tree node itself
-// (see treeView.js/treeNode.js), not in Factory View at all.
+// treeState: { subjectId, recipe, choices, overrides, proliferation } - a
+// snapshot of the tree the user was looking at, so "Back" can restore it
+// exactly via onBack(treeState). Its `proliferation` map is a fresh copy
+// (see treeView.js's snapshot()) - Factory View mutates it directly when a
+// card's proliferation is re-edited, so those edits ride back into the
+// tree view too if the user hits Back afterward.
 export function renderFactoryView(container, treeState, registries, onBack) {
   container.innerHTML = '';
   container.scrollTop = 0;
@@ -62,10 +59,23 @@ export function renderFactoryView(container, treeState, registries, onBack) {
   // a session-wide fallback (see defaultBuildingPanel.js) that applies to
   // any line of that type without its own explicit per-card override.
   const defaultBuildingByType = new Map();
+  // Which of a line's byproducts count as reusable rather than waste -
+  // keyed by "<lineKey>::<itemId>" since one line can have more than one
+  // byproduct and each toggles independently. Absent = reused (the
+  // default) - see isByproductReused below. Feeds two different things: it
+  // lets buildFactoryPlan.js share one batch of crafts across nodes that
+  // separately demand different results of the same recipe instead of
+  // double-crafting them, and it drives which byproducts count toward
+  // computeRawInputs.js's raw-input netting for the bottom bar.
+  const byproductReuse = new Map();
   // Which card's proliferation popover is open, plus its in-progress
   // mode/level - same shape/rationale as treeView.js's openProlifMenu, just
   // keyed by line.key instead of a tree path.
   let openProlifCard = null;
+
+  function isByproductReused(key, itemId) {
+    return byproductReuse.get(`${key}::${itemId}`) ?? true;
+  }
 
   function buildCurrentTree() {
     return buildTree(treeState.subjectId, 1, registries, {
@@ -76,7 +86,7 @@ export function renderFactoryView(container, treeState, registries, onBack) {
   }
 
   function computeLines(tree) {
-    const rawLines = buildFactoryPlan(tree, treeState.proliferation, treeState.byproductReuse);
+    const rawLines = buildFactoryPlan(tree, treeState.proliferation, byproductReuse);
     const withBuildingSpeed = rawLines.map((line) => {
       const options = getBuildingOptions(line.recipe, registries);
       const buildingId = getSelectedBuilding(options, buildingChoice, line.key, defaultBuildingByType.get(line.recipe.type));
@@ -142,13 +152,18 @@ export function renderFactoryView(container, treeState, registries, onBack) {
           openProlifCard = null;
           rerenderPlan();
         },
+        isByproductReused,
+        onToggleByproductReuse(key, itemId) {
+          byproductReuse.set(`${key}::${itemId}`, !isByproductReused(key, itemId));
+          rerenderPlan();
+        },
       }));
     }
 
     planContainer.appendChild(grid);
     renderSidebar(sidebar, lines, registries, defaultBuildingByType, onSetDefaultBuilding);
 
-    const rawInputs = computeRawInputs(lines, registries, treeState.subjectId);
+    const rawInputs = computeRawInputs(lines, registries, byproductReuse, treeState.subjectId);
     renderBottomBar(bottomBar, rawInputs, registries);
   }
 
@@ -322,10 +337,10 @@ function renderTotalsSection(lines, registries) {
 
 // Footer strip across the bottom of Factory View - two rows: every raw
 // item the compiled plan still needs from outside it, and (once there's
-// any) how much gets produced but never used - surplus from a shared
-// batch that outproduced what was actually needed, or a dedicated line's
-// own incidental output nothing else demands (see computeRawInputs.js).
-// Both in items/sec at the current target rate.
+// any) how much gets produced but never used - a reused byproduct's
+// leftover once it's covered demand elsewhere, plus every bit of any
+// byproduct toggled to waste (see computeRawInputs.js). Both in items/sec
+// at the current target rate.
 function renderBottomBar(bottomBar, { needed, extra }, registries) {
   bottomBar.innerHTML = '';
   bottomBar.appendChild(renderBottomBarRow('Raw Inputs', needed, registries, 'needed'));
