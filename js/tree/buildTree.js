@@ -21,15 +21,17 @@ import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
 // proliferation: Map<path, {mode, level}> - per-node proliferation settings
 //                (see treeView.js). Only `mode: 'yield'` feeds into the
 //                quantity math here - see applyYield below for why.
-// reuseOverrides: Map<path, number>   - how much of a resolved node's demand
-//                is being manually supplied from leftover elsewhere in the
-//                tree instead of actually produced (see treeView.js's reuse
-//                hub and js/tree/reusePool.js). Deliberately opt-in and
-//                per-node, not automatic - see memory: factory-view-plan for
-//                why automatic byproduct netting got ruled out. Only ever
-//                consulted for a node that's already resolved to a recipe -
-//                a stale entry for a leaf/collapsed/needsChoice path is
-//                harmless, same as a stale `choices`/`overrides` entry.
+// reuseOverrides: Map<path, number>   - how much of an expanded node's
+//                demand is being manually supplied from leftover elsewhere
+//                in the tree instead of actually produced (see treeView.js's
+//                reuse hub/"Just reuse" choice card and js/tree/reusePool.js).
+//                Deliberately opt-in and per-node, not automatic - see
+//                memory: factory-view-plan for why automatic byproduct
+//                netting got ruled out. Consulted *before* a recipe is even
+//                resolved (see buildNode below) - full coverage means no
+//                recipe is needed at all, not just "not crafted." A stale
+//                entry for a leaf/collapsed path is harmless, same as a
+//                stale `choices`/`overrides` entry.
 export function buildTree(rootItemId, qty, registries, { choices = new Map(), overrides = new Map(), proliferation = new Map(), reuseOverrides = new Map() } = {}) {
   return buildNode({
     itemId: rootItemId,
@@ -71,10 +73,11 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
     // Set (to a positive number) only once this node's recipe is resolved
     // and a reuse override actually applies - see suppliedFromLeftover below.
     suppliedFromLeftover: undefined,
-    // True when reuse covers the node's *entire* demand - it still has a
-    // resolved recipe (so the hub stays put, letting the reuse amount be
-    // adjusted or cleared later - see layoutTree.js's hasHub), but produces
-    // nothing of its own: no children, no byproducts, zero crafts.
+    // True when reuse covers the node's *entire* demand, computed before a
+    // recipe would even be resolved (see below) - no recipe, no children,
+    // no byproducts, zero crafts. layoutTree.js still gives it a reuse hub
+    // to adjust/clear the amount later, just no recipe hub (nothing's
+    // being produced to show one for).
     isFullySupplied: false,
     children: [],
     byproducts: [],
@@ -88,6 +91,28 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
     return node;
   }
 
+  // How much of this node's demand is being manually supplied from leftover
+  // elsewhere in the tree instead of actually produced - clamped to `qty`
+  // (can't reuse more than this node even needs). Computed *before* even
+  // looking at recipeOptions/choices: if reuse alone covers everything,
+  // no recipe is needed at all - not just "not crafted," genuinely never
+  // resolved, so a still-ambiguous multi-recipe item doesn't force a
+  // choice nobody needs to make (see the needsChoice branch below, and
+  // treeView.js's "Just reuse" choice card, which is what actually sets
+  // this before a recipe would otherwise have been picked).
+  const requestedReuse = reuseOverrides.get(path) ?? 0;
+  const suppliedFromLeftover = Math.min(Math.max(requestedReuse, 0), qty);
+  if (suppliedFromLeftover > 0) node.suppliedFromLeftover = suppliedFromLeftover;
+  const producedQty = qty - suppliedFromLeftover;
+
+  if (producedQty <= 0) {
+    node.isFullySupplied = true;
+    return node;
+  }
+
+  // Still need to actually produce `producedQty` - resolve a recipe as
+  // usual, scoped to just that remainder (reuse above already covered the
+  // rest, so it's not part of what needs crafting).
   const chosen = recipeOptions.find((r) => r.id === choices.get(path));
   if (!chosen && recipeOptions.length > 1) {
     // More than one way to make this and nothing picked yet - surface the
@@ -99,26 +124,6 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
   }
 
   node.recipe = chosen ?? recipeOptions[0];
-
-  // How much of this node's demand is being manually supplied from leftover
-  // elsewhere in the tree instead of actually produced - clamped to `qty`
-  // (can't reuse more than this node even needs). Reduces *production*,
-  // which is what makes this different from a `choices`/`overrides`
-  // toggle: fewer crafts happen here, so both ingredients *and* this node's
-  // own byproducts shrink accordingly - see producedQty below.
-  const requestedReuse = reuseOverrides.get(path) ?? 0;
-  const suppliedFromLeftover = Math.min(Math.max(requestedReuse, 0), qty);
-  if (suppliedFromLeftover > 0) node.suppliedFromLeftover = suppliedFromLeftover;
-  const producedQty = qty - suppliedFromLeftover;
-
-  // Fully covered by leftover - nothing left to actually craft, so this
-  // node terminates here just like a leaf, but keeps node.recipe (and thus
-  // its hub - see layoutTree.js's hasHub) so the reuse amount stays
-  // reachable to adjust or clear afterward.
-  if (producedQty <= 0) {
-    node.isFullySupplied = true;
-    return node;
-  }
 
   // Ratio of each ingredient to *one* craft, scaled by how much of this
   // item's own output actually still needs producing - a recipe that

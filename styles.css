@@ -1319,6 +1319,36 @@ body {
   color: var(--secondary);
 }
 
+/* "Just reuse" - the extra choice card injectReuseChoices adds alongside
+   the real recipe options (see reusePool.js, treeNode.js's
+   renderReuseChoiceNode). Primary-tinted like the reuse hub/button
+   elsewhere, overriding the plain choice card's secondary (yellow) tint
+   above so it reads as "the reuse path" rather than just another recipe. */
+.tree-node--reuse-choice {
+  background: var(--primary-dim);
+  border-color: var(--primary-border);
+}
+
+.tree-node--reuse-choice:hover {
+  border-color: var(--primary);
+}
+
+.tree-node--reuse-choice .tree-node-name {
+  color: var(--primary);
+}
+
+.tree-node-reuse-choice-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+}
+
+.tree-node-reuse-choice-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
 /* Extra output from a node's recipe, shown alongside it rather than as a
    real child - see buildTree.js's node.byproducts. Purely informational,
    not clickable. */
@@ -1663,10 +1693,32 @@ body {
   color: var(--danger);
 }
 
-/* "Supply from leftover" - the reuse control on a resolved node's recipe
-   hub (see treeNode.js's renderRecipeHub, reusePicker.js). Same in-flow
-   placement/sizing convention as .tree-node-prolif beside it - a plain
-   icon button, tinted only once a reuse is actually active. */
+/* The reuse hub - "supply from leftover" (see treeNode.js's renderReuseHub,
+   layoutTree.js's _hasReuseHub). A separate box stacked directly above the
+   recipe hub, not a button folded into it - same shape/shadow convention
+   as .recipe-hub so it visually reads as "another hub," just smaller since
+   its only content is the one icon button (plus its popover, absolutely
+   positioned off of it the same way .tree-node-prolif-menu hangs off
+   .recipe-hub). */
+.reuse-hub {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+}
+
+/* Same reasoning as .recipe-hub--menu-open - own stacking context, bumped
+   above neighbors while its popover is open. */
+.reuse-hub--menu-open {
+  z-index: 10;
+}
+
+/* The reuse hub's one button - a plain icon button, tinted only once a
+   reuse is actually active. */
 .tree-node-reuse {
   display: inline-flex;
   align-items: center;

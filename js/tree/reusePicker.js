@@ -9,12 +9,20 @@ import { formatQty } from './formatQty.js';
 // rerender (see renderTreeInto), which would yank focus out of a
 // live-bound input on each keystroke otherwise.
 //
-// state: { path, itemId, qty, available, current } - `available` already
-// excludes `current` (see reusePool.js's excludePath) so the input's own
-// max is available + current, not just available.
+// state: { path, itemId, qty, available, current } - `available` (see
+// reusePool.js) already excludes only *other* nodes' claims, not this
+// node's own current one, which is exactly what makes it the right ceiling
+// on its own - no need to add `current` back on top. An earlier version of
+// this menu did `available + current` here, on the assumption `available`
+// had excluded everyone including this node - it hadn't, so that doubled
+// this node's own claim into its displayed ceiling. Caught by a user
+// testing two nodes reusing from each other's byproduct: each grew its own
+// max by its own current amount, both showing more room than the pool
+// actually had (confirmed: two nodes each claiming half a 10-unit pool
+// still both showed "10 available" instead of the true 5 remaining).
 export function renderReuseMenu(state, { onApply, onClear }) {
   const { qty, available, current } = state;
-  const max = Math.min(qty, available + current);
+  const max = Math.min(qty, available);
 
   const menu = document.createElement('div');
   menu.className = 'tree-node-reuse-menu';
@@ -26,7 +34,7 @@ export function renderReuseMenu(state, { onApply, onClear }) {
   availability.className = 'tree-node-reuse-availability';
   availability.textContent = max > 0
     ? `${formatQty(max)} available from leftover`
-    : 'Nothing available to reuse here';
+    : 'Nothing left unclaimed in the pool';
   menu.appendChild(availability);
 
   const row = document.createElement('div');

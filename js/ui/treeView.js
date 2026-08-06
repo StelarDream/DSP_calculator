@@ -8,7 +8,7 @@ import { serializeTreeState } from '../tree/serializeTree.js';
 import { summarizeTree } from '../tree/summarizeTree.js';
 import { summarizeProliferatorUsage } from '../tree/summarizeProliferators.js';
 import { createResourceSidebar, renderResourcesInto } from '../tree/resourceSidebar.js';
-import { reuseAvailability } from '../tree/reusePool.js';
+import { reuseAvailability, injectReuseChoices } from '../tree/reusePool.js';
 
 // Ensures at most one "close the proliferation menu on an outside click"
 // listener is ever attached to document - it doesn't get garbage-collected
@@ -131,6 +131,11 @@ function renderBody(subjectId, recipe, registries, initialState) {
       // `proliferation` while computing qty - see its yield handling).
       tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation, reuseOverrides });
     }
+    // Adds "Just reuse" as an option wherever a still-undecided recipe
+    // choice has leftover to draw on - needs the *finished* tree (see
+    // reusePool.js's injectReuseChoices for why), so this runs after both
+    // possible builds above, right before rendering.
+    injectReuseChoices(tree);
     size = renderTreeInto(world, tree, {
       onToggle(path, wasCollapsed) {
         overrides.set(path, wasCollapsed);
