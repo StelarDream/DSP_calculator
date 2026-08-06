@@ -2,6 +2,7 @@ import { formatLabel } from './format.js';
 import { BACK_ICON } from './icons.js';
 import { buildTree } from '../tree/buildTree.js';
 import { resolveCycleBoosts } from '../tree/cycleRecycle.js';
+import { computeReusedTotals } from '../tree/reusePool.js';
 import { buildFactoryPlan, lineKey } from '../factory/buildFactoryPlan.js';
 import { computeMachineCounts } from '../factory/computeMachineCounts.js';
 import { getBuildingOptions, getSelectedBuilding, getBuildingSpeed } from '../factory/buildingOptions.js';
@@ -99,7 +100,8 @@ export function renderFactoryView(container, treeState, registries, onBack) {
   }
 
   function rerenderPlan() {
-    const lines = computeLines(buildCurrentTree());
+    const tree = buildCurrentTree();
+    const lines = computeLines(tree);
     planContainer.innerHTML = '';
 
     if (lines.length === 0) {
@@ -161,7 +163,14 @@ export function renderFactoryView(container, treeState, registries, onBack) {
     planContainer.appendChild(grid);
     renderSidebar(sidebar, lines, registries, defaultBuildingByType, onSetDefaultBuilding);
 
-    const rawInputs = computeRawInputs(lines, registries, treeState.subjectId);
+    // Tree quantities (including node.suppliedFromLeftover) are pure
+    // per-root-unit ratios - see memory: factory-view-plan - so this needs
+    // the same targetRate scaling computeMachineCounts.js already applied
+    // to `lines` before it's comparable to anything in them.
+    const reusedTotals = new Map(
+      [...computeReusedTotals(tree)].map(([itemId, qty]) => [itemId, qty * targetRate]),
+    );
+    const rawInputs = computeRawInputs(lines, registries, treeState.subjectId, reusedTotals);
     renderBottomBar(bottomBar, rawInputs, registries);
   }
 

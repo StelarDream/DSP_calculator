@@ -1,3 +1,5 @@
+import { computeReusedTotals } from './reusePool.js';
+
 // Aggregates the "outer boundary" of a built tree: every leaf-like node's
 // quantity, summed by item - what actually has to come from outside the
 // tree (mined, bought, stockpiled...), not the full chain of intermediate
@@ -32,7 +34,6 @@
 export function summarizeTree(root) {
   const demandTotals = new Map(); // itemId -> { itemId, object, qty, pending }
   const leftoverTotals = new Map(); // itemId -> { itemId, object, qty }
-  const reusedTotals = new Map(); // itemId -> qty, tallied purely to net against leftoverTotals below
 
   function demandEntry(itemId, object) {
     if (!demandTotals.has(itemId)) demandTotals.set(itemId, { itemId, object, qty: 0, pending: false });
@@ -45,10 +46,6 @@ export function summarizeTree(root) {
   }
 
   function walk(node) {
-    if (node.suppliedFromLeftover) {
-      reusedTotals.set(node.itemId, (reusedTotals.get(node.itemId) ?? 0) + node.suppliedFromLeftover);
-    }
-
     if (node.isFullySupplied) return;
 
     const leafLike = node.isLeaf || node.isCollapsed || node.needsChoice;
@@ -74,7 +71,7 @@ export function summarizeTree(root) {
   // never against `needed`, which already reflects reuse's effect on
   // demand indirectly (a fully/partially reused node produces less, so its
   // own ingredient children were already built smaller by buildTree.js).
-  for (const [itemId, reused] of reusedTotals) {
+  for (const [itemId, reused] of computeReusedTotals(root)) {
     const entry = leftoverTotals.get(itemId);
     if (entry) entry.qty -= reused;
   }

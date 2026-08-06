@@ -32,6 +32,27 @@ export function reuseAvailability(root, itemId, excludePath) {
   return Math.max(0, gross - reusedElsewhere);
 }
 
+// How much of each item is currently being manually reused across the
+// whole tree - itemId -> total suppliedFromLeftover. Shared by
+// summarizeTree.js's own sidebar and Factory View's computeRawInputs.js,
+// which both need the same number for the same reason: a fully/partially
+// reused node never becomes a demand entry of its own (Tree View) or a
+// compiled line (Factory View - see buildFactoryPlan.js's runsRecipe),
+// so nothing else naturally knows this specific chunk of some other node's
+// byproduct output was explicitly claimed rather than left over. Factored
+// out here instead of duplicated in both places (used to live inline in
+// summarizeTree.js only).
+export function computeReusedTotals(root) {
+  const totals = new Map();
+  (function walk(node) {
+    if (node.suppliedFromLeftover) {
+      totals.set(node.itemId, (totals.get(node.itemId) ?? 0) + node.suppliedFromLeftover);
+    }
+    for (const child of node.children) walk(child);
+  })(root);
+  return totals;
+}
+
 // Appends a "Just reuse" pseudo-choice alongside a needsChoice node's real
 // recipe options, whenever there's actually leftover to draw on *and*
 // reuse hasn't already been engaged for this node - a shortcut for maxing

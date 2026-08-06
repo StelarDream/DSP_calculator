@@ -95,6 +95,19 @@ export function renderTreeNode(node, handlers = {}) {
     qty.appendChild(recycleNote);
   }
 
+  // Set when a cycle further down this subtree wanted to recycle into this
+  // node but never could (see cycleRecycle.js's divergingPaths) - the
+  // combined loop consumes 100%+ of what this node produces, so no finite
+  // amount of production ever nets positive. Reverted to raw un-recycled
+  // demand rather than showing a made-up "closed" number.
+  if (node.boostDiverged) {
+    const divergedNote = document.createElement('span');
+    divergedNote.className = 'tree-node-qty-diverged';
+    divergedNote.textContent = ' (loop can’t close)';
+    qty.title = 'A cycle further down this subtree recycles at least this whole node’s output back into itself - no amount of production ever nets positive, so recycling here was left off.';
+    qty.appendChild(divergedNote);
+  }
+
   info.append(name, qty);
   el.append(icon, info);
 
@@ -431,7 +444,12 @@ function renderReuseChoiceNode(node, onApplyReuse) {
 // (still just a stopped loop, same as before this existed), green once
 // recycledQty is set (see .tree-node--cycle-active in styles.css) - a
 // glance at the border tells you which cycles in a tree are actually
-// closed vs. just left open as raw demand.
+// closed vs. just left open as raw demand. Red (recycleDiverged - see
+// cycleRecycle.js) if this specific recycle request never actually
+// settled: not "still open," a request that turned out unsatisfiable
+// (this loop, combined with whatever else recycles into the same
+// ancestor, would consume 100%+ of the ancestor's own output - no finite
+// production ever nets positive) and got reverted to raw demand instead.
 function renderCycleNode(node, handlers = {}) {
   const { openRecycleMenu, onToggleRecycleMenu, onApplyRecycle, onClearRecycle } = handlers;
 
@@ -442,6 +460,7 @@ function renderCycleNode(node, handlers = {}) {
   const el = document.createElement('div');
   el.className = 'tree-node tree-node--leaf tree-node--cycle';
   if (current > 0) el.classList.add('tree-node--cycle-active');
+  if (node.recycleDiverged) el.classList.add('tree-node--cycle-diverged');
   if (menuOpen) el.classList.add('tree-node--cycle-menu-open');
   el.style.width = `${NODE_WIDTH}px`;
   el.style.height = `${NODE_HEIGHT}px`;
@@ -470,9 +489,12 @@ function renderCycleNode(node, handlers = {}) {
     recycle.type = 'button';
     recycle.className = 'tree-node-recycle';
     if (current > 0) recycle.classList.add('tree-node-recycle--active');
-    recycle.title = current > 0
-      ? `Recycling ×${formatQty(current)} back from the output`
-      : 'Recycle from output';
+    if (node.recycleDiverged) recycle.classList.add('tree-node-recycle--diverged');
+    recycle.title = node.recycleDiverged
+      ? 'This loop never settles - combined with whatever else recycles into the same output, it would consume all of it, forever. Reverted to raw demand.'
+      : current > 0
+        ? `Recycling ×${formatQty(current)} back from the output`
+        : 'Recycle from output';
     recycle.setAttribute('aria-label', recycle.title);
     recycle.innerHTML = REUSE_ICON;
     if (current > 0) {

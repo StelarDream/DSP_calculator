@@ -1311,6 +1311,15 @@ body {
   border-color: var(--success-border);
 }
 
+/* A recycle request that never actually settled - see cycleRecycle.js's
+   divergingPaths - reverted to raw demand rather than an arbitrary
+   partial number, and flagged red rather than green so it doesn't read as
+   "successfully closed" at a glance. Wins over --cycle-active (comes
+   after it, and treeNode.js only ever applies one of the two anyway). */
+.tree-node--cycle-diverged {
+  border-color: var(--danger-border);
+}
+
 .tree-node--cycle-menu-open {
   z-index: 10;
 }
@@ -1351,6 +1360,12 @@ body {
   color: var(--success);
   background: var(--success-dim);
   border-color: var(--success-border);
+}
+
+.tree-node-recycle--diverged {
+  color: var(--danger);
+  background: var(--danger-dim);
+  border-color: var(--danger-border);
 }
 
 .tree-node-recycle-badge {
@@ -1428,6 +1443,13 @@ body {
    to match the cycle node that caused it. */
 .tree-node-qty-recycle {
   color: var(--success);
+}
+
+/* The "(loop can't close)" note on an ancestor's own qty (see treeNode.js)
+   - same treatment as .tree-node-qty-recycle above, danger-tinted to match
+   the diverged cycle node that caused it. */
+.tree-node-qty-diverged {
+  color: var(--danger);
 }
 
 .tree-node--expandable {
