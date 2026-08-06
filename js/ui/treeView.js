@@ -2,6 +2,7 @@ import { formatLabel } from './format.js';
 import { BACK_ICON, ZOOM_IN_ICON, ZOOM_OUT_ICON, FIT_VIEW_ICON, SHARE_ICON, CHECK_ICON, FACTORY_ICON } from './icons.js';
 import { renderIconButton } from './metaBar.js';
 import { buildTree } from '../tree/buildTree.js';
+import { allocateReuse } from '../tree/reuseAllocation.js';
 import { createTreeWorld, renderTreeInto } from '../tree/treeCanvas.js';
 import { createPanZoom } from '../tree/panZoom.js';
 import { serializeTreeState } from '../tree/serializeTree.js';
@@ -85,6 +86,11 @@ function renderBody(subjectId, recipe, registries, initialState) {
   const choices = new Map(initialState?.choices);
   const overrides = new Map(initialState?.overrides);
   const proliferation = new Map(initialState?.proliferation);
+  // Manual overrides on top of the auto-detected reuse candidates (see
+  // reuseAllocation.js) - explicit opt-out/qty per demand path, keyed the
+  // same way as the other maps here. Absent entries just mean "use the
+  // auto-detected default," not "no reuse."
+  const reuseOverrides = new Map(initialState?.reuse);
   choices.set(subjectId, recipe.id);
 
   // Paths whose node has resolved to a recipe at least once - lets
@@ -100,6 +106,11 @@ function renderBody(subjectId, recipe, registries, initialState) {
   // once both axes are set (see onSetProlifMode/onSetProlifLevel).
   let openProlifMenu = null;
 
+  // Which node's reuse popover is open - null when none is. Unlike
+  // openProlifMenu there's no in-progress mode/level dance here, toggling
+  // and editing the qty both commit straight into reuseOverrides.
+  let openReuseMenu = null;
+
   // The tree-wide default from the sidebar's "Default Proliferation" panel
   // - stamped onto newly-resolved nodes by applyDefaultProliferation below.
   // Session-local like everything else here; not seeded from a shared link.
@@ -114,14 +125,25 @@ function renderBody(subjectId, recipe, registries, initialState) {
   // pan/zoom transform survives.
   let size;
   function rerender() {
-    let tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation });
-    if (applyDefaultProliferation(tree)) {
+    let naturalTree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation });
+    if (applyDefaultProliferation(naturalTree)) {
       // Defaults just got stamped onto newly-resolved nodes - rebuild so
       // any Extra Yield among them is reflected in *this* render's
       // quantities too, not just their badges (buildTree.js reads
       // `proliferation` while computing qty - see its yield handling).
-      tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation });
+      naturalTree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation });
     }
+
+    // Byproduct reuse (see reuseAllocation.js) is worked out from this
+    // *reuse-free* tree - it needs every byproduct's and every demand's
+    // true, un-reduced quantity to allocate against, which is exactly what
+    // a tree built with no reuseDeltas gives it. The tree that actually
+    // renders is a second build on top, with those deltas applied.
+    const { demandDeltas, sourceConsumed } = allocateReuse(naturalTree, reuseOverrides);
+    const tree = buildTree(subjectId, 1, registries, {
+      choices, overrides, proliferation, reuseDeltas: demandDeltas, reuseConsumed: sourceConsumed,
+    });
+
     size = renderTreeInto(world, tree, {
       onToggle(path, wasCollapsed) {
         overrides.set(path, wasCollapsed);
@@ -165,6 +187,29 @@ function renderBody(subjectId, recipe, registries, initialState) {
         // below doesn't turn right around and reapply the default to it.
         proliferation.set(path, { mode: null, level: null });
         openProlifMenu = null;
+        rerender();
+      },
+      onToggleReuse(path) {
+        // Always writes an explicit entry (never deletes back to "no
+        // override") - the point is to remember whatever qty was in play so
+        // toggling back on doesn't silently reset it. `demandDeltas` here is
+        // this same render's allocation result, so a node with no override
+        // yet still gets its just-computed auto-detected qty carried over
+        // rather than losing it.
+        const current = reuseOverrides.get(path);
+        const wasOn = current ? current.on : true;
+        const qty = current?.qty ?? demandDeltas.get(path)?.qty ?? 0;
+        reuseOverrides.set(path, { on: !wasOn, qty });
+        rerender();
+      },
+      onSetReuseQty(path, qty) {
+        const current = reuseOverrides.get(path);
+        reuseOverrides.set(path, { on: current?.on ?? true, qty });
+        rerender();
+      },
+      openReuseMenu,
+      onToggleReuseMenu(path) {
+        openReuseMenu = openReuseMenu?.path === path ? null : { path };
         rerender();
       },
     });
@@ -228,9 +273,10 @@ function renderBody(subjectId, recipe, registries, initialState) {
   // bubbling this far (see treeNode.js), so this only ever sees genuine
   // "elsewhere" clicks.
   function onDocumentClick(event) {
-    if (!openProlifMenu) return;
-    if (event.target.closest('.tree-node-prolif-menu, .tree-node-prolif')) return;
+    if (!openProlifMenu && !openReuseMenu) return;
+    if (event.target.closest('.tree-node-prolif-menu, .tree-node-prolif, .tree-reuse-menu, .tree-node--reuse')) return;
     openProlifMenu = null;
+    openReuseMenu = null;
     rerender();
   }
   document.addEventListener('click', onDocumentClick);
@@ -239,26 +285,27 @@ function renderBody(subjectId, recipe, registries, initialState) {
   rerender();
 
   const fit = () => panZoom.fitToView(size.width, size.height);
-  const shareUrl = () => buildShareUrl(subjectId, recipe.id, choices, overrides, proliferation);
+  const shareUrl = () => buildShareUrl(subjectId, recipe.id, choices, overrides, proliferation, reuseOverrides);
   canvas.appendChild(renderToolbar(panZoom, fit, shareUrl));
 
-  // Snapshot of the live choice/override/proliferation maps, for handing
-  // off to Factory View (or restoring back into a fresh tree view) without
-  // sharing mutable references into this closure.
+  // Snapshot of the live choice/override/proliferation/reuse maps, for
+  // handing off to Factory View (or restoring back into a fresh tree view)
+  // without sharing mutable references into this closure.
   const snapshot = () => ({
     subjectId,
     recipe,
     choices: new Map(choices),
     overrides: new Map(overrides),
     proliferation: new Map(proliferation),
+    reuse: new Map(reuseOverrides),
   });
 
   body.append(canvas, resources);
   return { body, fit, snapshot };
 }
 
-function buildShareUrl(subjectId, recipeId, choices, overrides, proliferation) {
-  const code = serializeTreeState({ subjectId, recipeId, choices, overrides, proliferation });
+function buildShareUrl(subjectId, recipeId, choices, overrides, proliferation, reuse) {
+  const code = serializeTreeState({ subjectId, recipeId, choices, overrides, proliferation, reuse });
   const url = new URL(window.location.href);
   // Only ever touches `tree` - any other params (present now or added by
   // future features) are left exactly as they are.

@@ -20,12 +20,19 @@ import { ROW_HEIGHT, COLUMN_WIDTH, NODE_WIDTH } from './constants.js';
 export function layoutTree(root) {
   const positions = new Map(); // path -> { x, y }
   const byproductSpots = new Map(); // path -> [{ x, y }, ...], same order as node.byproducts
+  const reuseSpots = new Map(); // path -> { x, y }, one per node.reuse
   let maxDepth = 0;
   let maxRow = 0;
 
   function measure(node) {
     maxDepth = Math.max(maxDepth, node.depth);
-    const ownRows = 1 + node.byproducts.length;
+    // A reuse marker (see buildTree.js's node.reuse / reuseAllocation.js)
+    // is a different axis from byproducts - byproducts are what *this*
+    // node's own recipe makes, a reuse marker is about *this* node being
+    // someone else's demand - but both pin the node's own row to the top
+    // of its block the same way, so they share the same row-reservation
+    // mechanism.
+    const ownRows = 1 + node.byproducts.length + (node.reuse ? 1 : 0);
     const childrenRows = node.children.reduce((sum, child) => sum + measure(child), 0);
     node._blockHeight = Math.max(ownRows, childrenRows);
     return node._blockHeight;
@@ -46,10 +53,18 @@ export function layoutTree(root) {
     });
 
     let ownRow;
-    if (node.byproducts.length > 0) {
+    if (node.byproducts.length > 0 || node.reuse) {
       ownRow = rowStart;
-      byproductSpots.set(node.path, node.byproducts.map((_, i) => ({ x, y: (ownRow + 1 + i) * ROW_HEIGHT })));
-      maxRow = Math.max(maxRow, ownRow + node.byproducts.length);
+      if (node.byproducts.length > 0) {
+        byproductSpots.set(node.path, node.byproducts.map((_, i) => ({ x, y: (ownRow + 1 + i) * ROW_HEIGHT })));
+      }
+      if (node.reuse) {
+        // Directly beneath the node's own row, past any byproduct rows -
+        // its own column (same x as the node), not the hub's - see
+        // reuseEdgePath in treeCanvas.js for why.
+        reuseSpots.set(node.path, { x, y: (ownRow + 1 + node.byproducts.length) * ROW_HEIGHT });
+      }
+      maxRow = Math.max(maxRow, ownRow + node.byproducts.length + (node.reuse ? 1 : 0));
     } else if (childOwnRows.length > 0) {
       ownRow = (childOwnRows[0] + childOwnRows[childOwnRows.length - 1]) / 2;
     } else {
@@ -67,6 +82,7 @@ export function layoutTree(root) {
   const nodes = [];
   const edges = [];
   const byproductEdges = [];
+  const reuseEdges = [];
 
   (function collect(node) {
     const pos = positions.get(node.path);
@@ -117,6 +133,17 @@ export function layoutTree(root) {
       });
     }
 
+    // The reuse marker (see buildTree.js's node.reuse) connects straight
+    // from this node's own card, deliberately *not* through the hub - it's
+    // annotating this node's demand, not how this node itself gets made,
+    // so it has nothing to do with the hub between this node and its own
+    // children (see reuseEdgePath in treeCanvas.js).
+    const reuseSpot = reuseSpots.get(node.path);
+    if (reuseSpot) {
+      nodes.push({ node, ...reuseSpot, isReuse: true });
+      reuseEdges.push({ from: pos, to: reuseSpot });
+    }
+
     for (const child of node.children) {
       // Routed through the hub when there is one - fromIsHub tells
       // treeCanvas.js's edgePath not to offset by a full card width, since
@@ -130,6 +157,7 @@ export function layoutTree(root) {
     nodes,
     edges,
     byproductEdges,
+    reuseEdges,
     width: (maxDepth + 1) * COLUMN_WIDTH,
     height: Math.max((maxRow + 1) * ROW_HEIGHT, ROW_HEIGHT),
   };

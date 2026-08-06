@@ -1,5 +1,6 @@
 import { layoutTree } from './layoutTree.js';
 import { renderTreeNode, renderRecipeHub, renderByproductNode } from './treeNode.js';
+import { renderReuseMarker } from './reuseMarker.js';
 import { NODE_WIDTH } from './constants.js';
 
 // Padding around the laid-out tree so cards/edges aren't flush against the
@@ -24,16 +25,17 @@ export function createTreeWorld() {
 export function renderTreeInto(world, root, handlers) {
   world.innerHTML = '';
 
-  const { nodes, edges, byproductEdges, width, height } = layoutTree(root);
+  const { nodes, edges, byproductEdges, reuseEdges, width, height } = layoutTree(root);
   const worldWidth = width + PADDING * 2;
   const worldHeight = height + PADDING * 2;
   world.style.width = `${worldWidth}px`;
   world.style.height = `${worldHeight}px`;
 
-  world.appendChild(renderEdges(edges, byproductEdges, worldWidth, worldHeight));
-  for (const { node, x, y, isByproduct, isHub } of nodes) {
+  world.appendChild(renderEdges(edges, byproductEdges, reuseEdges, worldWidth, worldHeight));
+  for (const { node, x, y, isByproduct, isHub, isReuse } of nodes) {
     const card = isByproduct ? renderByproductNode(node)
       : isHub ? renderRecipeHub(node, handlers)
+      : isReuse ? renderReuseMarker(node, handlers)
       : renderTreeNode(node, handlers);
     world.appendChild(positionNode(card, x, y, isHub));
   }
@@ -41,7 +43,7 @@ export function renderTreeInto(world, root, handlers) {
   return { width: worldWidth, height: worldHeight };
 }
 
-function renderEdges(edges, byproductEdges, width, height) {
+function renderEdges(edges, byproductEdges, reuseEdges, width, height) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('class', 'tree-edges');
   svg.setAttribute('width', width);
@@ -58,6 +60,13 @@ function renderEdges(edges, byproductEdges, width, height) {
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('class', 'tree-edge tree-edge--byproduct');
     path.setAttribute('d', byproductEdgePath(edge));
+    svg.appendChild(path);
+  }
+
+  for (const edge of reuseEdges) {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('class', 'tree-edge tree-edge--reuse');
+    path.setAttribute('d', reuseEdgePath(edge));
     svg.appendChild(path);
   }
 
@@ -93,6 +102,20 @@ function byproductEdgePath({ from, to }) {
   const y2 = to.y + PADDING;
   const midX = (x1 + x2) / 2;
   return `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
+}
+
+// From a node's own card straight down to its reuse marker (see
+// buildTree.js's node.reuse / layoutTree.js's reuseSpots) - both share the
+// node's own column, unlike a byproduct's edge, so this is just a vertical
+// drop under the card's center rather than a left-to-right bezier. It
+// deliberately never touches the recipe hub - the marker annotates this
+// node's own demand, not how this node itself gets made.
+function reuseEdgePath({ from, to }) {
+  const x = from.x + NODE_WIDTH / 2 + PADDING;
+  const y1 = from.y + PADDING;
+  const y2 = to.y + PADDING;
+  const midY = (y1 + y2) / 2;
+  return `M ${x} ${y1} C ${x} ${midY}, ${x} ${midY}, ${x} ${y2}`;
 }
 
 // Item/byproduct cards are left-edge-anchored (their stored x *is* the left

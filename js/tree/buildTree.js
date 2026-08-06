@@ -21,7 +21,23 @@ import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
 // proliferation: Map<path, {mode, level}> - per-node proliferation settings
 //                (see treeView.js). Only `mode: 'yield'` feeds into the
 //                quantity math here - see applyYield below for why.
-export function buildTree(rootItemId, qty, registries, { choices = new Map(), overrides = new Map(), proliferation = new Map() } = {}) {
+// reuseDeltas:   Map<path, {qty, available, on, warning}> - how much of this
+//                ingredient position's demand is being covered by a byproduct
+//                elsewhere in the tree (see reuseAllocation.js). Computed
+//                from a first, reuse-free build of the same tree - treeView.js
+//                does that two-pass dance, this function only ever consumes
+//                the result. `on: false` entries still carry a `qty` (so the
+//                marker can re-offer it) but never actually reduce anything.
+// reuseConsumed: Map<path, Map<itemId, qty>> - the mirror image of
+//                reuseDeltas, keyed by the *producing* node's path instead -
+//                how much of each byproduct that node makes has been claimed
+//                by some reuseDelta elsewhere. Purely annotation (see
+//                node.byproducts below); the qty math above already accounts
+//                for it via reuseDeltas.
+export function buildTree(rootItemId, qty, registries, {
+  choices = new Map(), overrides = new Map(), proliferation = new Map(),
+  reuseDeltas = new Map(), reuseConsumed = new Map(),
+} = {}) {
   return buildNode({
     itemId: rootItemId,
     qty,
@@ -32,10 +48,12 @@ export function buildTree(rootItemId, qty, registries, { choices = new Map(), ov
     choices,
     overrides,
     proliferation,
+    reuseDeltas,
+    reuseConsumed,
   });
 }
 
-function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, overrides, proliferation, qtyBeforeYield }) {
+function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, overrides, proliferation, reuseDeltas, reuseConsumed, qtyBeforeYield }) {
   const object = registries.objects.get(itemId);
   const recipeOptions = registries.recipes.byResultItem.get(itemId) ?? [];
   const isLeaf = recipeOptions.length === 0;
@@ -60,6 +78,12 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
     isCollapsed: false,
     children: [],
     byproducts: [],
+    // How much of *this* ingredient position's demand is covered by a
+    // byproduct elsewhere in the tree - null when nothing matched. Purely
+    // display metadata (see reuseMarker.js): the qty above has already had
+    // it subtracted, by the parent's ingredient loop, before this node was
+    // ever built - see the childQty computation below.
+    reuse: reuseDeltas.get(path) ?? null,
   };
 
   if (isLeaf) return node;
@@ -102,17 +126,30 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
   // Anything else this recipe outputs besides the item we asked for - e.g.
   // Energetic Graphite's Refining recipe also spits out surplus Hydrogen.
   // Purely informational (see treeNode.js) - not part of the tree proper.
+  // reusedQty (this node's own path is the "producer" side of
+  // reuseConsumed - see reuseAllocation.js) never changes the qty actually
+  // produced, just how much of it is annotated as spoken for elsewhere.
+  const consumedHere = reuseConsumed.get(path);
   node.byproducts = Object.entries(node.recipe.result)
     .filter(([resultId]) => resultId !== itemId)
     .map(([resultId, resultQty]) => ({
       itemId: resultId,
       object: registries.objects.get(resultId),
       qty: resultQty * scale,
+      reusedQty: consumedHere?.get(resultId) ?? 0,
     }));
 
   for (const [ingredientId, ingredientQty] of Object.entries(node.recipe.ingredients)) {
     const childPath = `${path}>${ingredientId}`;
-    const childQty = ingredientQty * yieldScale;
+    // A reuseDelta reduces this ingredient position's actual demand before
+    // anything downstream ever sees it - the single insertion point that
+    // gives both "collapsed: shrinks raw-material demand" and "expanded:
+    // shrinks the recipe scale" for free, since both read this same qty.
+    // Only ever the *applied* qty (already clamped to what's actually
+    // available - see reuseAllocation.js), never negative.
+    const reuseDelta = reuseDeltas.get(childPath);
+    const reusedQty = reuseDelta?.on ? reuseDelta.qty : 0;
+    const childQty = Math.max(0, ingredientQty * yieldScale - reusedQty);
     // Only worth showing "reduced from X" when yield actually shrank it -
     // an untouched node (yieldMultiplier === 1) has nothing to annotate.
     const childQtyBeforeYield = yieldMultiplier > 1 ? ingredientQty * scale : undefined;
@@ -136,6 +173,7 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
         isCollapsed: false,
         children: [],
         byproducts: [],
+        reuse: reuseDeltas.get(childPath) ?? null,
       });
       continue;
     }
@@ -151,6 +189,8 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
       choices,
       overrides,
       proliferation,
+      reuseDeltas,
+      reuseConsumed,
     }));
   }
 

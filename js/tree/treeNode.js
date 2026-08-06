@@ -294,6 +294,18 @@ export function renderByproductNode(byproduct) {
   qty.className = 'tree-node-qty';
   qty.textContent = `+${formatQty(byproduct.qty)} byproduct`;
 
+  // How much of this byproduct is already spoken for by a reuse link
+  // elsewhere in the tree (see buildTree.js's reusedQty / reuseMarker.js) -
+  // full production is still shown above, this just annotates that some of
+  // it isn't actually surplus.
+  if (byproduct.reusedQty > 0) {
+    const reused = document.createElement('span');
+    reused.className = 'tree-node-qty-reused';
+    reused.textContent = ` (${formatQty(byproduct.reusedQty)} reused)`;
+    qty.title = `${formatQty(byproduct.reusedQty)} of this is being reused elsewhere in the tree, leaving ${formatQty(byproduct.qty - byproduct.reusedQty)} as actual leftover.`;
+    qty.appendChild(reused);
+  }
+
   info.append(name, qty);
   el.append(icon, info);
   return el;

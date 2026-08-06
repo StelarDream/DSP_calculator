@@ -45,7 +45,13 @@ export function summarizeTree(root) {
     }
 
     for (const byproduct of node.byproducts) {
-      leftoverEntry(byproduct.itemId, byproduct.object).qty += byproduct.qty;
+      // reusedQty (see buildTree.js) is the portion already claimed by a
+      // reuse link elsewhere in the tree - it left `needed` there (the
+      // linked demand's own qty was reduced before this walk ever saw it),
+      // so it has to leave `leftover` here too, or it'd read as "free"
+      // surplus in both directions at once.
+      const qty = byproduct.qty - (byproduct.reusedQty ?? 0);
+      if (qty > 0) leftoverEntry(byproduct.itemId, byproduct.object).qty += qty;
     }
     for (const child of node.children) {
       walk(child);
