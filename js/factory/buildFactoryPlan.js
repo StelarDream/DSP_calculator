@@ -30,7 +30,10 @@ export function buildFactoryPlan(root, proliferation) {
   const lines = new Map(); // key -> line
 
   function walk(node) {
-    const runsRecipe = node.recipe && !node.isCollapsed && !node.needsChoice && !node.isCycle && !node.isLeaf;
+    // isFullySupplied (see buildTree.js) means this node's entire demand is
+    // manually reused from leftover elsewhere - nothing actually crafts
+    // here, same reasoning as skipping a collapsed/leaf node.
+    const runsRecipe = node.recipe && !node.isCollapsed && !node.needsChoice && !node.isCycle && !node.isLeaf && !node.isFullySupplied;
 
     if (runsRecipe) {
       const { mode, level } = proliferation.get(node.path) ?? {};
@@ -87,10 +90,14 @@ export function linePrimaryItemId(line) {
 // How many crafts of node.recipe this single node represents, in the same
 // per-root-unit ratio terms as node.qty - the inverse of buildTree's own
 // `yieldScale` for this node (not stored on the node, so recomputed here).
+// Uses producedQty (qty minus whatever's manually reused from leftover -
+// see buildTree.js's suppliedFromLeftover), not the raw qty, so a partially
+// reused node's machine count reflects only what it's actually producing.
 function craftsForNode(node, mode, level) {
+  const producedQty = node.qty - (node.suppliedFromLeftover ?? 0);
   const outputQty = node.recipe.result[node.itemId] ?? 1;
   const yieldMultiplier = getYieldMultiplier(node.recipe, mode, level);
-  return node.qty / (outputQty * yieldMultiplier);
+  return producedQty / (outputQty * yieldMultiplier);
 }
 
 // mode/level default to null so "never set" and "explicitly cleared" (both

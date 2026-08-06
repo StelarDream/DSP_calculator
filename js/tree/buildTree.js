@@ -21,21 +21,62 @@ import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
 // proliferation: Map<path, {mode, level}> - per-node proliferation settings
 //                (see treeView.js). Only `mode: 'yield'` feeds into the
 //                quantity math here - see applyYield below for why.
-export function buildTree(rootItemId, qty, registries, { choices = new Map(), overrides = new Map(), proliferation = new Map() } = {}) {
+// reuseOverrides: Map<path, number>   - how much of an expanded node's
+//                demand is being manually supplied from leftover elsewhere
+//                in the tree instead of actually produced (see treeView.js's
+//                reuse hub/"Just reuse" choice card and js/tree/reusePool.js).
+//                Deliberately opt-in and per-node, not automatic - see
+//                memory: factory-view-plan for why automatic byproduct
+//                netting got ruled out. Consulted *before* a recipe is even
+//                resolved (see buildNode below) - full coverage means no
+//                recipe is needed at all, not just "not crafted." A stale
+//                entry for a leaf/collapsed path is harmless, same as a
+//                stale `choices`/`overrides` entry.
+// recycleOverrides: Map<cyclePath, number> - how much of a cycle-guard
+//                node's demand (see the ancestors.has() branch below) is
+//                being manually recycled from its own ancestor's output
+//                instead of counted as raw external demand - the "feed a
+//                cut of the output straight back into the machine" cycle
+//                controls (see treeNode.js's renderCycleNode). Unlike
+//                reuseOverrides, this doesn't reduce anything - it *adds*:
+//                the recycled amount has to come from *more* of the
+//                ancestor's own output, so buildTree.js can't apply this
+//                inline while building (the ancestor's qty is already
+//                fixed by the time its descendant's cycle node is reached).
+//                See qtyBoosts below and js/tree/cycleRecycle.js for how
+//                it actually gets applied, two builds later.
+// qtyBoosts:     Map<path, number> - extra qty added on top of whatever a
+//                node's own parent already asked for, from recycleOverrides
+//                above (see cycleRecycle.js's computeCycleBoosts, called
+//                between builds in treeView.js - this only *applies* a
+//                boost already computed from a previous build, it doesn't
+//                compute one itself).
+export function buildTree(rootItemId, qty, registries, { choices = new Map(), overrides = new Map(), proliferation = new Map(), reuseOverrides = new Map(), recycleOverrides = new Map(), qtyBoosts = new Map() } = {}) {
   return buildNode({
     itemId: rootItemId,
     qty,
     path: rootItemId,
     depth: 0,
     ancestors: new Set([rootItemId]),
+    ancestorPaths: new Map([[rootItemId, rootItemId]]),
     registries,
     choices,
     overrides,
     proliferation,
+    reuseOverrides,
+    recycleOverrides,
+    qtyBoosts,
   });
 }
 
-function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, overrides, proliferation, qtyBeforeYield }) {
+function buildNode({ itemId, qty: rawQty, path, depth, ancestors, ancestorPaths, registries, choices, overrides, proliferation, reuseOverrides, recycleOverrides, qtyBoosts, qtyBeforeYield }) {
+  // A cycle recycling back into this node (see below) adds to what it has
+  // to produce - same reasoning as suppliedFromLeftover subtracting, just
+  // the opposite direction. Folded in before anything else touches `qty`
+  // so every downstream computation (recipe scale, children, byproducts,
+  // the card's own displayed qty) already reflects the larger total.
+  const boost = qtyBoosts.get(path) ?? 0;
+  const qty = rawQty + boost;
   const object = registries.objects.get(itemId);
   const recipeOptions = registries.recipes.byResultItem.get(itemId) ?? [];
   const isLeaf = recipeOptions.length === 0;
@@ -50,6 +91,11 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
     // treeNode.js's display of it. Undefined (not just equal to qty) is
     // the "nothing to show" case, not zero savings.
     qtyBeforeYield,
+    // Set (to a positive number) only once a descendant cycle node is
+    // recycling some of this node's own output back into itself - see
+    // qtyBoosts above and cycleRecycle.js. `qty` already includes it (this
+    // is purely for treeNode.js to annotate where the extra came from).
+    qtyBoost: boost > 0 ? boost : undefined,
     depth,
     isLeaf,
     isCycle: false,
@@ -58,6 +104,15 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
     recipeOptions,
     recipe: null,
     isCollapsed: false,
+    // Set (to a positive number) only once this node's recipe is resolved
+    // and a reuse override actually applies - see suppliedFromLeftover below.
+    suppliedFromLeftover: undefined,
+    // True when reuse covers the node's *entire* demand, computed before a
+    // recipe would even be resolved (see below) - no recipe, no children,
+    // no byproducts, zero crafts. layoutTree.js still gives it a reuse hub
+    // to adjust/clear the amount later, just no recipe hub (nothing's
+    // being produced to show one for).
+    isFullySupplied: false,
     children: [],
     byproducts: [],
   };
@@ -70,6 +125,28 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
     return node;
   }
 
+  // How much of this node's demand is being manually supplied from leftover
+  // elsewhere in the tree instead of actually produced - clamped to `qty`
+  // (can't reuse more than this node even needs). Computed *before* even
+  // looking at recipeOptions/choices: if reuse alone covers everything,
+  // no recipe is needed at all - not just "not crafted," genuinely never
+  // resolved, so a still-ambiguous multi-recipe item doesn't force a
+  // choice nobody needs to make (see the needsChoice branch below, and
+  // treeView.js's "Just reuse" choice card, which is what actually sets
+  // this before a recipe would otherwise have been picked).
+  const requestedReuse = reuseOverrides.get(path) ?? 0;
+  const suppliedFromLeftover = Math.min(Math.max(requestedReuse, 0), qty);
+  if (suppliedFromLeftover > 0) node.suppliedFromLeftover = suppliedFromLeftover;
+  const producedQty = qty - suppliedFromLeftover;
+
+  if (producedQty <= 0) {
+    node.isFullySupplied = true;
+    return node;
+  }
+
+  // Still need to actually produce `producedQty` - resolve a recipe as
+  // usual, scoped to just that remainder (reuse above already covered the
+  // rest, so it's not part of what needs crafting).
   const chosen = recipeOptions.find((r) => r.id === choices.get(path));
   if (!chosen && recipeOptions.length > 1) {
     // More than one way to make this and nothing picked yet - surface the
@@ -81,12 +158,21 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
   }
 
   node.recipe = chosen ?? recipeOptions[0];
+  // True when nothing was actually *picked* here - a single-option node
+  // defaulting to its only recipe, not a real decision. Lets
+  // reusePool.js's injectReuseChoices tell "genuinely nothing to choose"
+  // apart from "technically one recipe, but reuse turned out to be an
+  // option too" - see its own comment for why that distinction needs the
+  // finished tree and can't be made here.
+  node.autoResolved = !chosen;
 
-  // Ratio of each ingredient to *one* craft, scaled by how many of this
-  // item's own output the parent actually needs - a recipe that yields 2
-  // per craft only needs half as many ingredient crafts per unit.
+  // Ratio of each ingredient to *one* craft, scaled by how much of this
+  // item's own output actually still needs producing - a recipe that
+  // yields 2 per craft only needs half as many ingredient crafts per unit,
+  // and any qty already covered by reuse above doesn't need crafting at
+  // all.
   const outputQty = node.recipe.result[itemId] ?? 1;
-  const scale = qty / outputQty;
+  const scale = producedQty / outputQty;
 
   // Extra Yield boosts every result of a craft (main product *and* any
   // byproduct) by the same multiplier, so it doesn't change how much
@@ -97,7 +183,7 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
   // keep using the plain `scale` above, and only ingredients use
   // `yieldScale` below.
   const yieldMultiplier = applyYield(node.recipe, path, proliferation);
-  const yieldScale = qty / (outputQty * yieldMultiplier);
+  const yieldScale = producedQty / (outputQty * yieldMultiplier);
 
   // Anything else this recipe outputs besides the item we asked for - e.g.
   // Energetic Graphite's Refining recipe also spits out surplus Hydrogen.
@@ -119,7 +205,12 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
 
     if (ancestors.has(ingredientId)) {
       // Recipe loops back onto one of its own ancestors (e.g. a byproduct
-      // feeding back in) - stop here rather than recursing forever.
+      // feeding back in) - stop here rather than recursing forever. Left
+      // as plain external demand by default (recycledQty undefined), same
+      // as any other leaf - see recycleOverrides above for the opt-in that
+      // changes that.
+      const requestedRecycle = recycleOverrides.get(childPath) ?? 0;
+      const recycledQty = Math.min(Math.max(requestedRecycle, 0), childQty);
       node.children.push({
         path: childPath,
         itemId: ingredientId,
@@ -134,6 +225,11 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
         recipeOptions: [],
         recipe: null,
         isCollapsed: false,
+        // Which ancestor this loops back onto - the one whose output a
+        // recycle override actually feeds back into (see cycleRecycle.js's
+        // computeCycleBoosts, which reads this to know whose qty to grow).
+        ancestorPath: ancestorPaths.get(ingredientId),
+        recycledQty: recycledQty > 0 ? recycledQty : undefined,
         children: [],
         byproducts: [],
       });
@@ -147,10 +243,14 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
       path: childPath,
       depth: depth + 1,
       ancestors: new Set([...ancestors, ingredientId]),
+      ancestorPaths: new Map([...ancestorPaths, [ingredientId, childPath]]),
       registries,
       choices,
       overrides,
       proliferation,
+      reuseOverrides,
+      recycleOverrides,
+      qtyBoosts,
     }));
   }
 
@@ -173,7 +273,11 @@ function applyYield(recipe, path, proliferation) {
 // parentPath is what onChoose(parentPath, recipe.id) records the pick under.
 // ingredientIcons is precomputed here (rather than left to the renderer)
 // since resolving item icons is what buildTree already has registries for.
-function buildChoiceNode(recipe, itemId, parentPath, depth, registries) {
+// Exported for reusePool.js's injectReuseChoices, which needs to build one
+// of these standalone - retroactively turning a single-option node's
+// silent auto-resolve into a real choice once reuse turns out to be an
+// alternative (see buildTree.js's own autoResolved flag).
+export function buildChoiceNode(recipe, itemId, parentPath, depth, registries) {
   return {
     path: `${parentPath}»${recipe.id}`,
     parentPath,

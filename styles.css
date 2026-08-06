@@ -61,6 +61,15 @@
   --danger: #ff6b6b;
   --danger-dim: rgba(255, 107, 107, 0.1);
   --danger-border: rgba(255, 107, 107, 0.35);
+
+  /* A closed cycle (see .tree-node--cycle-active) is the one place in the
+     tree that reads as "actively feeding back in" rather than "produced,"
+     "reused," or "needs a decision" - none of the existing tones (cyan
+     primary, yellow secondary, red danger) were free for that, so this is
+     the one genuinely new color in the palette. */
+  --success: #7ee08a;
+  --success-dim: rgba(126, 224, 138, 0.1);
+  --success-border: rgba(126, 224, 138, 0.4);
 }
 
 * {
@@ -1290,8 +1299,157 @@ body {
   border-style: dashed;
 }
 
+/* Yellow while the loop's just stopped-and-left-open (default), green once
+   some of it is actually being recycled back in (see treeNode.js's
+   renderCycleNode, buildTree.js's recycledQty) - a glance at the border
+   tells you which cycles in a tree are closed vs. just raw demand. */
 .tree-node--cycle {
   border-color: var(--secondary-border);
+}
+
+.tree-node--cycle-active {
+  border-color: var(--success-border);
+}
+
+/* A recycle request that never actually settled - see cycleRecycle.js's
+   divergingPaths - reverted to raw demand rather than an arbitrary
+   partial number, and flagged red rather than green so it doesn't read as
+   "successfully closed" at a glance. Wins over --cycle-active (comes
+   after it, and treeNode.js only ever applies one of the two anyway). */
+.tree-node--cycle-diverged {
+  border-color: var(--danger-border);
+}
+
+.tree-node--cycle-menu-open {
+  z-index: 10;
+}
+
+/* The recycle button - a floating corner badge, same placement convention
+   as .tree-node-edit (top-right, outside the card's own flow) since a
+   cycle node has no hub of its own to host it on. */
+.tree-node-recycle {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 20px;
+  padding: 0 6px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  z-index: 1;
+}
+
+.tree-node-recycle svg {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+}
+
+.tree-node-recycle:hover {
+  color: var(--success);
+  border-color: var(--success-border);
+}
+
+.tree-node-recycle--active {
+  color: var(--success);
+  background: var(--success-dim);
+  border-color: var(--success-border);
+}
+
+.tree-node-recycle--diverged {
+  color: var(--danger);
+  background: var(--danger-dim);
+  border-color: var(--danger-border);
+}
+
+.tree-node-recycle-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+/* Recycle popover - same positioning convention as .tree-node-reuse-menu
+   (nested inside the card so it inherits the tree's pan/zoom transform),
+   hanging off the corner badge rather than centered under the card since
+   that's where the badge itself sits. */
+.tree-node-recycle-menu {
+  position: absolute;
+  bottom: 100%;
+  right: -8px;
+  margin-bottom: 6px;
+  width: 200px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+}
+
+.tree-node-recycle-hint {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.tree-node-recycle-row {
+  display: flex;
+  gap: 6px;
+}
+
+.tree-node-recycle-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.tree-node-recycle-btn {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.tree-node-recycle-btn:hover {
+  border-color: var(--success-border);
+  color: var(--success);
+}
+
+.tree-node-recycle-btn--clear:hover {
+  border-color: var(--danger-border);
+  color: var(--danger);
+}
+
+/* The "(+3 recycled back in)" note on an ancestor's own qty (see
+   treeNode.js) - same dim/smaller treatment as .tree-node-qty-yield, green
+   to match the cycle node that caused it. */
+.tree-node-qty-recycle {
+  color: var(--success);
+}
+
+/* The "(loop can't close)" note on an ancestor's own qty (see treeNode.js)
+   - same treatment as .tree-node-qty-recycle above, danger-tinted to match
+   the diverged cycle node that caused it. */
+.tree-node-qty-diverged {
+  color: var(--danger);
 }
 
 .tree-node--expandable {
@@ -1317,6 +1475,36 @@ body {
 
 .tree-node--choice .tree-node-name {
   color: var(--secondary);
+}
+
+/* "Just reuse" - the extra choice card injectReuseChoices adds alongside
+   the real recipe options (see reusePool.js, treeNode.js's
+   renderReuseChoiceNode). Primary-tinted like the reuse hub/button
+   elsewhere, overriding the plain choice card's secondary (yellow) tint
+   above so it reads as "the reuse path" rather than just another recipe. */
+.tree-node--reuse-choice {
+  background: var(--primary-dim);
+  border-color: var(--primary-border);
+}
+
+.tree-node--reuse-choice:hover {
+  border-color: var(--primary);
+}
+
+.tree-node--reuse-choice .tree-node-name {
+  color: var(--primary);
+}
+
+.tree-node-reuse-choice-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+}
+
+.tree-node-reuse-choice-icon svg {
+  width: 22px;
+  height: 22px;
 }
 
 /* Extra output from a node's recipe, shown alongside it rather than as a
@@ -1661,6 +1849,175 @@ body {
   background: var(--bg-elevated);
   border-color: var(--danger);
   color: var(--danger);
+}
+
+/* The reuse hub - "supply from leftover" (see treeNode.js's renderReuseHub,
+   layoutTree.js's _hasReuseHub). A separate box stacked directly above the
+   recipe hub, not a button folded into it - same shape/shadow convention
+   as .recipe-hub so it visually reads as "another hub," just smaller since
+   its only content is the one icon button (plus its popover, absolutely
+   positioned off of it the same way .tree-node-prolif-menu hangs off
+   .recipe-hub). */
+.reuse-hub {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+}
+
+/* Same reasoning as .recipe-hub--menu-open - own stacking context, bumped
+   above neighbors while its popover is open. */
+.reuse-hub--menu-open {
+  z-index: 10;
+}
+
+/* The reuse hub's one button - a plain icon button, tinted only once a
+   reuse is actually active. */
+.tree-node-reuse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 4px 6px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.tree-node-reuse svg {
+  width: 15px;
+  height: 15px;
+}
+
+.tree-node-reuse:hover {
+  color: var(--primary);
+  background: var(--bg-panel);
+}
+
+.tree-node-reuse--active {
+  color: var(--primary);
+  background: var(--primary-dim);
+}
+
+/* The reused amount - lives on the reuse button itself now (see
+   treeNode.js; used to be a note appended to the item card's own qty),
+   right beside the icon so the one control that changes the number is
+   also the one place it's displayed. */
+.tree-node-reuse-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+/* Reuse popover - same shape/positioning convention as
+   .tree-node-prolif-menu (nested in the hub, so it inherits the tree's
+   pan/zoom transform), just narrower since its content is a single input
+   row instead of two button rows. */
+.tree-node-reuse-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  margin-bottom: 6px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+}
+
+.tree-node-reuse-availability {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.tree-node-reuse-row {
+  display: flex;
+  gap: 6px;
+}
+
+.tree-node-reuse-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.tree-node-reuse-input:disabled {
+  opacity: 0.5;
+}
+
+.tree-node-reuse-btn {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.tree-node-reuse-btn:hover:not(:disabled) {
+  border-color: var(--primary-border);
+  color: var(--primary);
+}
+
+.tree-node-reuse-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.tree-node-reuse-btn--clear:hover {
+  border-color: var(--danger-border);
+  color: var(--danger);
+}
+
+/* The choice hub - stands in for a resolved recipe's icon once a
+   needsChoice node has reuse engaged (see layoutTree.js's _hasChoiceHub,
+   treeNode.js's renderChoiceHub) - its real options branch out from here
+   as ordinary tree children, same as a resolved node's ingredients would.
+   Same box shape as .recipe-hub/.reuse-hub for visual consistency across
+   all three hub kinds, dashed like .tree-node--choice to read as "still
+   undecided" rather than a settled recipe. Purely decorative - no
+   button/hover state, since there's nothing to click here anymore. */
+.choice-hub {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  padding: 6px;
+  background: var(--bg-elevated);
+  border: 1px dashed var(--secondary-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+}
+
+.tree-node-choice-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--secondary);
+}
+
+.tree-node-choice-icon svg {
+  width: 22px;
+  height: 22px;
 }
 
 .detail-header {

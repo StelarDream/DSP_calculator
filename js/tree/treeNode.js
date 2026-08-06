@@ -1,13 +1,18 @@
 import { formatLabel } from '../ui/format.js';
-import { CHEVRON_ICON, EDIT_ICON, PROLIF_NONE_ICON } from '../ui/icons.js';
+import { CHEVRON_ICON, EDIT_ICON, PROLIF_NONE_ICON, REUSE_ICON, PENDING_ICON } from '../ui/icons.js';
 import { NODE_WIDTH, NODE_HEIGHT } from './constants.js';
 import { formatQty } from './formatQty.js';
 import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
 import { PROLIF_MODES, renderProlifModeRow, renderProlifLevelRow, modeLabel, levelLabel } from './proliferationPicker.js';
+import { renderReuseMenu } from './reusePicker.js';
+import { renderRecycleMenu } from './cyclePicker.js';
 
-// A single fixed-size card in the tree canvas. Three flavors:
+// A single fixed-size card in the tree canvas. Five flavors:
 //  - choice: "expand using this recipe" - see renderChoiceNode.
-//  - leaf/cycle: plain, non-interactive card.
+//  - reuse choice: "just reuse" - see renderReuseChoiceNode.
+//  - cycle: a loop back onto one of its own ancestors, with its own
+//    recycle control - see renderCycleNode.
+//  - leaf: plain, non-interactive card.
 //  - craftable: div[role="button"] with a chevron, toggling expand/collapse
 //    via handlers.onToggle(path, wasCollapsed) on click.
 // Everything about *how* a resolved node is made - the recipe/machine icon,
@@ -16,6 +21,8 @@ import { PROLIF_MODES, renderProlifModeRow, renderProlifLevelRow, modeLabel, lev
 // treeCanvas.js), keeping this card down to just "what" and "how much."
 export function renderTreeNode(node, handlers = {}) {
   if (node.isChoice) return renderChoiceNode(node, handlers.onChoose);
+  if (node.isReuseChoice) return renderReuseChoiceNode(node, handlers.onApplyReuse);
+  if (node.isCycle) return renderCycleNode(node, handlers);
 
   const { onToggle } = handlers;
   const expandable = !node.isLeaf && typeof onToggle === 'function';
@@ -23,7 +30,6 @@ export function renderTreeNode(node, handlers = {}) {
   const el = document.createElement('div');
   el.className = 'tree-node';
   if (node.isLeaf) el.classList.add('tree-node--leaf');
-  if (node.isCycle) el.classList.add('tree-node--cycle');
   el.style.width = `${NODE_WIDTH}px`;
   el.style.height = `${NODE_HEIGHT}px`;
 
@@ -68,6 +74,38 @@ export function renderTreeNode(node, handlers = {}) {
     yieldNote.textContent = ` | ×${formatQty(node.qtyBeforeYield)} -${formatQty(saved)}`;
     qty.title = `Extra Yield reduces this from ×${formatQty(node.qtyBeforeYield)} to ×${formatQty(node.qty)} (saves ×${formatQty(saved)})`;
     qty.appendChild(yieldNote);
+  }
+
+  // Deliberately *not* shown here (used to be) - see renderReuseHub's own
+  // badge instead. Keeping it there instead of duplicating it on the card
+  // means there's exactly one place a reused amount is displayed, right on
+  // the control that lets you change it.
+
+  // Set only once a descendant cycle node is recycling some of *this*
+  // node's own output back into itself - see buildTree.js's qtyBoost. This
+  // one stays on the card (unlike the reuse note above) since there's no
+  // single hub it belongs to instead: the control that caused it lives on
+  // a cycle node somewhere down this subtree, not anywhere on this card's
+  // own hub.
+  if (node.qtyBoost > 0) {
+    const recycleNote = document.createElement('span');
+    recycleNote.className = 'tree-node-qty-recycle';
+    recycleNote.textContent = ` (+${formatQty(node.qtyBoost)} recycled back in)`;
+    qty.title = `×${formatQty(node.qtyBoost)} of this is being fed back in from a cycle further down this subtree`;
+    qty.appendChild(recycleNote);
+  }
+
+  // Set when a cycle further down this subtree wanted to recycle into this
+  // node but never could (see cycleRecycle.js's divergingPaths) - the
+  // combined loop consumes 100%+ of what this node produces, so no finite
+  // amount of production ever nets positive. Reverted to raw un-recycled
+  // demand rather than showing a made-up "closed" number.
+  if (node.boostDiverged) {
+    const divergedNote = document.createElement('span');
+    divergedNote.className = 'tree-node-qty-diverged';
+    divergedNote.textContent = ' (loop can’t close)';
+    qty.title = 'A cycle further down this subtree recycles at least this whole node’s output back into itself - no amount of production ever nets positive, so recycling here was left off.';
+    qty.appendChild(divergedNote);
   }
 
   info.append(name, qty);
@@ -227,6 +265,92 @@ function renderProlifMenu(node, availableModes, openState, { onSetProlifMode, on
   return menu;
 }
 
+// The reuse hub - a separate box stacked directly above the recipe hub
+// (see layoutTree.js's _hasReuseHub/collect(), which reserves the row and
+// pushes the recipe hub down to make room), not folded into it. Kept as
+// its own hub rather than a button inside the recipe hub because it's a
+// genuinely different kind of input ("how much of this comes from
+// leftover" vs. "which recipe/proliferation") - only ever placed by
+// layoutTree.js once node._hasReuseHub is true, so it doesn't need to
+// re-derive that decision itself.
+export function renderReuseHub(node, handlers = {}) {
+  const { getReuseAvailability, openReuseMenu, onToggleReuseMenu, onApplyReuse, onClearReuse } = handlers;
+
+  const currentReuse = node.suppliedFromLeftover ?? 0;
+  const available = typeof getReuseAvailability === 'function' ? getReuseAvailability(node.itemId, node.path) : 0;
+  const menuOpen = openReuseMenu?.path === node.path;
+
+  const hub = document.createElement('div');
+  hub.className = 'reuse-hub';
+  if (menuOpen) hub.classList.add('reuse-hub--menu-open');
+
+  const reuse = document.createElement('button');
+  reuse.type = 'button';
+  reuse.className = 'tree-node-reuse';
+  if (currentReuse > 0) reuse.classList.add('tree-node-reuse--active');
+  reuse.title = currentReuse > 0
+    ? `Reusing ×${formatQty(currentReuse)} from leftover`
+    : 'Supply from leftover';
+  reuse.setAttribute('aria-label', reuse.title);
+  reuse.innerHTML = REUSE_ICON;
+  reuse.addEventListener('click', (event) => {
+    event.stopPropagation();
+    onToggleReuseMenu(node.path);
+  });
+
+  // The reused amount itself - moved here from the item card (a card used
+  // to append "(5 from leftover)" to its own qty) so there's exactly one
+  // place displaying it, right on the control that changes it. Only shown
+  // once there's actually a nonzero amount - an inactive reuse hub (offered
+  // because leftover's available, not yet used) shows just the icon.
+  if (currentReuse > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'tree-node-reuse-badge';
+    badge.textContent = `×${formatQty(currentReuse)}`;
+    reuse.appendChild(badge);
+  }
+
+  hub.appendChild(reuse);
+
+  if (menuOpen) {
+    hub.appendChild(renderReuseMenu(
+      { path: node.path, itemId: node.itemId, qty: node.qty, available, current: currentReuse },
+      {
+        onApply: (amount) => onApplyReuse(node.path, amount),
+        onClear: () => onClearReuse(node.path),
+      },
+    ));
+  }
+
+  return hub;
+}
+
+// The choice hub - stands in for a resolved recipe's icon whenever a
+// needsChoice node has already had reuse engaged (see layoutTree.js's
+// _hasChoiceHub): its real recipe options branch out from this hub as
+// actual tree children (see layoutTree.js's primaryHubPos routing),
+// exactly like a resolved node's ingredients would, just with a "still
+// undecided" pending-icon look instead of the recipe's own icon. Purely a
+// visual marker, not a toggle - the options are always right there as
+// siblings, nothing to expand/collapse. A first-ever view of a choice (no
+// reuse touched yet) never gets one at all; layoutTree.js routes those
+// options directly off the node itself instead, same as always - see
+// reusePool.js's injectReuseChoices for why "Just reuse" only shows up
+// then too, not here (this hub's sibling reuse hub already covers that
+// once reuse is engaged).
+export function renderChoiceHub() {
+  const hub = document.createElement('div');
+  hub.className = 'choice-hub';
+
+  const icon = document.createElement('span');
+  icon.className = 'tree-node-choice-icon';
+  icon.title = 'Recipe not chosen yet';
+  icon.innerHTML = PENDING_ICON;
+  hub.appendChild(icon);
+
+  return hub;
+}
+
 // One candidate recipe, shown in place of a craftable node's children when
 // it has more than one option and none has been picked yet - see
 // buildTree.js's needsChoice. Distinguished by recipe *type* + an icon
@@ -265,6 +389,137 @@ function renderChoiceNode(node, onChoose) {
 
   info.append(name, ingredients);
   el.append(icon, info);
+  return el;
+}
+
+// "Just reuse" - an extra option alongside the real recipe choices, only
+// present at all when reuseChoice.js's injectReuseChoices found leftover
+// to offer (see its module comment for why that's a separate pass over
+// the finished tree rather than something buildTree.js decides inline).
+// Picking it maxes out reuse for the whole node in one click - the exact
+// same effect as the reuse hub's own "Max" button (reuses onApplyReuse
+// directly, no separate handler) - which resolves the choice needsChoice
+// was blocking on *without* ever picking a recipe, as long as that's
+// enough to cover the demand. If it isn't (available < the node's own
+// qty), buildTree.js's next build still finds a genuine remainder to
+// produce and re-enters needsChoice for it - recipe still unpicked, this
+// card's own available number just smaller (or gone, if leftover's now
+// fully claimed elsewhere).
+function renderReuseChoiceNode(node, onApplyReuse) {
+  const el = document.createElement('button');
+  el.type = 'button';
+  el.className = 'tree-node tree-node--choice tree-node--reuse-choice';
+  el.style.width = `${NODE_WIDTH}px`;
+  el.style.height = `${NODE_HEIGHT}px`;
+  el.addEventListener('click', () => onApplyReuse?.(node.parentPath, node.available));
+
+  const icon = document.createElement('span');
+  icon.className = 'tree-node-icon tree-node-reuse-choice-icon';
+  icon.innerHTML = REUSE_ICON;
+
+  const info = document.createElement('div');
+  info.className = 'tree-node-info';
+
+  const name = document.createElement('span');
+  name.className = 'tree-node-name';
+  name.textContent = 'Just reuse';
+
+  const qty = document.createElement('span');
+  qty.className = 'tree-node-qty';
+  qty.textContent = `×${formatQty(node.available)} available`;
+
+  info.append(name, qty);
+  el.append(icon, info);
+  return el;
+}
+
+// A cycle guard - this ingredient loops back onto one of its own ancestors
+// (see buildTree.js's ancestors.has() branch), so instead of recursing
+// forever the tree stops here. First-class and interactive now, not just
+// a dead end: the small recycle button lets some of this demand be fed
+// back from the ancestor's own output instead of counted as raw external
+// need (see buildTree.js's recycledQty/qtyBoost, cycleRecycle.js) - "take
+// a cut of the output and feed it straight back into the machine," same
+// as it'd work in-game. Yellow border/dashed while nothing's recycled
+// (still just a stopped loop, same as before this existed), green once
+// recycledQty is set (see .tree-node--cycle-active in styles.css) - a
+// glance at the border tells you which cycles in a tree are actually
+// closed vs. just left open as raw demand. Red (recycleDiverged - see
+// cycleRecycle.js) if this specific recycle request never actually
+// settled: not "still open," a request that turned out unsatisfiable
+// (this loop, combined with whatever else recycles into the same
+// ancestor, would consume 100%+ of the ancestor's own output - no finite
+// production ever nets positive) and got reverted to raw demand instead.
+function renderCycleNode(node, handlers = {}) {
+  const { openRecycleMenu, onToggleRecycleMenu, onApplyRecycle, onClearRecycle } = handlers;
+
+  const current = node.recycledQty ?? 0;
+  const menuOpen = openRecycleMenu?.path === node.path;
+  const canRecycle = typeof onToggleRecycleMenu === 'function' && Boolean(node.ancestorPath);
+
+  const el = document.createElement('div');
+  el.className = 'tree-node tree-node--leaf tree-node--cycle';
+  if (current > 0) el.classList.add('tree-node--cycle-active');
+  if (node.recycleDiverged) el.classList.add('tree-node--cycle-diverged');
+  if (menuOpen) el.classList.add('tree-node--cycle-menu-open');
+  el.style.width = `${NODE_WIDTH}px`;
+  el.style.height = `${NODE_HEIGHT}px`;
+
+  const icon = document.createElement('img');
+  icon.className = 'tree-node-icon';
+  icon.src = node.object?.icon ?? '';
+  icon.alt = '';
+
+  const info = document.createElement('div');
+  info.className = 'tree-node-info';
+
+  const name = document.createElement('span');
+  name.className = 'tree-node-name';
+  name.textContent = formatLabel(node.itemId);
+
+  const qty = document.createElement('span');
+  qty.className = 'tree-node-qty';
+  qty.textContent = `×${formatQty(node.qty)}`;
+
+  info.append(name, qty);
+  el.append(icon, info);
+
+  if (canRecycle) {
+    const recycle = document.createElement('button');
+    recycle.type = 'button';
+    recycle.className = 'tree-node-recycle';
+    if (current > 0) recycle.classList.add('tree-node-recycle--active');
+    if (node.recycleDiverged) recycle.classList.add('tree-node-recycle--diverged');
+    recycle.title = node.recycleDiverged
+      ? 'This loop never settles - combined with whatever else recycles into the same output, it would consume all of it, forever. Reverted to raw demand.'
+      : current > 0
+        ? `Recycling ×${formatQty(current)} back from the output`
+        : 'Recycle from output';
+    recycle.setAttribute('aria-label', recycle.title);
+    recycle.innerHTML = REUSE_ICON;
+    if (current > 0) {
+      const badge = document.createElement('span');
+      badge.className = 'tree-node-recycle-badge';
+      badge.textContent = `×${formatQty(current)}`;
+      recycle.appendChild(badge);
+    }
+    recycle.addEventListener('click', (event) => {
+      event.stopPropagation();
+      onToggleRecycleMenu(node.path);
+    });
+    el.appendChild(recycle);
+
+    if (menuOpen) {
+      el.appendChild(renderRecycleMenu(
+        { path: node.path, qty: node.qty, current },
+        {
+          onApply: (amount) => onApplyRecycle(node.path, amount),
+          onClear: () => onClearRecycle(node.path),
+        },
+      ));
+    }
+  }
+
   return el;
 }
 

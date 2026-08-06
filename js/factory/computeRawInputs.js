@@ -20,10 +20,29 @@ import { computeLineRates } from './lineRates.js';
 // the raw tree, so it lines up with each card's own numbers - see memory:
 // factory-view-plan.
 //
-// rootItemId (the tree's own subject) is deliberately never counted as
-// supply - it's the plan's actual goal output, not leftover, even though
-// nothing else in the plan demands it as an ingredient.
-export function computeRawInputs(lines, registries, rootItemId) {
+// rootItemId (the tree's own subject) still nets normally against demand
+// for it elsewhere in the plan - see the leftover-only exclusion below for
+// why that's *not* the same as counting it as supply outright.
+//
+// reusedTotals (itemId -> ratePerSec, already scaled by the same
+// targetRate as `lines` - see reusePool.js's computeReusedTotals and
+// factoryView.js's own call to it): a fully/partially reused tree node
+// never becomes a line at all (buildFactoryPlan.js's runsRecipe skips
+// isFullySupplied nodes), so without this, Factory View has no way to
+// know a byproduct sitting in `leftover` is exactly what a demand entry
+// sitting in `needed` was explicitly linked to by the user's own reuse
+// pick - real, confirmed bug: a fully-reused Hydrogen/Antimatter pair
+// still showed the full ingredient rate in *both* Raw Inputs and Leftover
+// simultaneously, uncancelled, even though Tree View's own sidebar (which
+// does know about reuse) correctly showed neither. Treated as real supply
+// for netting purposes (added to primarySupply) and removed from leftover
+// by the same amount - not just subtracted from leftover the way
+// summarizeTree.js does it, because unlike Tree View (where a reused
+// node's demand never existed as an entry in the first place - see
+// isFullySupplied's early return there), Factory View's demand for it is
+// a fixed, unconditional recipe-ingredient figure that needs the credit
+// on the *supply* side to net down to zero.
+export function computeRawInputs(lines, registries, rootItemId, reusedTotals = new Map()) {
   const demandTotals = new Map(); // itemId -> demand
   const primarySupplyTotals = new Map(); // itemId -> supply from primary production only
   const leftoverTotals = new Map(); // itemId -> unconditional byproduct output
@@ -40,10 +59,9 @@ export function computeRawInputs(lines, registries, rootItemId) {
     }
 
     for (const { itemId, ratePerSec } of output) {
-      if (itemId === rootItemId) continue;
       if (line.targetedItems.has(itemId)) {
         addTo(primarySupplyTotals, itemId, ratePerSec);
-      } else {
+      } else if (itemId !== rootItemId) {
         addTo(leftoverTotals, itemId, ratePerSec);
       }
     }
@@ -52,7 +70,7 @@ export function computeRawInputs(lines, registries, rootItemId) {
   // Same "close enough to zero counts as fully netted" tolerance as
   // summarizeTree.js - floating-point scale chains rarely land exactly.
   const EPSILON = 1e-6;
-  const itemIds = new Set([...demandTotals.keys(), ...primarySupplyTotals.keys(), ...leftoverTotals.keys()]);
+  const itemIds = new Set([...demandTotals.keys(), ...primarySupplyTotals.keys(), ...leftoverTotals.keys(), ...reusedTotals.keys()]);
 
   const needed = [];
   const leftover = [];
@@ -60,15 +78,32 @@ export function computeRawInputs(lines, registries, rootItemId) {
   for (const itemId of itemIds) {
     const object = registries.objects.get(itemId);
     const demand = demandTotals.get(itemId) ?? 0;
-    const primarySupply = primarySupplyTotals.get(itemId) ?? 0;
+    // Explicitly-reused amounts count as real supply for netting purposes
+    // - see the module comment above for why this can't just subtract
+    // from leftover the way summarizeTree.js does it.
+    const primarySupply = (primarySupplyTotals.get(itemId) ?? 0) + (reusedTotals.get(itemId) ?? 0);
 
+    // Nets normally even for rootItemId now - a recycling cycle feeding
+    // some of the root's own output back into itself (see buildTree.js's
+    // qtyBoost/cycleRecycle.js) shows up here as ordinary self-demand
+    // against the root's own (now larger) output, same as any other
+    // ingredient. Confirmed real: before this fix, a fully-recycled
+    // self-loop still showed its full ingredient rate in Raw Inputs
+    // because the root's supply was never credited at all to net against.
     const neededRate = demand - primarySupply;
     if (neededRate > EPSILON) needed.push({ itemId, object, ratePerSec: neededRate });
 
     // Excess primary production (made more than anything currently wants)
-    // plus every bit of this item's byproduct output, unconditionally.
+    // plus every bit of this item's byproduct output, unconditionally -
+    // except for rootItemId's own surplus, which is the plan's intended
+    // goal output (already shown as "Output" on its own card), not
+    // unclaimed leftover, and except for whatever's been explicitly
+    // reused, which is claimed rather than left over (only suppressed
+    // here, never on the demand side above, so self-consumption/reuse
+    // still nets while genuine surplus still doesn't get mislabeled).
     const primarySurplus = Math.max(0, primarySupply - demand);
-    const leftoverRate = primarySurplus + (leftoverTotals.get(itemId) ?? 0);
+    const rawLeftover = Math.max(0, (leftoverTotals.get(itemId) ?? 0) - (reusedTotals.get(itemId) ?? 0));
+    const leftoverRate = (itemId === rootItemId ? 0 : primarySurplus) + rawLeftover;
     if (leftoverRate > EPSILON) leftover.push({ itemId, object, ratePerSec: leftoverRate });
   }
 

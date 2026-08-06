@@ -569,7 +569,7 @@
         "replicator": false,
         "proliferation": {
             "speed": true,
-            "yield": true
+            "yield": false
         },
         "icon": "reforming-refine"
     },
