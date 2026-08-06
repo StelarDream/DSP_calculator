@@ -20,9 +20,9 @@ import { computeLineRates } from './lineRates.js';
 // the raw tree, so it lines up with each card's own numbers - see memory:
 // factory-view-plan.
 //
-// rootItemId (the tree's own subject) is deliberately never counted as
-// supply - it's the plan's actual goal output, not leftover, even though
-// nothing else in the plan demands it as an ingredient.
+// rootItemId (the tree's own subject) still nets normally against demand
+// for it elsewhere in the plan - see the leftover-only exclusion below for
+// why that's *not* the same as counting it as supply outright.
 export function computeRawInputs(lines, registries, rootItemId) {
   const demandTotals = new Map(); // itemId -> demand
   const primarySupplyTotals = new Map(); // itemId -> supply from primary production only
@@ -40,10 +40,9 @@ export function computeRawInputs(lines, registries, rootItemId) {
     }
 
     for (const { itemId, ratePerSec } of output) {
-      if (itemId === rootItemId) continue;
       if (line.targetedItems.has(itemId)) {
         addTo(primarySupplyTotals, itemId, ratePerSec);
-      } else {
+      } else if (itemId !== rootItemId) {
         addTo(leftoverTotals, itemId, ratePerSec);
       }
     }
@@ -62,13 +61,25 @@ export function computeRawInputs(lines, registries, rootItemId) {
     const demand = demandTotals.get(itemId) ?? 0;
     const primarySupply = primarySupplyTotals.get(itemId) ?? 0;
 
+    // Nets normally even for rootItemId now - a recycling cycle feeding
+    // some of the root's own output back into itself (see buildTree.js's
+    // qtyBoost/cycleRecycle.js) shows up here as ordinary self-demand
+    // against the root's own (now larger) output, same as any other
+    // ingredient. Confirmed real: before this fix, a fully-recycled
+    // self-loop still showed its full ingredient rate in Raw Inputs
+    // because the root's supply was never credited at all to net against.
     const neededRate = demand - primarySupply;
     if (neededRate > EPSILON) needed.push({ itemId, object, ratePerSec: neededRate });
 
     // Excess primary production (made more than anything currently wants)
-    // plus every bit of this item's byproduct output, unconditionally.
+    // plus every bit of this item's byproduct output, unconditionally -
+    // except for rootItemId's own surplus, which is the plan's intended
+    // goal output (already shown as "Output" on its own card), not
+    // unclaimed leftover. Only suppressed here, never on the demand side
+    // above, so self-consumption still nets while genuine surplus still
+    // doesn't get mislabeled as leftover.
     const primarySurplus = Math.max(0, primarySupply - demand);
-    const leftoverRate = primarySurplus + (leftoverTotals.get(itemId) ?? 0);
+    const leftoverRate = (itemId === rootItemId ? 0 : primarySurplus) + (leftoverTotals.get(itemId) ?? 0);
     if (leftoverRate > EPSILON) leftover.push({ itemId, object, ratePerSec: leftoverRate });
   }
 
