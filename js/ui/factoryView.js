@@ -79,7 +79,7 @@ export function renderFactoryView(container, treeState, registries, onBack) {
       proliferation: treeState.proliferation,
       reuseOverrides: treeState.reuseOverrides,
       recycleOverrides: treeState.recycleOverrides,
-      declinedRecipes: treeState.declinedRecipes,
+      manualSupplyOverrides: treeState.manualSupplyOverrides,
     };
     const tree = buildTree(treeState.subjectId, 1, registries, options);
     return resolveCycleBoosts(

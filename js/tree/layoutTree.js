@@ -27,54 +27,76 @@ export function layoutTree(root) {
   function measure(node) {
     maxDepth = Math.max(maxDepth, node.depth);
 
-    // Recipe hub, choice hub, declined hub, and reuse hub - up to four
-    // independent slots, though recipe/choice/declined are mutually
-    // exclusive with each other (see collect() below):
+    // Recipe hub, choice hub, reuse hub, and manual-supply hub - up to four
+    // independent slots. Recipe/choice are mutually exclusive with each
+    // other; reuse/manual can each independently be present or absent
+    // alongside either of those (or alongside neither, on a fully-supplied
+    // node) - see collect() below for how all the present ones share the
+    // node's one reserved split row.
     //  - recipe hub: resolved to a recipe *and* has ingredients to connect
     //    it to. A choice pseudo-node (buildTree.js's buildChoiceNode)
     //    carries a `recipe` too but never gets one - no children of its
     //    own to connect it to.
-    //  - choice hub: a needsChoice node that's already had reuse engaged
-    //    (suppliedFromLeftover set) - once that's true, its real recipe
-    //    options branch out from this hub exactly like a resolved node's
-    //    ingredients would (see collect()'s children loop), just with a
-    //    "still undecided" look instead of the recipe's own icon. A
-    //    needsChoice node with reuse never touched has no hub at all -
-    //    its options are laid out directly as this node's own children,
-    //    same as before any of this existed (see reusePool.js's
-    //    injectReuseChoices for the "Just reuse" card offered only then).
-    //  - declined hub: the user explicitly opted out of crafting the
-    //    remainder (node.recipeDeclined - see buildTree.js, treeNode.js's
-    //    "Supply myself" choice card) - no children to route through
-    //    either, same shape as isFullySupplied below but for a partial
-    //    remainder instead of the whole demand.
-    //  - reuse hub: node's demand is (at least partly) covered by reuse -
-    //    producing the remainder (recipe hub present), fully covered
-    //    (isFullySupplied, no recipe resolved at all), still choosing a
-    //    recipe for the remainder (choice hub present), or declining to
-    //    produce the remainder at all (declined hub present).
+    //  - choice hub: a needsChoice node that's already had reuse and/or
+    //    manual supply engaged (suppliedFromLeftover or manualSupply set) -
+    //    once either's true, its real recipe options branch out from this
+    //    hub exactly like a resolved node's ingredients would (see
+    //    collect()'s children loop), just with a "still undecided" look
+    //    instead of the recipe's own icon. A needsChoice node with neither
+    //    touched has no hub at all - its options are laid out directly as
+    //    this node's own children, same as before any of this existed (see
+    //    reusePool.js's injectReuseChoices for the "Reuse leftover"/
+    //    "Supply myself" cards offered only then).
+    //  - reuse hub: how much of this node's demand is drawn from another
+    //    node's leftover byproduct output - only offered when there's
+    //    actually something to draw on (or already engaged), same pool-
+    //    gated condition it's always had.
+    //  - manual-supply hub: how much is brought in from outside the tree
+    //    entirely (see buildTree.js's manualSupplyOverrides) - no *pool*
+    //    to gate on the way reuse has, but there's still a real ceiling:
+    //    once reuse alone already covers this node's entire demand, there
+    //    is nothing left for manual supply to cover (buildNode would clamp
+    //    any request for it straight to 0 - see buildTree.js's `afterReuse`),
+    //    so the hub hides rather than sitting there offering an amount
+    //    that could never be anything but zero. Doesn't touch the recipe/
+    //    choice hub at all - that's still driven purely by whether there's
+    //    a genuine remainder left to craft, same as always, independent of
+    //    this hub's own visibility.
     node._hasRecipeHub = Boolean(node.recipe) && node.children.length > 0;
-    node._hasChoiceHub = node.needsChoice && node.suppliedFromLeftover > 0;
-    node._hasDeclinedHub = Boolean(node.recipeDeclined);
-    const reuseEligible = node._hasRecipeHub || node.isFullySupplied || node._hasChoiceHub || node._hasDeclinedHub;
+    node._hasChoiceHub = node.needsChoice && (node.suppliedFromLeftover > 0 || node.manualSupply > 0);
+    const reuseEligible = node._hasRecipeHub || node.isFullySupplied || node._hasChoiceHub;
     node._hasReuseHub = reuseEligible
       && (node.suppliedFromLeftover > 0 || reuseAvailability(root, node.itemId, node.path) > 0);
+    node._hasManualHub = reuseEligible && node.qty - (node.suppliedFromLeftover ?? 0) > 0;
 
-    // No extra row reserved for the reuse-hub half of a split, on purpose -
-    // it doesn't need one. collect()'s half-row split lands each hub
-    // exactly half a row off of centerY, and centerY itself is always
-    // derived from existing ROW_HEIGHT-spaced positions - so the split
-    // naturally lands on the same half-row grid the surrounding
-    // node/children/byproduct rows already occupy, no dedicated space to
-    // carve out. An earlier version *did* reserve +1 here, which seemed
-    // harmless until a byproduct (pinning the node's own row to the top of
-    // its block - see below) combined with 2+ children: the reservation
-    // inflated blockHeight, which skewed the children-centering `offset`
-    // below without moving the pinned node/byproduct rows to match,
-    // dragging the computed centerY - and both split hubs with it - about
-    // half a row lower than where the node and its ingredients actually
-    // sat. Confirmed by a user screenshot showing exactly that drift.
-    const ownRows = 1 + node.byproducts.length;
+    // Every present hub (primary + reuse + manual, up to 3) now sits a
+    // full row apart from its neighbors, centered on the node's own
+    // row-plus-byproducts extent (see collect()'s split below) - a user-
+    // reported fix after 3 hubs sharing the old half-row squeeze rendered
+    // as visibly cramped/overlapping. That needs real room reserved, not
+    // borrowed from whatever slack a neighboring block happens to have:
+    // `hubSlots` present hubs need `hubSlots` consecutive row-slots
+    // (`n` hubs spread a full ROW_HEIGHT apart span `n-1` row-heights,
+    // i.e. `n` row-slots), so this node's own reserved span has to be at
+    // least that tall too, not just tall enough for its own row plus
+    // byproducts. `_hubExtraPad` is how much of that (if any) sticks out
+    // past the byproduct span on *each* side - assign() below adds it to
+    // this node's own row so the hub stack's center still lands exactly
+    // on the node-plus-byproducts center, never drifting to one edge of
+    // the extra room. An earlier version instead reserved a flat +1 here
+    // for the old 2-hub case, which seemed harmless until a byproduct
+    // (pinning the node's own row to the top of its block - see below)
+    // combined with 2+ children: the reservation inflated blockHeight,
+    // which skewed the children-centering `offset` below without moving
+    // the pinned node/byproduct rows to match, dragging the computed
+    // centerY - and every split hub with it - lower than where the node
+    // and its ingredients actually sat. Confirmed by a user screenshot
+    // showing exactly that drift - `_hubExtraPad` exists specifically so
+    // growing the reservation this time moves the pinned row *with* it.
+    const hubSlots = (node._hasRecipeHub || node._hasChoiceHub ? 1 : 0) + (node._hasReuseHub ? 1 : 0) + (node._hasManualHub ? 1 : 0);
+    const baseSpan = 1 + node.byproducts.length;
+    const ownRows = Math.max(baseSpan, hubSlots);
+    node._hubExtraPad = Math.max(0, hubSlots - baseSpan) / 2;
     const childrenRows = node.children.reduce((sum, child) => sum + measure(child), 0);
     node._blockHeight = Math.max(ownRows, childrenRows);
     return node._blockHeight;
@@ -96,13 +118,26 @@ export function layoutTree(root) {
 
     let ownRow;
     if (node.byproducts.length > 0) {
-      ownRow = rowStart;
+      // + _hubExtraPad: leaves room above for however much the hub stack
+      // needs to overhang the byproduct span (see measure() above) - a
+      // no-op (adds 0) whenever the hubs already fit within it.
+      ownRow = rowStart + node._hubExtraPad;
       byproductSpots.set(node.path, node.byproducts.map((_, i) => ({ x, y: (ownRow + 1 + i) * ROW_HEIGHT })));
       maxRow = Math.max(maxRow, ownRow + node.byproducts.length);
     } else if (childOwnRows.length > 0) {
+      // Self-resolving: when the hub stack needs more room than a single
+      // row, node._blockHeight already grew to fit it (see measure()),
+      // which grows `offset` above and recenters the children within the
+      // taller block - so their own center (computed here) already lands
+      // on the middle of that block, exactly where the hub stack needs to
+      // be centered too. No separate _hubExtraPad step needed in this
+      // branch.
       ownRow = (childOwnRows[0] + childOwnRows[childOwnRows.length - 1]) / 2;
     } else {
-      ownRow = rowStart;
+      // No byproducts, no children (e.g. a fully-supplied leaf-like node
+      // with just its reuse/manual hubs) - same reasoning as the
+      // byproduct branch above, just with nothing else to anchor to.
+      ownRow = rowStart + node._hubExtraPad;
     }
 
     maxRow = Math.max(maxRow, ownRow);
@@ -123,17 +158,14 @@ export function layoutTree(root) {
 
     const hasRecipeHub = node._hasRecipeHub;
     const hasChoiceHub = node._hasChoiceHub;
-    const hasDeclinedHub = node._hasDeclinedHub;
     const hasReuseHub = node._hasReuseHub;
+    const hasManualHub = node._hasManualHub;
     const spots = byproductSpots.get(node.path);
 
-    // The "primary" slot - recipe hub, choice hub, or declined hub,
-    // whichever applies (mutually exclusive: a node is resolved, still
-    // choosing, or has declined, never more than one at once). Recipe/
-    // choice hubs are junctions real children route through; the declined
-    // hub never has any children to route (same as isFullySupplied), it
-    // just needs the same primary-slot positioning the other two get.
-    const hasPrimaryHub = hasRecipeHub || hasChoiceHub || hasDeclinedHub;
+    // The "primary" slot - recipe hub or choice hub, whichever applies
+    // (mutually exclusive: a node is either resolved or isn't) - both are
+    // junctions real children route through, unlike the reuse/manual hubs.
+    const hasPrimaryHub = hasRecipeHub || hasChoiceHub;
 
     // Horizontally it's the true midpoint of the gap between this node's
     // column and the next - a hub's stored position is a *center* point
@@ -162,13 +194,12 @@ export function layoutTree(root) {
     //
     // Snapped to the nearest half-row *before* any split below: byproduct
     // rows are always whole-row multiples, but rounding guards against
-    // float drift the same half-row split below would otherwise carry
-    // straight through.
+    // float drift the split below would otherwise carry straight through.
     let hubPos = null;
     let choiceHubPos = null;
-    let declinedHubPos = null;
     let reuseHubPos = null;
-    if (hasPrimaryHub || hasReuseHub) {
+    let manualHubPos = null;
+    if (hasPrimaryHub || hasReuseHub || hasManualHub) {
       const ys = [pos.y];
       if (spots) ys.push(...spots.map((spot) => spot.y));
       const half = ROW_HEIGHT / 2;
@@ -176,28 +207,32 @@ export function layoutTree(root) {
       const centerY = Math.round(rawCenterY / half) * half;
       const x = pos.x + NODE_WIDTH + (COLUMN_WIDTH - NODE_WIDTH) / 2;
 
-      if (hasPrimaryHub && hasReuseHub) {
-        // Split the reserved row evenly around the point a lone primary
-        // hub would otherwise sit at - half a row up for the reuse hub,
-        // half a row down for the primary one - so they read as sharing
-        // the middle ground rather than one shoving the other out of the
-        // way.
-        reuseHubPos = { x, y: centerY - half };
-        const primaryPos = { x, y: centerY + half };
-        if (hasRecipeHub) hubPos = primaryPos;
-        else if (hasChoiceHub) choiceHubPos = primaryPos;
-        else declinedHubPos = primaryPos;
-      } else if (hasReuseHub) {
-        // isFullySupplied: no primary hub to share the point with, so the
-        // reuse hub takes it outright.
-        reuseHubPos = { x, y: centerY };
-      } else if (hasRecipeHub) {
-        hubPos = { x, y: centerY };
-      } else if (hasChoiceHub) {
-        choiceHubPos = { x, y: centerY };
-      } else {
-        declinedHubPos = { x, y: centerY };
-      }
+      // Whichever of the up-to-three slots are actually present this node,
+      // spread a full ROW_HEIGHT apart (one whole cell, not half) and
+      // centered on centerY - reuse above manual above primary (top to
+      // bottom), primary last since it's the "main" one and reads
+      // naturally at the bottom, closest to where a plain resolved node's
+      // hub would sit with neither side hub present at all. 1 slot lands
+      // dead-center; 2 lands at ±half a row (1 row apart from each
+      // other); 3 adds centerY itself as the middle slot, ±1 full row for
+      // the outer two - measure()/assign() above already grew this node's
+      // own reserved block to fit that full span, so this never has to
+      // borrow space from a neighboring block the way it would have on
+      // the tighter half-row spacing this replaced.
+      const order = [];
+      if (hasReuseHub) order.push('reuse');
+      if (hasManualHub) order.push('manual');
+      if (hasPrimaryHub) order.push('primary');
+
+      const n = order.length;
+      order.forEach((kind, i) => {
+        const y = centerY - ((n - 1) / 2) * ROW_HEIGHT + i * ROW_HEIGHT;
+        const slotPos = { x, y };
+        if (kind === 'reuse') reuseHubPos = slotPos;
+        else if (kind === 'manual') manualHubPos = slotPos;
+        else if (hasRecipeHub) hubPos = slotPos;
+        else choiceHubPos = slotPos;
+      });
 
       if (reuseHubPos) {
         nodes.push({ node, ...reuseHubPos, isReuseHub: true });
@@ -206,6 +241,11 @@ export function layoutTree(root) {
         // it's floating unattached to anything.
         edges.push({ from: pos, to: reuseHubPos });
         maxRow = Math.max(maxRow, reuseHubPos.y / ROW_HEIGHT);
+      }
+      if (manualHubPos) {
+        nodes.push({ node, ...manualHubPos, isManualHub: true });
+        edges.push({ from: pos, to: manualHubPos });
+        maxRow = Math.max(maxRow, manualHubPos.y / ROW_HEIGHT);
       }
       if (hubPos) {
         nodes.push({ node, ...hubPos, isHub: true });
@@ -216,11 +256,6 @@ export function layoutTree(root) {
         nodes.push({ node, ...choiceHubPos, isChoiceHub: true });
         edges.push({ from: pos, to: choiceHubPos });
         maxRow = Math.max(maxRow, choiceHubPos.y / ROW_HEIGHT);
-      }
-      if (declinedHubPos) {
-        nodes.push({ node, ...declinedHubPos, isDeclinedHub: true });
-        edges.push({ from: pos, to: declinedHubPos });
-        maxRow = Math.max(maxRow, declinedHubPos.y / ROW_HEIGHT);
       }
     }
 
@@ -241,7 +276,7 @@ export function layoutTree(root) {
       });
     }
 
-    const primaryHubPos = hubPos ?? choiceHubPos ?? declinedHubPos;
+    const primaryHubPos = hubPos ?? choiceHubPos;
     for (const child of node.children) {
       // Routed through the primary hub when there is one - fromIsHub tells
       // treeCanvas.js's edgePath not to offset by a full card width, since

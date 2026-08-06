@@ -51,18 +51,22 @@ import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
 //                between builds in treeView.js - this only *applies* a
 //                boost already computed from a previous build, it doesn't
 //                compute one itself).
-// declinedRecipes: Set<path> - nodes where the user explicitly opted out of
-//                crafting whatever's left after reuse, choosing to supply
-//                it externally instead (see treeNode.js's "Reuse leftover"/
-//                "Supply myself" choice cards, renderDeclinedHub). Checked
-//                *after* reuseOverrides above but *before* any recipe would
-//                be resolved - same "don't even ask" treatment full reuse
-//                coverage gets, just for the remainder instead of the whole
-//                demand. Unlike reuseOverrides, this doesn't reduce the
-//                node's own qty at all: buildNode still leaves it as
-//                external demand for summarizeTree.js/computeRawInputs.js to
-//                pick up, same as any other leaf.
-export function buildTree(rootItemId, qty, registries, { choices = new Map(), overrides = new Map(), proliferation = new Map(), reuseOverrides = new Map(), recycleOverrides = new Map(), qtyBoosts = new Map(), declinedRecipes = new Set() } = {}) {
+// manualSupplyOverrides: Map<path, number> - how much of an expanded node's
+//                demand the user is bringing in from *outside* the tree
+//                entirely (bought, stockpiled, mined by hand - not drawn
+//                from any in-tree leftover) instead of crafting it, on top
+//                of whatever reuseOverrides above already covers. See
+//                treeNode.js's "Supply myself" choice card and the reuse
+//                hub's own manual-supply row. Consulted right after
+//                reuseOverrides, same "before any recipe is even resolved"
+//                treatment - full coverage (reuse + manual together) still
+//                means no recipe is needed, just like reuse alone.
+//                Unlike reuseOverrides, this never reduces demand shown
+//                elsewhere (see summarizeTree.js) - it's not produced
+//                anywhere in the tree, so there's nothing to net it
+//                against; it just means the tool isn't the one telling you
+//                how to make it.
+export function buildTree(rootItemId, qty, registries, { choices = new Map(), overrides = new Map(), proliferation = new Map(), reuseOverrides = new Map(), recycleOverrides = new Map(), qtyBoosts = new Map(), manualSupplyOverrides = new Map() } = {}) {
   return buildNode({
     itemId: rootItemId,
     qty,
@@ -77,11 +81,11 @@ export function buildTree(rootItemId, qty, registries, { choices = new Map(), ov
     reuseOverrides,
     recycleOverrides,
     qtyBoosts,
-    declinedRecipes,
+    manualSupplyOverrides,
   });
 }
 
-function buildNode({ itemId, qty: rawQty, path, depth, ancestors, ancestorPaths, registries, choices, overrides, proliferation, reuseOverrides, recycleOverrides, qtyBoosts, declinedRecipes, qtyBeforeYield }) {
+function buildNode({ itemId, qty: rawQty, path, depth, ancestors, ancestorPaths, registries, choices, overrides, proliferation, reuseOverrides, recycleOverrides, qtyBoosts, manualSupplyOverrides, qtyBeforeYield }) {
   // A cycle recycling back into this node (see below) adds to what it has
   // to produce - same reasoning as suppliedFromLeftover subtracting, just
   // the opposite direction. Folded in before anything else touches `qty`
@@ -125,13 +129,12 @@ function buildNode({ itemId, qty: rawQty, path, depth, ancestors, ancestorPaths,
     // to adjust/clear the amount later, just no recipe hub (nothing's
     // being produced to show one for).
     isFullySupplied: false,
-    // True once the user's explicitly opted out of crafting whatever's
-    // left after reuse (see declinedRecipes above, renderDeclinedHub) -
-    // no recipe, no children, no byproducts, same shape as isFullySupplied
-    // except the leftover amount (if any) only covers *part* of qty, not
-    // all of it. summarizeTree.js/computeRawInputs.js pick up the
-    // remainder as ordinary external demand, same as any leaf.
-    recipeDeclined: false,
+    // Set (to a positive number) once some of this node's demand is being
+    // manually supplied from outside the tree entirely - see
+    // manualSupplyOverrides above. Stacks with suppliedFromLeftover (both
+    // can be nonzero at once); unlike it, never zeroes out demand in
+    // summarizeTree.js - see the module comment above for why.
+    manualSupply: undefined,
     children: [],
     byproducts: [],
   };
@@ -156,37 +159,40 @@ function buildNode({ itemId, qty: rawQty, path, depth, ancestors, ancestorPaths,
   const requestedReuse = reuseOverrides.get(path) ?? 0;
   const suppliedFromLeftover = Math.min(Math.max(requestedReuse, 0), qty);
   if (suppliedFromLeftover > 0) node.suppliedFromLeftover = suppliedFromLeftover;
-  const producedQty = qty - suppliedFromLeftover;
+  const afterReuse = qty - suppliedFromLeftover;
+
+  // Same idea, layered on top - how much more the user's bringing in from
+  // outside the tree entirely (see manualSupplyOverrides above), clamped to
+  // whatever reuse didn't already cover. Also resolved before any recipe
+  // lookup: reuse + manual together can still add up to full coverage with
+  // no recipe needed at all.
+  const requestedManual = manualSupplyOverrides.get(path) ?? 0;
+  const manualQty = Math.min(Math.max(requestedManual, 0), afterReuse);
+  if (manualQty > 0) node.manualSupply = manualQty;
+  const producedQty = afterReuse - manualQty;
 
   if (producedQty <= 0) {
     node.isFullySupplied = true;
     return node;
   }
 
-  // The user's already said they'll cover whatever's left themselves (see
-  // declinedRecipes above) - stop here same as isFullySupplied above,
-  // just leaving `producedQty` as genuine external demand instead of zero.
-  // Checked before the recipe lookup below so a decline sticks regardless
-  // of how many recipe options this item has.
-  if (declinedRecipes.has(path)) {
-    node.recipeDeclined = true;
-    return node;
-  }
-
   // Still need to actually produce `producedQty` - resolve a recipe as
-  // usual, scoped to just that remainder (reuse above already covered the
-  // rest, so it's not part of what needs crafting).
+  // usual, scoped to just that remainder (reuse/manual above already
+  // covered the rest, so it's not part of what needs crafting).
   const chosen = recipeOptions.find((r) => r.id === choices.get(path));
   if (!chosen && recipeOptions.length > 1) {
     // More than one way to make this and nothing picked yet - surface the
     // options as the node's "children" instead of guessing one. Resolves
     // into real ingredient children once onChoose records a pick, plus a
-    // "Supply myself" card (see buildDeclineChoiceNode) so leaving the
+    // "Supply myself" card (see buildManualChoiceNode) so leaving the
     // remainder as raw demand doesn't require picking a recipe you don't
-    // actually want just to get out of the choice.
+    // actually want just to get out of the choice. Skipped once either
+    // reuse or manual supply is already engaged for this node - from then
+    // on its own choice-hub-plus-reuse-hub combo (see layoutTree.js's
+    // _hasChoiceHub) is where both get adjusted, not this one-shot card.
     node.needsChoice = true;
     node.children = recipeOptions.map((recipe) => buildChoiceNode(recipe, itemId, path, depth, registries));
-    node.children.push(buildDeclineChoiceNode(node));
+    if (!node.suppliedFromLeftover && !node.manualSupply) node.children.push(buildManualChoiceNode(node, producedQty));
     return node;
   }
 
@@ -284,7 +290,7 @@ function buildNode({ itemId, qty: rawQty, path, depth, ancestors, ancestorPaths,
       reuseOverrides,
       recycleOverrides,
       qtyBoosts,
-      declinedRecipes,
+      manualSupplyOverrides,
     }));
   }
 
@@ -336,27 +342,33 @@ export function buildChoiceNode(recipe, itemId, parentPath, depth, registries) {
 }
 
 // A pseudo-node standing in for "supply this myself instead" - the
-// needsChoice sibling of buildChoiceNode's recipe cards, letting the
-// remainder after reuse be left as raw external demand without forcing a
-// recipe pick nobody wants (see the needsChoice branch above, and
-// reusePool.js's injectReuseChoices, which appends one of these to its own
-// retrofitted single-recipe-vs-reuse pair too). Distinct from
-// buildReuseChoiceNode (reusePool.js) - that one claims leftover from
-// elsewhere in the tree, this one claims nothing at all, just settles the
-// choice as "don't craft this."
-export function buildDeclineChoiceNode(node) {
+// needsChoice sibling of buildChoiceNode's recipe cards, letting some (or
+// all) of the remainder after reuse be brought in from outside the tree
+// without forcing a recipe pick nobody wants (see the needsChoice branch
+// above, and reusePool.js's injectReuseChoices, which appends one of these
+// to its own retrofitted single-recipe-vs-reuse pair too). Distinct from
+// buildReuseChoiceNode (reusePool.js) - that one claims leftover produced
+// elsewhere in the tree, this one claims nothing from the tree at all, an
+// arbitrary external amount up to `max` instead. Amount-based like the
+// reuse card (opens the same picker, see treeNode.js's
+// renderManualChoiceNode) rather than a single-click all-or-nothing
+// commit - `current` is always 0 here since this card is only ever offered
+// while neither reuse nor manual supply has been engaged yet (see the
+// caller's own guard).
+export function buildManualChoiceNode(node, max) {
   return {
-    path: `${node.path}»decline`,
+    path: `${node.path}»manual`,
     parentPath: node.path,
     itemId: node.itemId,
     object: node.object,
     qty: undefined,
+    parentQty: max,
     depth: node.depth + 1,
     isLeaf: true,
     isCycle: false,
     isChoice: false,
     isReuseChoice: false,
-    isDeclineChoice: true,
+    isManualChoice: true,
     needsChoice: false,
     recipeOptions: [],
     recipe: null,

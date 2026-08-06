@@ -93,11 +93,11 @@ function renderBody(subjectId, recipe, registries, initialState) {
   // cyclePath -> amount manually recycled back from a cycle's own ancestor
   // output - see buildTree.js's recycledQty and the cycle node below.
   const recycleOverrides = new Map(initialState?.recycleOverrides);
-  // Paths where the user explicitly declined to craft whatever reuse
-  // doesn't cover, leaving it as raw external demand instead - see
-  // buildTree.js's declinedRecipes/node.recipeDeclined and the declined
-  // hub below.
-  const declinedRecipes = new Set(initialState?.declinedRecipes);
+  // path -> amount manually supplied from outside the tree entirely (on
+  // top of whatever reuseOverrides above already covers) - see
+  // buildTree.js's manualSupplyOverrides/node.manualSupply and the reuse
+  // hub's "Supply myself" section below.
+  const manualSupplyOverrides = new Map(initialState?.manualSupplyOverrides);
   choices.set(subjectId, recipe.id);
 
   // Paths whose node has resolved to a recipe at least once - lets
@@ -142,13 +142,13 @@ function renderBody(subjectId, recipe, registries, initialState) {
   // pan/zoom transform survives.
   let size;
   function rerender() {
-    let tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation, reuseOverrides, recycleOverrides, qtyBoosts: cycleBoosts, declinedRecipes });
+    let tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation, reuseOverrides, recycleOverrides, qtyBoosts: cycleBoosts, manualSupplyOverrides });
     if (applyDefaultProliferation(tree)) {
       // Defaults just got stamped onto newly-resolved nodes - rebuild so
       // any Extra Yield among them is reflected in *this* render's
       // quantities too, not just their badges (buildTree.js reads
       // `proliferation` while computing qty - see its yield handling).
-      tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation, reuseOverrides, recycleOverrides, qtyBoosts: cycleBoosts, declinedRecipes });
+      tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation, reuseOverrides, recycleOverrides, qtyBoosts: cycleBoosts, manualSupplyOverrides });
     }
     // A cycle node's recycledQty (see buildTree.js) only tells its own
     // ancestor how much *more* to produce - it can't apply that growth to
@@ -157,7 +157,7 @@ function renderBody(subjectId, recipe, registries, initialState) {
     // the very demand recycledQty was clamped against too (see
     // cycleRecycle.js) - iterates until that stops moving.
     ({ tree, boosts: cycleBoosts } = resolveCycleBoosts(
-      (boosts) => buildTree(subjectId, 1, registries, { choices, overrides, proliferation, reuseOverrides, recycleOverrides, qtyBoosts: boosts, declinedRecipes }),
+      (boosts) => buildTree(subjectId, 1, registries, { choices, overrides, proliferation, reuseOverrides, recycleOverrides, qtyBoosts: boosts, manualSupplyOverrides }),
       tree,
       cycleBoosts,
     ));
@@ -172,7 +172,7 @@ function renderBody(subjectId, recipe, registries, initialState) {
     const reuseCorrections = clampOverallocatedReuse(tree);
     if (reuseCorrections.size > 0) {
       for (const [path, amount] of reuseCorrections) reuseOverrides.set(path, amount);
-      tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation, reuseOverrides, recycleOverrides, qtyBoosts: cycleBoosts, declinedRecipes });
+      tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation, reuseOverrides, recycleOverrides, qtyBoosts: cycleBoosts, manualSupplyOverrides });
     }
     // Adds "Just reuse" as an option wherever a still-undecided recipe
     // choice has leftover to draw on - needs the *finished* tree (see
@@ -231,8 +231,15 @@ function renderBody(subjectId, recipe, registries, initialState) {
       getReuseAvailability(itemId, path) {
         return reuseAvailability(tree, itemId, path);
       },
-      onToggleReuseMenu(path) {
-        openReuseMenu = openReuseMenu?.path === path ? null : { path };
+      // kind distinguishes which of a node's two independent popovers this
+      // is - 'reuse' or 'manual' (see treeNode.js's renderReuseHub/
+      // renderManualHub, and their needsChoice-stage single-purpose
+      // choice-card counterparts renderReuseChoiceNode/
+      // renderManualChoiceNode). Both the hub pair and the choice-card
+      // pair share one node path each, so without `kind` opening one would
+      // make its sibling appear "open" too.
+      onToggleReuseMenu(path, kind) {
+        openReuseMenu = (openReuseMenu?.path === path && openReuseMenu?.kind === kind) ? null : { path, kind };
         rerender();
       },
       onApplyReuse(path, amount) {
@@ -249,12 +256,18 @@ function renderBody(subjectId, recipe, registries, initialState) {
         openReuseMenu = null;
         rerender();
       },
-      onDeclineRecipe(path) {
-        declinedRecipes.add(path);
+      onApplyManual(path, amount) {
+        if (amount > 0) {
+          manualSupplyOverrides.set(path, amount);
+        } else {
+          manualSupplyOverrides.delete(path);
+        }
+        openReuseMenu = null;
         rerender();
       },
-      onUndeclineRecipe(path) {
-        declinedRecipes.delete(path);
+      onClearManual(path) {
+        manualSupplyOverrides.delete(path);
+        openReuseMenu = null;
         rerender();
       },
       openRecycleMenu,
@@ -342,7 +355,7 @@ function renderBody(subjectId, recipe, registries, initialState) {
       openProlifMenu = null;
       changed = true;
     }
-    if (openReuseMenu && !event.target.closest('.tree-node-reuse-menu, .tree-node-reuse, .tree-node--reuse-choice')) {
+    if (openReuseMenu && !event.target.closest('.tree-node-reuse-menu, .tree-node-reuse, .tree-node--reuse-choice, .tree-node--manual-choice')) {
       openReuseMenu = null;
       changed = true;
     }
@@ -358,7 +371,7 @@ function renderBody(subjectId, recipe, registries, initialState) {
   rerender();
 
   const fit = () => panZoom.fitToView(size.width, size.height);
-  const shareUrl = () => buildShareUrl(subjectId, recipe.id, choices, overrides, proliferation, reuseOverrides, recycleOverrides, declinedRecipes);
+  const shareUrl = () => buildShareUrl(subjectId, recipe.id, choices, overrides, proliferation, reuseOverrides, recycleOverrides, manualSupplyOverrides);
   canvas.appendChild(renderToolbar(panZoom, fit, shareUrl));
 
   // Snapshot of the live choice/override/proliferation/reuse/recycle/
@@ -373,15 +386,15 @@ function renderBody(subjectId, recipe, registries, initialState) {
     proliferation: new Map(proliferation),
     reuseOverrides: new Map(reuseOverrides),
     recycleOverrides: new Map(recycleOverrides),
-    declinedRecipes: new Set(declinedRecipes),
+    manualSupplyOverrides: new Map(manualSupplyOverrides),
   });
 
   body.append(canvas, resources);
   return { body, fit, snapshot };
 }
 
-function buildShareUrl(subjectId, recipeId, choices, overrides, proliferation, reuseOverrides, recycleOverrides, declinedRecipes) {
-  const code = serializeTreeState({ subjectId, recipeId, choices, overrides, proliferation, reuseOverrides, recycleOverrides, declinedRecipes });
+function buildShareUrl(subjectId, recipeId, choices, overrides, proliferation, reuseOverrides, recycleOverrides, manualSupplyOverrides) {
+  const code = serializeTreeState({ subjectId, recipeId, choices, overrides, proliferation, reuseOverrides, recycleOverrides, manualSupplyOverrides });
   const url = new URL(window.location.href);
   // Only ever touches `tree` - any other params (present now or added by
   // future features) are left exactly as they are.

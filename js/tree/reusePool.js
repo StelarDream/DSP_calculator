@@ -1,4 +1,4 @@
-import { buildChoiceNode, buildDeclineChoiceNode } from './buildTree.js';
+import { buildChoiceNode, buildManualChoiceNode } from './buildTree.js';
 
 // How much of `itemId` is available in the leftover pool for a *specific*
 // node to draw on, given the tree as currently built. Deliberately a
@@ -169,7 +169,11 @@ function buildReuseChoiceNode(node, available) {
 export function injectReuseChoices(root, registries) {
   (function walk(node) {
     if (node.needsChoice) {
-      if (!node.suppliedFromLeftover) {
+      // Skipped once either reuse or manual supply is already engaged -
+      // the node's choice-hub-plus-reuse-hub combo (layoutTree.js's
+      // _hasChoiceHub) is where both get adjusted from then on, same
+      // reasoning as buildTree.js's own manual-choice-card guard.
+      if (!node.suppliedFromLeftover && !node.manualSupply) {
         const available = reuseAvailability(root, node.itemId, node.path);
         if (available > 0) node.children.push(buildReuseChoiceNode(node, available));
       }
@@ -177,7 +181,7 @@ export function injectReuseChoices(root, registries) {
       return;
     }
 
-    if (node.autoResolved && !node.suppliedFromLeftover) {
+    if (node.autoResolved && !node.suppliedFromLeftover && !node.manualSupply) {
       const available = reuseAvailability(root, node.itemId, node.path);
       if (available > 0) {
         const recipe = node.recipe;
@@ -187,7 +191,7 @@ export function injectReuseChoices(root, registries) {
         node.children = [
           buildChoiceNode(recipe, node.itemId, node.path, node.depth, registries),
           buildReuseChoiceNode(node, available),
-          buildDeclineChoiceNode(node),
+          buildManualChoiceNode(node, node.qty),
         ];
         return; // the discarded children were the real ingredients - nothing left under this node to walk into
       }

@@ -1540,29 +1540,36 @@ body {
 }
 
 /* "Supply myself" - the needsChoice sibling of "Reuse leftover" (see
-   buildTree.js's buildDeclineChoiceNode, treeNode.js's
-   renderDeclineChoiceNode). Muted/neutral rather than either recipe tint
+   buildTree.js's buildManualChoiceNode, treeNode.js's
+   renderManualChoiceNode). Muted/neutral rather than either recipe tint
    (secondary) or the reuse tint (primary) - it isn't a way of producing
-   the item at all, just an explicit "leave this as raw demand", same
-   visual family as a plain leaf card (.tree-node--leaf). */
-.tree-node--decline-choice {
+   the item at all, just an explicit "bring this in from outside", same
+   visual family as a plain leaf card (.tree-node--leaf). Same plain-div
+   + inner-button shape as .tree-node--reuse-choice (it hosts its own
+   popover too), so it gets the same padding-reset treatment. */
+.tree-node--manual-choice {
   background: var(--bg-panel-alt);
   border-style: dashed;
   border-color: var(--border-soft);
+  padding: 0;
 }
 
-.tree-node--decline-choice:hover {
+.tree-node--manual-choice:hover {
   border-color: var(--text-secondary);
 }
 
-.tree-node-decline-choice-icon {
+.tree-node--manual-choice-menu-open {
+  z-index: 10;
+}
+
+.tree-node-manual-choice-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: var(--text-secondary);
 }
 
-.tree-node-decline-choice-icon svg {
+.tree-node-manual-choice-icon svg {
   width: 22px;
   height: 22px;
 }
@@ -1968,10 +1975,60 @@ body {
 /* The reused amount - lives on the reuse button itself now (see
    treeNode.js; used to be a note appended to the item card's own qty),
    right beside the icon so the one control that changes the number is
-   also the one place it's displayed. */
+   also the one place it's displayed. Shared with .tree-node-manual's own
+   badge below - same treatment, different button. */
 .tree-node-reuse-badge {
   font-size: 0.7rem;
   font-weight: 600;
+}
+
+/* The manual-supply hub - "supply from outside the tree" (see treeNode.js's
+   renderManualHub, layoutTree.js's _hasManualHub). Independent sibling of
+   .reuse-hub above, sharing the same split row but its own separate box -
+   same shape/shadow convention, tinted neutral rather than primary (see
+   .tree-node-manual--active) so the two read as distinct controls rather
+   than one hub with two states. */
+.manual-hub {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+}
+
+.manual-hub--menu-open {
+  z-index: 10;
+}
+
+.tree-node-manual {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 4px 6px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.tree-node-manual svg {
+  width: 15px;
+  height: 15px;
+}
+
+.tree-node-manual:hover {
+  color: var(--text-primary);
+  background: var(--bg-panel);
+}
+
+.tree-node-manual--active {
+  color: var(--text-primary);
+  background: var(--bg-panel-alt);
 }
 
 /* Reuse popover - same shape/positioning convention as
@@ -2049,6 +2106,18 @@ body {
   color: var(--danger);
 }
 
+/* The one "how much" block inside every amount popover (see
+   reusePicker.js's renderAmountSection) - availability/row/clear stacked
+   with their own tight spacing. Every current picker only ever renders one
+   of these (reuse hub, manual hub, and each choice card are all single-
+   purpose now - see treeNode.js), but the wrapper stays generic in case a
+   future picker needs to stack more than one section again. */
+.tree-node-supply-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 /* The choice hub - stands in for a resolved recipe's icon once a
    needsChoice node has reuse engaged (see layoutTree.js's _hasChoiceHub,
    treeNode.js's renderChoiceHub) - its real options branch out from here
@@ -2078,37 +2147,6 @@ body {
 .tree-node-choice-icon svg {
   width: 22px;
   height: 22px;
-}
-
-/* The declined hub - stands in for a resolved recipe's icon once a node's
-   settled on "supply myself" for the remainder (see layoutTree.js's
-   _hasDeclinedHub, treeNode.js's renderDeclinedHub). Same box shape as the
-   other hubs, muted/dashed like .tree-node--decline-choice rather than
-   .choice-hub's "still undecided" look - this one's a settled decision,
-   not a pending one. Unlike the choice hub it does get one control: the
-   edit button to revert back to needsChoice. */
-.declined-hub {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  padding: 4px;
-  background: var(--bg-elevated);
-  border: 1px dashed var(--border-soft);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-panel);
-}
-
-.tree-node-decline-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 6px;
-  color: var(--text-secondary);
-}
-
-.tree-node-decline-icon svg {
-  width: 15px;
-  height: 15px;
 }
 
 .detail-header {

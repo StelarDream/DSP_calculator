@@ -90,11 +90,12 @@ export function linePrimaryItemId(line) {
 // How many crafts of node.recipe this single node represents, in the same
 // per-root-unit ratio terms as node.qty - the inverse of buildTree's own
 // `yieldScale` for this node (not stored on the node, so recomputed here).
-// Uses producedQty (qty minus whatever's manually reused from leftover -
-// see buildTree.js's suppliedFromLeftover), not the raw qty, so a partially
-// reused node's machine count reflects only what it's actually producing.
+// Uses producedQty (qty minus whatever's manually reused from leftover
+// and/or manually supplied from outside the tree - see buildTree.js's
+// suppliedFromLeftover/manualSupply), not the raw qty, so a partially
+// covered node's machine count reflects only what it's actually producing.
 function craftsForNode(node, mode, level) {
-  const producedQty = node.qty - (node.suppliedFromLeftover ?? 0);
+  const producedQty = node.qty - (node.suppliedFromLeftover ?? 0) - (node.manualSupply ?? 0);
   const outputQty = node.recipe.result[node.itemId] ?? 1;
   const yieldMultiplier = getYieldMultiplier(node.recipe, mode, level);
   return producedQty / (outputQty * yieldMultiplier);

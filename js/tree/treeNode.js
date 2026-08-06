@@ -4,13 +4,13 @@ import { NODE_WIDTH, NODE_HEIGHT } from './constants.js';
 import { formatQty } from './formatQty.js';
 import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
 import { PROLIF_MODES, renderProlifModeRow, renderProlifLevelRow, modeLabel, levelLabel } from './proliferationPicker.js';
-import { renderReuseMenu } from './reusePicker.js';
+import { renderReuseMenu, renderManualMenu } from './reusePicker.js';
 import { renderRecycleMenu } from './cyclePicker.js';
 
 // A single fixed-size card in the tree canvas. Six flavors:
 //  - choice: "expand using this recipe" - see renderChoiceNode.
-//  - reuse choice: "just reuse" - see renderReuseChoiceNode.
-//  - decline choice: "supply this myself" - see renderDeclineChoiceNode.
+//  - reuse choice: "reuse leftover" - see renderReuseChoiceNode.
+//  - manual choice: "supply myself" - see renderManualChoiceNode.
 //  - cycle: a loop back onto one of its own ancestors, with its own
 //    recycle control - see renderCycleNode.
 //  - leaf: plain, non-interactive card.
@@ -23,7 +23,7 @@ import { renderRecycleMenu } from './cyclePicker.js';
 export function renderTreeNode(node, handlers = {}) {
   if (node.isChoice) return renderChoiceNode(node, handlers.onChoose);
   if (node.isReuseChoice) return renderReuseChoiceNode(node, handlers);
-  if (node.isDeclineChoice) return renderDeclineChoiceNode(node, handlers.onDeclineRecipe);
+  if (node.isManualChoice) return renderManualChoiceNode(node, handlers);
   if (node.isCycle) return renderCycleNode(node, handlers);
 
   const { onToggle } = handlers;
@@ -267,20 +267,24 @@ function renderProlifMenu(node, availableModes, openState, { onSetProlifMode, on
   return menu;
 }
 
-// The reuse hub - a separate box stacked directly above the recipe hub
-// (see layoutTree.js's _hasReuseHub/collect(), which reserves the row and
-// pushes the recipe hub down to make room), not folded into it. Kept as
-// its own hub rather than a button inside the recipe hub because it's a
-// genuinely different kind of input ("how much of this comes from
+// The reuse hub - a separate box stacked alongside the recipe hub (see
+// layoutTree.js's _hasReuseHub/collect(), which reserves the shared split
+// row and pushes the recipe hub over to make room), not folded into it.
+// Kept as its own hub rather than a button inside the recipe hub because
+// it's a genuinely different kind of input ("how much comes from
 // leftover" vs. "which recipe/proliferation") - only ever placed by
 // layoutTree.js once node._hasReuseHub is true, so it doesn't need to
-// re-derive that decision itself.
+// re-derive that decision itself. Pool-only (see renderManualHub below
+// for the independent manual-supply hub sharing the same split) - only
+// offered when the leftover pool actually has something in it (or this
+// node's already drawing from it), since unlike manual supply there's a
+// real ceiling to respect.
 export function renderReuseHub(node, handlers = {}) {
   const { getReuseAvailability, openReuseMenu, onToggleReuseMenu, onApplyReuse, onClearReuse } = handlers;
 
-  const currentReuse = node.suppliedFromLeftover ?? 0;
+  const current = node.suppliedFromLeftover ?? 0;
   const available = typeof getReuseAvailability === 'function' ? getReuseAvailability(node.itemId, node.path) : 0;
-  const menuOpen = openReuseMenu?.path === node.path;
+  const menuOpen = openReuseMenu?.path === node.path && openReuseMenu?.kind === 'reuse';
 
   const hub = document.createElement('div');
   hub.className = 'reuse-hub';
@@ -289,15 +293,15 @@ export function renderReuseHub(node, handlers = {}) {
   const reuse = document.createElement('button');
   reuse.type = 'button';
   reuse.className = 'tree-node-reuse';
-  if (currentReuse > 0) reuse.classList.add('tree-node-reuse--active');
-  reuse.title = currentReuse > 0
-    ? `Reusing ×${formatQty(currentReuse)} from leftover`
+  if (current > 0) reuse.classList.add('tree-node-reuse--active');
+  reuse.title = current > 0
+    ? `Reusing ×${formatQty(current)} from leftover`
     : 'Supply from leftover';
   reuse.setAttribute('aria-label', reuse.title);
   reuse.innerHTML = REUSE_ICON;
   reuse.addEventListener('click', (event) => {
     event.stopPropagation();
-    onToggleReuseMenu(node.path);
+    onToggleReuseMenu(node.path, 'reuse');
   });
 
   // The reused amount itself - moved here from the item card (a card used
@@ -305,10 +309,10 @@ export function renderReuseHub(node, handlers = {}) {
   // place displaying it, right on the control that changes it. Only shown
   // once there's actually a nonzero amount - an inactive reuse hub (offered
   // because leftover's available, not yet used) shows just the icon.
-  if (currentReuse > 0) {
+  if (current > 0) {
     const badge = document.createElement('span');
     badge.className = 'tree-node-reuse-badge';
-    badge.textContent = `×${formatQty(currentReuse)}`;
+    badge.textContent = `×${formatQty(current)}`;
     reuse.appendChild(badge);
   }
 
@@ -316,10 +320,66 @@ export function renderReuseHub(node, handlers = {}) {
 
   if (menuOpen) {
     hub.appendChild(renderReuseMenu(
-      { path: node.path, itemId: node.itemId, qty: node.qty, available, current: currentReuse },
+      { qty: node.qty, available, current },
       {
         onApply: (amount) => onApplyReuse(node.path, amount),
         onClear: () => onClearReuse(node.path),
+      },
+    ));
+  }
+
+  return hub;
+}
+
+// The manual-supply hub - the reuse hub's independent sibling, sharing the
+// same split row (see layoutTree.js's _hasManualHub) but its own separate
+// box/button/popover, so reuse and manual supply can each be toggled and
+// adjusted without touching the other. No pool to gate on (see
+// buildTree.js's manualSupplyOverrides) - offered any time the reuse hub's
+// *category* of node would be, regardless of whether the leftover pool
+// itself has anything in it right now.
+export function renderManualHub(node, handlers = {}) {
+  const { openReuseMenu, onToggleReuseMenu, onApplyManual, onClearManual } = handlers;
+
+  const current = node.manualSupply ?? 0;
+  const menuOpen = openReuseMenu?.path === node.path && openReuseMenu?.kind === 'manual';
+
+  const hub = document.createElement('div');
+  hub.className = 'manual-hub';
+  if (menuOpen) hub.classList.add('manual-hub--menu-open');
+
+  const supply = document.createElement('button');
+  supply.type = 'button';
+  supply.className = 'tree-node-manual';
+  if (current > 0) supply.classList.add('tree-node-manual--active');
+  supply.title = current > 0
+    ? `Supplying ×${formatQty(current)} manually`
+    : 'Supply manually';
+  supply.setAttribute('aria-label', supply.title);
+  supply.innerHTML = SUPPLY_ICON;
+  supply.addEventListener('click', (event) => {
+    event.stopPropagation();
+    onToggleReuseMenu(node.path, 'manual');
+  });
+
+  if (current > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'tree-node-reuse-badge';
+    badge.textContent = `×${formatQty(current)}`;
+    supply.appendChild(badge);
+  }
+
+  hub.appendChild(supply);
+
+  if (menuOpen) {
+    // No pool ceiling to respect - just whatever reuse hasn't already
+    // claimed out of this node's own demand.
+    const remaining = node.qty - (node.suppliedFromLeftover ?? 0);
+    hub.appendChild(renderManualMenu(
+      { qty: remaining, current },
+      {
+        onApply: (amount) => onApplyManual(node.path, amount),
+        onClear: () => onClearManual(node.path),
       },
     ));
   }
@@ -394,12 +454,13 @@ function renderChoiceNode(node, onChoose) {
   return el;
 }
 
-// "Just reuse" - an extra option alongside the real recipe choices, only
-// present at all when reuseChoice.js's injectReuseChoices found leftover
-// to offer (see its module comment for why that's a separate pass over
-// the finished tree rather than something buildTree.js decides inline).
+// "Reuse leftover" - an extra option alongside the real recipe choices,
+// only present at all when reusePool.js's injectReuseChoices found
+// leftover to offer (see its module comment for why that's a separate
+// pass over the finished tree rather than something buildTree.js decides
+// inline).
 //
-// Opens the same amount picker as the reuse hub (see renderReuseMenu)
+// Opens the same amount picker the reuse hub uses (see renderReuseMenu)
 // rather than instantly maxing out on click - a user who wants *some* of
 // this covered by leftover and the rest actually crafted needs to say so
 // up front, before any recipe's picked, not just take-it-all-or-leave-it.
@@ -410,17 +471,21 @@ function renderChoiceNode(node, onChoose) {
 // exactly what already happened automatically whenever available < qty
 // (see buildTree.js/layoutTree.js's _hasChoiceHub), just now reachable by
 // choice instead of only by the pool happening to run short. That
-// re-entered needsChoice shows a choice hub with its own reuse hub
-// attached (layoutTree.js), so a further tweak to the amount goes through
-// the normal reuse hub from there, not this card again - this card only
-// ever handles the *first* commit, on a node that hasn't touched reuse
-// yet (menu keyed on node.parentPath via the shared openReuseMenu/
-// onToggleReuseMenu plumbing, same as the reuse hub uses for its own
-// node.path - never collide since a node only ever has one or the other
-// at a time, never both).
+// re-entered needsChoice shows a choice hub with its own combined reuse
+// hub attached (layoutTree.js), so a further tweak to either amount goes
+// through there from then on, not this card again - this card (and its
+// "Supply myself" sibling below) only ever handle the *first* commit, on
+// a node that hasn't touched reuse or manual supply yet (see
+// buildTree.js's needsChoice branch/reusePool.js's own guard).
+//
+// Menu keyed on `{ path: node.parentPath, kind: 'reuse' }` via the shared
+// openReuseMenu/onToggleReuseMenu plumbing the hub itself uses (just a
+// different `kind`, since this card's "Supply myself" sibling shares the
+// same parentPath and needs its own independent open/close state - see
+// renderManualChoiceNode).
 function renderReuseChoiceNode(node, handlers = {}) {
   const { openReuseMenu, onToggleReuseMenu, onApplyReuse } = handlers;
-  const menuOpen = openReuseMenu?.path === node.parentPath;
+  const menuOpen = openReuseMenu?.path === node.parentPath && openReuseMenu?.kind === 'reuse';
 
   const el = document.createElement('div');
   el.className = 'tree-node tree-node--choice tree-node--reuse-choice';
@@ -433,7 +498,7 @@ function renderReuseChoiceNode(node, handlers = {}) {
   button.className = 'tree-node-reuse-choice-btn';
   button.addEventListener('click', (event) => {
     event.stopPropagation();
-    onToggleReuseMenu?.(node.parentPath);
+    onToggleReuseMenu?.(node.parentPath, 'reuse');
   });
 
   const icon = document.createElement('span');
@@ -457,7 +522,7 @@ function renderReuseChoiceNode(node, handlers = {}) {
 
   if (menuOpen) {
     el.appendChild(renderReuseMenu(
-      { path: node.parentPath, itemId: node.itemId, qty: node.parentQty, available: node.available, current: 0 },
+      { qty: node.parentQty, available: node.available, current: 0 },
       { onApply: (amount) => onApplyReuse?.(node.parentPath, amount), onClear: () => {} },
     ));
   }
@@ -465,23 +530,35 @@ function renderReuseChoiceNode(node, handlers = {}) {
   return el;
 }
 
-// "Supply myself" - the needsChoice sibling of "Reuse leftover" (see
-// buildTree.js's buildDeclineChoiceNode), for leaving whatever isn't
-// covered by reuse as plain external demand instead of being forced to
-// pick a recipe just to get past the choice. One click, no amount to
-// pick (unlike the reuse card) - there's nothing to size, it's an
-// all-or-nothing "don't craft this" for the remainder. Reversible from
-// the resulting declined hub (see renderDeclinedHub) once committed.
-function renderDeclineChoiceNode(node, onDeclineRecipe) {
-  const el = document.createElement('button');
-  el.type = 'button';
-  el.className = 'tree-node tree-node--choice tree-node--decline-choice';
+// "Supply myself" - the needsChoice sibling of "Reuse leftover" above (see
+// buildTree.js's buildManualChoiceNode), for bringing some (or all) of
+// whatever reuse doesn't cover in from outside the tree entirely instead
+// of being forced to pick a recipe just to get past the choice.
+// Amount-based like the reuse card, not a single all-or-nothing click - see
+// buildManualChoiceNode's own comment for why `current` is always 0 here.
+// Menu keyed on `{ path: node.parentPath, kind: 'manual' }`, same shared
+// plumbing as the reuse card, just a different `kind` so the two don't
+// fight over which one's popover is open.
+function renderManualChoiceNode(node, handlers = {}) {
+  const { openReuseMenu, onToggleReuseMenu, onApplyManual } = handlers;
+  const menuOpen = openReuseMenu?.path === node.parentPath && openReuseMenu?.kind === 'manual';
+
+  const el = document.createElement('div');
+  el.className = 'tree-node tree-node--choice tree-node--manual-choice';
+  if (menuOpen) el.classList.add('tree-node--manual-choice-menu-open');
   el.style.width = `${NODE_WIDTH}px`;
   el.style.height = `${NODE_HEIGHT}px`;
-  el.addEventListener('click', () => onDeclineRecipe?.(node.parentPath));
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'tree-node-reuse-choice-btn';
+  button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    onToggleReuseMenu?.(node.parentPath, 'manual');
+  });
 
   const icon = document.createElement('span');
-  icon.className = 'tree-node-icon tree-node-decline-choice-icon';
+  icon.className = 'tree-node-icon tree-node-manual-choice-icon';
   icon.innerHTML = SUPPLY_ICON;
 
   const info = document.createElement('div');
@@ -493,48 +570,20 @@ function renderDeclineChoiceNode(node, onDeclineRecipe) {
 
   const qty = document.createElement('span');
   qty.className = 'tree-node-qty';
-  qty.textContent = "won't be crafted";
+  qty.textContent = `up to ×${formatQty(node.parentQty)}`;
 
   info.append(name, qty);
-  el.append(icon, info);
-  return el;
-}
+  button.append(icon, info);
+  el.append(button);
 
-// The declined hub - stands in for a resolved recipe's icon once a node's
-// settled on "supply myself" for whatever reuse doesn't cover (see
-// buildTree.js's node.recipeDeclined, layoutTree.js's _hasDeclinedHub).
-// Same primary-hub slot a recipe/choice hub would occupy, but nothing
-// flows through it (no children, same as isFullySupplied) - just a marker
-// plus the one control that matters here: reverting the decision so the
-// node re-enters needsChoice (same recipe options, same reuse amount
-// untouched) if it turns out crafting the rest is wanted after all.
-export function renderDeclinedHub(node, handlers = {}) {
-  const { onUndeclineRecipe } = handlers;
-
-  const hub = document.createElement('div');
-  hub.className = 'declined-hub';
-
-  const icon = document.createElement('span');
-  icon.className = 'tree-node-decline-icon';
-  icon.title = "Supplying this yourself - won't be crafted";
-  icon.innerHTML = SUPPLY_ICON;
-  hub.appendChild(icon);
-
-  if (typeof onUndeclineRecipe === 'function') {
-    const edit = document.createElement('button');
-    edit.type = 'button';
-    edit.className = 'tree-node-edit';
-    edit.title = 'Craft this instead';
-    edit.setAttribute('aria-label', 'Craft this instead');
-    edit.innerHTML = EDIT_ICON;
-    edit.addEventListener('click', (event) => {
-      event.stopPropagation();
-      onUndeclineRecipe(node.path);
-    });
-    hub.appendChild(edit);
+  if (menuOpen) {
+    el.appendChild(renderManualMenu(
+      { qty: node.parentQty, current: 0 },
+      { onApply: (amount) => onApplyManual?.(node.parentPath, amount), onClear: () => {} },
+    ));
   }
 
-  return hub;
+  return el;
 }
 
 // A cycle guard - this ingredient loops back onto one of its own ancestors
