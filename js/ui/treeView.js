@@ -160,7 +160,7 @@ function renderBody(subjectId, recipe, registries, initialState) {
     // choice has leftover to draw on - needs the *finished* tree (see
     // reusePool.js's injectReuseChoices for why), so this runs after both
     // possible builds above, right before rendering.
-    injectReuseChoices(tree);
+    injectReuseChoices(tree, registries);
     size = renderTreeInto(world, tree, {
       onToggle(path, wasCollapsed) {
         overrides.set(path, wasCollapsed);

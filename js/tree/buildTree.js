@@ -158,6 +158,13 @@ function buildNode({ itemId, qty: rawQty, path, depth, ancestors, ancestorPaths,
   }
 
   node.recipe = chosen ?? recipeOptions[0];
+  // True when nothing was actually *picked* here - a single-option node
+  // defaulting to its only recipe, not a real decision. Lets
+  // reusePool.js's injectReuseChoices tell "genuinely nothing to choose"
+  // apart from "technically one recipe, but reuse turned out to be an
+  // option too" - see its own comment for why that distinction needs the
+  // finished tree and can't be made here.
+  node.autoResolved = !chosen;
 
   // Ratio of each ingredient to *one* craft, scaled by how much of this
   // item's own output actually still needs producing - a recipe that
@@ -266,7 +273,11 @@ function applyYield(recipe, path, proliferation) {
 // parentPath is what onChoose(parentPath, recipe.id) records the pick under.
 // ingredientIcons is precomputed here (rather than left to the renderer)
 // since resolving item icons is what buildTree already has registries for.
-function buildChoiceNode(recipe, itemId, parentPath, depth, registries) {
+// Exported for reusePool.js's injectReuseChoices, which needs to build one
+// of these standalone - retroactively turning a single-option node's
+// silent auto-resolve into a real choice once reuse turns out to be an
+// alternative (see buildTree.js's own autoResolved flag).
+export function buildChoiceNode(recipe, itemId, parentPath, depth, registries) {
   return {
     path: `${parentPath}»${recipe.id}`,
     parentPath,

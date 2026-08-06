@@ -2,7 +2,7 @@ import { formatLabel } from './format.js';
 import { BACK_ICON } from './icons.js';
 import { buildTree } from '../tree/buildTree.js';
 import { resolveCycleBoosts } from '../tree/cycleRecycle.js';
-import { computeReusedTotals } from '../tree/reusePool.js';
+import { computeReusedTotals, injectReuseChoices } from '../tree/reusePool.js';
 import { buildFactoryPlan, lineKey } from '../factory/buildFactoryPlan.js';
 import { computeMachineCounts } from '../factory/computeMachineCounts.js';
 import { getBuildingOptions, getSelectedBuilding, getBuildingSpeed } from '../factory/buildingOptions.js';
@@ -82,11 +82,19 @@ export function renderFactoryView(container, treeState, registries, onBack) {
     // (Factory View doesn't have its own recycle controls, just needs to
     // reflect whatever treeState.recycleOverrides already says), so this
     // always starts fresh from an empty Map rather than a remembered one.
-    return resolveCycleBoosts(
+    const resolved = resolveCycleBoosts(
       (boosts) => buildTree(treeState.subjectId, 1, registries, { ...options, qtyBoosts: boosts }),
       tree,
       new Map(),
     ).tree;
+    // Same reasoning as treeView.js's own call - a single-recipe node that
+    // silently auto-resolved (see buildTree.js's autoResolved) still needs
+    // to be retroactively knocked back into an undecided state here too
+    // when reuse turns out to be available for it, or Factory View would
+    // keep crediting a real recipe's worth of demand/machines to a node
+    // Tree View is showing as an open choice.
+    injectReuseChoices(resolved, registries);
+    return resolved;
   }
 
   function computeLines(tree) {

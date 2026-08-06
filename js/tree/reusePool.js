@@ -1,3 +1,5 @@
+import { buildChoiceNode } from './buildTree.js';
+
 // How much of `itemId` is available in the leftover pool for a *specific*
 // node to draw on, given the tree as currently built. Deliberately a
 // snapshot of the live tree object (already built with whatever reuse
@@ -53,20 +55,55 @@ export function computeReusedTotals(root) {
   return totals;
 }
 
-// Appends a "Just reuse" pseudo-choice alongside a needsChoice node's real
-// recipe options, whenever there's actually leftover to draw on *and*
-// reuse hasn't already been engaged for this node - a shortcut for maxing
-// out reuse (see treeNode.js's renderReuseChoiceNode) *before* ever
-// picking a recipe, since buildTree.js now resolves reuse before recipe
-// choice (see its buildNode) - if reuse alone would cover the whole
-// demand, no recipe choice is needed at all.
+// The "Just reuse" pseudo-child itself - not a real ingredient (isLeaf,
+// empty children/byproducts), just a stand-in for "supply this whole node
+// from leftover instead," rendered by treeNode.js's renderReuseChoiceNode.
+function buildReuseChoiceNode(node, available) {
+  return {
+    path: `${node.path}»reuse`,
+    parentPath: node.path,
+    itemId: node.itemId,
+    object: node.object,
+    qty: undefined,
+    depth: node.depth + 1,
+    isLeaf: true,
+    isCycle: false,
+    isChoice: false,
+    isReuseChoice: true,
+    needsChoice: false,
+    recipeOptions: [],
+    recipe: null,
+    available,
+    isCollapsed: false,
+    children: [],
+    byproducts: [],
+  };
+}
+
+// Appends a "Just reuse" pseudo-choice alongside a node's real recipe
+// option(s), whenever there's actually leftover to draw on *and* reuse
+// hasn't already been engaged for this node - a shortcut for maxing out
+// reuse (see treeNode.js's renderReuseChoiceNode) *before* ever picking a
+// recipe, since buildTree.js now resolves reuse before recipe choice (see
+// its buildNode) - if reuse alone would cover the whole demand, no recipe
+// choice is needed at all.
 //
-// Once suppliedFromLeftover is already set (reuse engaged, even
-// partially), this card stops appearing - layoutTree.js instead gives the
-// node its own reuse hub for adjusting/clearing that amount (see
-// _hasChoiceHub/_hasReuseHub), so offering the same action twice (once as
-// an inline card, once as the hub) would just be a duplicate control for
-// the same thing.
+// Two cases:
+//  - node.needsChoice (>1 real recipe): the card joins the existing
+//    options as one more sibling, same as before.
+//  - node.autoResolved (exactly 1 recipe, silently defaulted to it - see
+//    buildTree.js): retroactively turned into a needsChoice-shaped node
+//    too, its already-built recipe/children/byproducts discarded and
+//    replaced with a two-card choice (the one real recipe, plus reuse) -
+//    "Options.length > 1" (real recipes + the reuse option), not just
+//    recipeOptions.length > 1. Otherwise a single-recipe item could never
+//    offer reuse as an alternative at all: it never enters the
+//    needsChoice branch in the first place, so this card would have
+//    nothing to attach to. Skipped once reuse is *already* engaged
+//    (suppliedFromLeftover set) - at that point the node has its own
+//    reuse hub for adjusting/clearing it (see layoutTree.js's
+//    _hasReuseHub), and re-surfacing the same choice on top of that would
+//    just undo the visible confirmation the hub already gives it.
 //
 // Deliberately a post-build mutation pass over the *finished* tree, not
 // something buildTree.js does inline - reuseAvailability needs the whole
@@ -76,32 +113,32 @@ export function computeReusedTotals(root) {
 // while Hydrogen's own node is being constructed). Same reasoning as
 // treeView.js's applyDefaultProliferation being a separate pass rather
 // than living inside buildTree.js.
-export function injectReuseChoices(root) {
+export function injectReuseChoices(root, registries) {
   (function walk(node) {
-    if (node.needsChoice && !node.suppliedFromLeftover) {
+    if (node.needsChoice) {
+      if (!node.suppliedFromLeftover) {
+        const available = reuseAvailability(root, node.itemId, node.path);
+        if (available > 0) node.children.push(buildReuseChoiceNode(node, available));
+      }
+      for (const child of node.children) walk(child);
+      return;
+    }
+
+    if (node.autoResolved && !node.suppliedFromLeftover) {
       const available = reuseAvailability(root, node.itemId, node.path);
       if (available > 0) {
-        node.children.push({
-          path: `${node.path}»reuse`,
-          parentPath: node.path,
-          itemId: node.itemId,
-          object: node.object,
-          qty: undefined,
-          depth: node.depth + 1,
-          isLeaf: true,
-          isCycle: false,
-          isChoice: false,
-          isReuseChoice: true,
-          needsChoice: false,
-          recipeOptions: [],
-          recipe: null,
-          available,
-          isCollapsed: false,
-          children: [],
-          byproducts: [],
-        });
+        const recipe = node.recipe;
+        node.needsChoice = true;
+        node.recipe = null;
+        node.byproducts = [];
+        node.children = [
+          buildChoiceNode(recipe, node.itemId, node.path, node.depth, registries),
+          buildReuseChoiceNode(node, available),
+        ];
+        return; // the discarded children were the real ingredients - nothing left under this node to walk into
       }
     }
+
     for (const child of node.children) walk(child);
   })(root);
 }
