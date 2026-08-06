@@ -61,6 +61,15 @@
   --danger: #ff6b6b;
   --danger-dim: rgba(255, 107, 107, 0.1);
   --danger-border: rgba(255, 107, 107, 0.35);
+
+  /* A closed cycle (see .tree-node--cycle-active) is the one place in the
+     tree that reads as "actively feeding back in" rather than "produced,"
+     "reused," or "needs a decision" - none of the existing tones (cyan
+     primary, yellow secondary, red danger) were free for that, so this is
+     the one genuinely new color in the palette. */
+  --success: #7ee08a;
+  --success-dim: rgba(126, 224, 138, 0.1);
+  --success-border: rgba(126, 224, 138, 0.4);
 }
 
 * {
@@ -1290,8 +1299,135 @@ body {
   border-style: dashed;
 }
 
+/* Yellow while the loop's just stopped-and-left-open (default), green once
+   some of it is actually being recycled back in (see treeNode.js's
+   renderCycleNode, buildTree.js's recycledQty) - a glance at the border
+   tells you which cycles in a tree are closed vs. just raw demand. */
 .tree-node--cycle {
   border-color: var(--secondary-border);
+}
+
+.tree-node--cycle-active {
+  border-color: var(--success-border);
+}
+
+.tree-node--cycle-menu-open {
+  z-index: 10;
+}
+
+/* The recycle button - a floating corner badge, same placement convention
+   as .tree-node-edit (top-right, outside the card's own flow) since a
+   cycle node has no hub of its own to host it on. */
+.tree-node-recycle {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 20px;
+  padding: 0 6px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  z-index: 1;
+}
+
+.tree-node-recycle svg {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+}
+
+.tree-node-recycle:hover {
+  color: var(--success);
+  border-color: var(--success-border);
+}
+
+.tree-node-recycle--active {
+  color: var(--success);
+  background: var(--success-dim);
+  border-color: var(--success-border);
+}
+
+.tree-node-recycle-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+/* Recycle popover - same positioning convention as .tree-node-reuse-menu
+   (nested inside the card so it inherits the tree's pan/zoom transform),
+   hanging off the corner badge rather than centered under the card since
+   that's where the badge itself sits. */
+.tree-node-recycle-menu {
+  position: absolute;
+  bottom: 100%;
+  right: -8px;
+  margin-bottom: 6px;
+  width: 200px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+}
+
+.tree-node-recycle-hint {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.tree-node-recycle-row {
+  display: flex;
+  gap: 6px;
+}
+
+.tree-node-recycle-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.tree-node-recycle-btn {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.tree-node-recycle-btn:hover {
+  border-color: var(--success-border);
+  color: var(--success);
+}
+
+.tree-node-recycle-btn--clear:hover {
+  border-color: var(--danger-border);
+  color: var(--danger);
+}
+
+/* The "(+3 recycled back in)" note on an ancestor's own qty (see
+   treeNode.js) - same dim/smaller treatment as .tree-node-qty-yield, green
+   to match the cycle node that caused it. */
+.tree-node-qty-recycle {
+  color: var(--success);
 }
 
 .tree-node--expandable {

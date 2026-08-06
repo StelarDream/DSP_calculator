@@ -19,7 +19,10 @@
 // further - whenever there's nothing more to decompose it into *right now*:
 //   - genuinely not craftable (node.isLeaf)
 //   - collapsed - "I'll produce it myself" (see buildTree.js)
-//   - a cycle guard
+//   - a cycle guard - counts only the portion *not* being recycled back
+//     into its own ancestor's output (node.recycledQty - see buildTree.js
+//     and cycleRecycle.js), same "user's explicit choice, not automatic"
+//     treatment reuse gets above.
 //   - not yet resolved to a specific recipe (node.needsChoice) - its
 //     children are choice *options*, not real ingredients (and don't even
 //     have a real qty), so recursing into them would be wrong.
@@ -52,7 +55,7 @@ export function summarizeTree(root) {
 
     if (leafLike) {
       const e = demandEntry(node.itemId, node.object);
-      e.qty += node.qty;
+      e.qty += node.qty - (node.recycledQty ?? 0);
       if (node.needsChoice) e.pending = true;
       return;
     }

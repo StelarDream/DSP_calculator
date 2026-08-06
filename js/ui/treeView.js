@@ -9,6 +9,7 @@ import { summarizeTree } from '../tree/summarizeTree.js';
 import { summarizeProliferatorUsage } from '../tree/summarizeProliferators.js';
 import { createResourceSidebar, renderResourcesInto } from '../tree/resourceSidebar.js';
 import { reuseAvailability, injectReuseChoices } from '../tree/reusePool.js';
+import { resolveCycleBoosts } from '../tree/cycleRecycle.js';
 
 // Ensures at most one "close the proliferation menu on an outside click"
 // listener is ever attached to document - it doesn't get garbage-collected
@@ -89,6 +90,9 @@ function renderBody(subjectId, recipe, registries, initialState) {
   // path -> amount manually reused from leftover instead of produced - see
   // buildTree.js's suppliedFromLeftover and the reuse hub below.
   const reuseOverrides = new Map(initialState?.reuseOverrides);
+  // cyclePath -> amount manually recycled back from a cycle's own ancestor
+  // output - see buildTree.js's recycledQty and the cycle node below.
+  const recycleOverrides = new Map(initialState?.recycleOverrides);
   choices.set(subjectId, recipe.id);
 
   // Paths whose node has resolved to a recipe at least once - lets
@@ -109,6 +113,16 @@ function renderBody(subjectId, recipe, registries, initialState) {
   // they're separate controls on the same hub.
   let openReuseMenu = null;
 
+  // Which cycle node's recycle picker is open - null when none is.
+  let openRecycleMenu = null;
+
+  // Extra qty each ancestor path needs to produce, from every cycle node
+  // currently recycling into it (see cycleRecycle.js) - recomputed each
+  // rerender from whatever tree came out of *this* pass, then compared
+  // against the previous pass below; only triggers another build when it
+  // actually changed, same two-build shape as applyDefaultProliferation.
+  let cycleBoosts = new Map();
+
   // The tree-wide default from the sidebar's "Default Proliferation" panel
   // - stamped onto newly-resolved nodes by applyDefaultProliferation below.
   // Session-local like everything else here; not seeded from a shared link.
@@ -123,14 +137,25 @@ function renderBody(subjectId, recipe, registries, initialState) {
   // pan/zoom transform survives.
   let size;
   function rerender() {
-    let tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation, reuseOverrides });
+    let tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation, reuseOverrides, recycleOverrides, qtyBoosts: cycleBoosts });
     if (applyDefaultProliferation(tree)) {
       // Defaults just got stamped onto newly-resolved nodes - rebuild so
       // any Extra Yield among them is reflected in *this* render's
       // quantities too, not just their badges (buildTree.js reads
       // `proliferation` while computing qty - see its yield handling).
-      tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation, reuseOverrides });
+      tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation, reuseOverrides, recycleOverrides, qtyBoosts: cycleBoosts });
     }
+    // A cycle node's recycledQty (see buildTree.js) only tells its own
+    // ancestor how much *more* to produce - it can't apply that growth to
+    // itself mid-build, since the ancestor's qty is already fixed by the
+    // time its descendant cycle node is reached, and growing it can grow
+    // the very demand recycledQty was clamped against too (see
+    // cycleRecycle.js) - iterates until that stops moving.
+    ({ tree, boosts: cycleBoosts } = resolveCycleBoosts(
+      (boosts) => buildTree(subjectId, 1, registries, { choices, overrides, proliferation, reuseOverrides, recycleOverrides, qtyBoosts: boosts }),
+      tree,
+      cycleBoosts,
+    ));
     // Adds "Just reuse" as an option wherever a still-undecided recipe
     // choice has leftover to draw on - needs the *finished* tree (see
     // reusePool.js's injectReuseChoices for why), so this runs after both
@@ -206,6 +231,25 @@ function renderBody(subjectId, recipe, registries, initialState) {
         openReuseMenu = null;
         rerender();
       },
+      openRecycleMenu,
+      onToggleRecycleMenu(path) {
+        openRecycleMenu = openRecycleMenu?.path === path ? null : { path };
+        rerender();
+      },
+      onApplyRecycle(path, amount) {
+        if (amount > 0) {
+          recycleOverrides.set(path, amount);
+        } else {
+          recycleOverrides.delete(path);
+        }
+        openRecycleMenu = null;
+        rerender();
+      },
+      onClearRecycle(path) {
+        recycleOverrides.delete(path);
+        openRecycleMenu = null;
+        rerender();
+      },
     });
     renderResourcesInto(resources, summarizeTree(tree), summarizeProliferatorUsage(tree, proliferation), defaultProlif, {
       onSetMode(mode) {
@@ -276,6 +320,10 @@ function renderBody(subjectId, recipe, registries, initialState) {
       openReuseMenu = null;
       changed = true;
     }
+    if (openRecycleMenu && !event.target.closest('.tree-node-recycle-menu, .tree-node-recycle')) {
+      openRecycleMenu = null;
+      changed = true;
+    }
     if (changed) rerender();
   }
   document.addEventListener('click', onDocumentClick);
@@ -284,12 +332,12 @@ function renderBody(subjectId, recipe, registries, initialState) {
   rerender();
 
   const fit = () => panZoom.fitToView(size.width, size.height);
-  const shareUrl = () => buildShareUrl(subjectId, recipe.id, choices, overrides, proliferation, reuseOverrides);
+  const shareUrl = () => buildShareUrl(subjectId, recipe.id, choices, overrides, proliferation, reuseOverrides, recycleOverrides);
   canvas.appendChild(renderToolbar(panZoom, fit, shareUrl));
 
-  // Snapshot of the live choice/override/proliferation/reuse maps, for
-  // handing off to Factory View (or restoring back into a fresh tree view)
-  // without sharing mutable references into this closure.
+  // Snapshot of the live choice/override/proliferation/reuse/recycle maps,
+  // for handing off to Factory View (or restoring back into a fresh tree
+  // view) without sharing mutable references into this closure.
   const snapshot = () => ({
     subjectId,
     recipe,
@@ -297,14 +345,15 @@ function renderBody(subjectId, recipe, registries, initialState) {
     overrides: new Map(overrides),
     proliferation: new Map(proliferation),
     reuseOverrides: new Map(reuseOverrides),
+    recycleOverrides: new Map(recycleOverrides),
   });
 
   body.append(canvas, resources);
   return { body, fit, snapshot };
 }
 
-function buildShareUrl(subjectId, recipeId, choices, overrides, proliferation, reuseOverrides) {
-  const code = serializeTreeState({ subjectId, recipeId, choices, overrides, proliferation, reuseOverrides });
+function buildShareUrl(subjectId, recipeId, choices, overrides, proliferation, reuseOverrides, recycleOverrides) {
+  const code = serializeTreeState({ subjectId, recipeId, choices, overrides, proliferation, reuseOverrides, recycleOverrides });
   const url = new URL(window.location.href);
   // Only ever touches `tree` - any other params (present now or added by
   // future features) are left exactly as they are.

@@ -1,6 +1,7 @@
 import { formatLabel } from './format.js';
 import { BACK_ICON } from './icons.js';
 import { buildTree } from '../tree/buildTree.js';
+import { resolveCycleBoosts } from '../tree/cycleRecycle.js';
 import { buildFactoryPlan, lineKey } from '../factory/buildFactoryPlan.js';
 import { computeMachineCounts } from '../factory/computeMachineCounts.js';
 import { getBuildingOptions, getSelectedBuilding, getBuildingSpeed } from '../factory/buildingOptions.js';
@@ -65,12 +66,26 @@ export function renderFactoryView(container, treeState, registries, onBack) {
   let openProlifCard = null;
 
   function buildCurrentTree() {
-    return buildTree(treeState.subjectId, 1, registries, {
+    const options = {
       choices: treeState.choices,
       overrides: treeState.overrides,
       proliferation: treeState.proliferation,
       reuseOverrides: treeState.reuseOverrides,
-    });
+      recycleOverrides: treeState.recycleOverrides,
+    };
+    const tree = buildTree(treeState.subjectId, 1, registries, options);
+    // Same iterative correction as treeView.js's rerender() - a cycle
+    // node's recycledQty only tells its ancestor how much more to
+    // produce, which can grow the same demand again each pass (see
+    // cycleRecycle.js). No local cycleBoosts to carry across renders here
+    // (Factory View doesn't have its own recycle controls, just needs to
+    // reflect whatever treeState.recycleOverrides already says), so this
+    // always starts fresh from an empty Map rather than a remembered one.
+    return resolveCycleBoosts(
+      (boosts) => buildTree(treeState.subjectId, 1, registries, { ...options, qtyBoosts: boosts }),
+      tree,
+      new Map(),
+    ).tree;
   }
 
   function computeLines(tree) {

@@ -5,11 +5,14 @@ import { formatQty } from './formatQty.js';
 import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
 import { PROLIF_MODES, renderProlifModeRow, renderProlifLevelRow, modeLabel, levelLabel } from './proliferationPicker.js';
 import { renderReuseMenu } from './reusePicker.js';
+import { renderRecycleMenu } from './cyclePicker.js';
 
-// A single fixed-size card in the tree canvas. Four flavors:
+// A single fixed-size card in the tree canvas. Five flavors:
 //  - choice: "expand using this recipe" - see renderChoiceNode.
 //  - reuse choice: "just reuse" - see renderReuseChoiceNode.
-//  - leaf/cycle: plain, non-interactive card.
+//  - cycle: a loop back onto one of its own ancestors, with its own
+//    recycle control - see renderCycleNode.
+//  - leaf: plain, non-interactive card.
 //  - craftable: div[role="button"] with a chevron, toggling expand/collapse
 //    via handlers.onToggle(path, wasCollapsed) on click.
 // Everything about *how* a resolved node is made - the recipe/machine icon,
@@ -19,6 +22,7 @@ import { renderReuseMenu } from './reusePicker.js';
 export function renderTreeNode(node, handlers = {}) {
   if (node.isChoice) return renderChoiceNode(node, handlers.onChoose);
   if (node.isReuseChoice) return renderReuseChoiceNode(node, handlers.onApplyReuse);
+  if (node.isCycle) return renderCycleNode(node, handlers);
 
   const { onToggle } = handlers;
   const expandable = !node.isLeaf && typeof onToggle === 'function';
@@ -26,7 +30,6 @@ export function renderTreeNode(node, handlers = {}) {
   const el = document.createElement('div');
   el.className = 'tree-node';
   if (node.isLeaf) el.classList.add('tree-node--leaf');
-  if (node.isCycle) el.classList.add('tree-node--cycle');
   el.style.width = `${NODE_WIDTH}px`;
   el.style.height = `${NODE_HEIGHT}px`;
 
@@ -77,6 +80,20 @@ export function renderTreeNode(node, handlers = {}) {
   // badge instead. Keeping it there instead of duplicating it on the card
   // means there's exactly one place a reused amount is displayed, right on
   // the control that lets you change it.
+
+  // Set only once a descendant cycle node is recycling some of *this*
+  // node's own output back into itself - see buildTree.js's qtyBoost. This
+  // one stays on the card (unlike the reuse note above) since there's no
+  // single hub it belongs to instead: the control that caused it lives on
+  // a cycle node somewhere down this subtree, not anywhere on this card's
+  // own hub.
+  if (node.qtyBoost > 0) {
+    const recycleNote = document.createElement('span');
+    recycleNote.className = 'tree-node-qty-recycle';
+    recycleNote.textContent = ` (+${formatQty(node.qtyBoost)} recycled back in)`;
+    qty.title = `×${formatQty(node.qtyBoost)} of this is being fed back in from a cycle further down this subtree`;
+    qty.appendChild(recycleNote);
+  }
 
   info.append(name, qty);
   el.append(icon, info);
@@ -400,6 +417,87 @@ function renderReuseChoiceNode(node, onApplyReuse) {
 
   info.append(name, qty);
   el.append(icon, info);
+  return el;
+}
+
+// A cycle guard - this ingredient loops back onto one of its own ancestors
+// (see buildTree.js's ancestors.has() branch), so instead of recursing
+// forever the tree stops here. First-class and interactive now, not just
+// a dead end: the small recycle button lets some of this demand be fed
+// back from the ancestor's own output instead of counted as raw external
+// need (see buildTree.js's recycledQty/qtyBoost, cycleRecycle.js) - "take
+// a cut of the output and feed it straight back into the machine," same
+// as it'd work in-game. Yellow border/dashed while nothing's recycled
+// (still just a stopped loop, same as before this existed), green once
+// recycledQty is set (see .tree-node--cycle-active in styles.css) - a
+// glance at the border tells you which cycles in a tree are actually
+// closed vs. just left open as raw demand.
+function renderCycleNode(node, handlers = {}) {
+  const { openRecycleMenu, onToggleRecycleMenu, onApplyRecycle, onClearRecycle } = handlers;
+
+  const current = node.recycledQty ?? 0;
+  const menuOpen = openRecycleMenu?.path === node.path;
+  const canRecycle = typeof onToggleRecycleMenu === 'function' && Boolean(node.ancestorPath);
+
+  const el = document.createElement('div');
+  el.className = 'tree-node tree-node--leaf tree-node--cycle';
+  if (current > 0) el.classList.add('tree-node--cycle-active');
+  if (menuOpen) el.classList.add('tree-node--cycle-menu-open');
+  el.style.width = `${NODE_WIDTH}px`;
+  el.style.height = `${NODE_HEIGHT}px`;
+
+  const icon = document.createElement('img');
+  icon.className = 'tree-node-icon';
+  icon.src = node.object?.icon ?? '';
+  icon.alt = '';
+
+  const info = document.createElement('div');
+  info.className = 'tree-node-info';
+
+  const name = document.createElement('span');
+  name.className = 'tree-node-name';
+  name.textContent = formatLabel(node.itemId);
+
+  const qty = document.createElement('span');
+  qty.className = 'tree-node-qty';
+  qty.textContent = `×${formatQty(node.qty)}`;
+
+  info.append(name, qty);
+  el.append(icon, info);
+
+  if (canRecycle) {
+    const recycle = document.createElement('button');
+    recycle.type = 'button';
+    recycle.className = 'tree-node-recycle';
+    if (current > 0) recycle.classList.add('tree-node-recycle--active');
+    recycle.title = current > 0
+      ? `Recycling ×${formatQty(current)} back from the output`
+      : 'Recycle from output';
+    recycle.setAttribute('aria-label', recycle.title);
+    recycle.innerHTML = REUSE_ICON;
+    if (current > 0) {
+      const badge = document.createElement('span');
+      badge.className = 'tree-node-recycle-badge';
+      badge.textContent = `×${formatQty(current)}`;
+      recycle.appendChild(badge);
+    }
+    recycle.addEventListener('click', (event) => {
+      event.stopPropagation();
+      onToggleRecycleMenu(node.path);
+    });
+    el.appendChild(recycle);
+
+    if (menuOpen) {
+      el.appendChild(renderRecycleMenu(
+        { path: node.path, qty: node.qty, current },
+        {
+          onApply: (amount) => onApplyRecycle(node.path, amount),
+          onClear: () => onClearRecycle(node.path),
+        },
+      ));
+    }
+  }
+
   return el;
 }
 

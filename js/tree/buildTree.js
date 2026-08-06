@@ -32,22 +32,51 @@ import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
 //                recipe is needed at all, not just "not crafted." A stale
 //                entry for a leaf/collapsed path is harmless, same as a
 //                stale `choices`/`overrides` entry.
-export function buildTree(rootItemId, qty, registries, { choices = new Map(), overrides = new Map(), proliferation = new Map(), reuseOverrides = new Map() } = {}) {
+// recycleOverrides: Map<cyclePath, number> - how much of a cycle-guard
+//                node's demand (see the ancestors.has() branch below) is
+//                being manually recycled from its own ancestor's output
+//                instead of counted as raw external demand - the "feed a
+//                cut of the output straight back into the machine" cycle
+//                controls (see treeNode.js's renderCycleNode). Unlike
+//                reuseOverrides, this doesn't reduce anything - it *adds*:
+//                the recycled amount has to come from *more* of the
+//                ancestor's own output, so buildTree.js can't apply this
+//                inline while building (the ancestor's qty is already
+//                fixed by the time its descendant's cycle node is reached).
+//                See qtyBoosts below and js/tree/cycleRecycle.js for how
+//                it actually gets applied, two builds later.
+// qtyBoosts:     Map<path, number> - extra qty added on top of whatever a
+//                node's own parent already asked for, from recycleOverrides
+//                above (see cycleRecycle.js's computeCycleBoosts, called
+//                between builds in treeView.js - this only *applies* a
+//                boost already computed from a previous build, it doesn't
+//                compute one itself).
+export function buildTree(rootItemId, qty, registries, { choices = new Map(), overrides = new Map(), proliferation = new Map(), reuseOverrides = new Map(), recycleOverrides = new Map(), qtyBoosts = new Map() } = {}) {
   return buildNode({
     itemId: rootItemId,
     qty,
     path: rootItemId,
     depth: 0,
     ancestors: new Set([rootItemId]),
+    ancestorPaths: new Map([[rootItemId, rootItemId]]),
     registries,
     choices,
     overrides,
     proliferation,
     reuseOverrides,
+    recycleOverrides,
+    qtyBoosts,
   });
 }
 
-function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, overrides, proliferation, reuseOverrides, qtyBeforeYield }) {
+function buildNode({ itemId, qty: rawQty, path, depth, ancestors, ancestorPaths, registries, choices, overrides, proliferation, reuseOverrides, recycleOverrides, qtyBoosts, qtyBeforeYield }) {
+  // A cycle recycling back into this node (see below) adds to what it has
+  // to produce - same reasoning as suppliedFromLeftover subtracting, just
+  // the opposite direction. Folded in before anything else touches `qty`
+  // so every downstream computation (recipe scale, children, byproducts,
+  // the card's own displayed qty) already reflects the larger total.
+  const boost = qtyBoosts.get(path) ?? 0;
+  const qty = rawQty + boost;
   const object = registries.objects.get(itemId);
   const recipeOptions = registries.recipes.byResultItem.get(itemId) ?? [];
   const isLeaf = recipeOptions.length === 0;
@@ -62,6 +91,11 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
     // treeNode.js's display of it. Undefined (not just equal to qty) is
     // the "nothing to show" case, not zero savings.
     qtyBeforeYield,
+    // Set (to a positive number) only once a descendant cycle node is
+    // recycling some of this node's own output back into itself - see
+    // qtyBoosts above and cycleRecycle.js. `qty` already includes it (this
+    // is purely for treeNode.js to annotate where the extra came from).
+    qtyBoost: boost > 0 ? boost : undefined,
     depth,
     isLeaf,
     isCycle: false,
@@ -164,7 +198,12 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
 
     if (ancestors.has(ingredientId)) {
       // Recipe loops back onto one of its own ancestors (e.g. a byproduct
-      // feeding back in) - stop here rather than recursing forever.
+      // feeding back in) - stop here rather than recursing forever. Left
+      // as plain external demand by default (recycledQty undefined), same
+      // as any other leaf - see recycleOverrides above for the opt-in that
+      // changes that.
+      const requestedRecycle = recycleOverrides.get(childPath) ?? 0;
+      const recycledQty = Math.min(Math.max(requestedRecycle, 0), childQty);
       node.children.push({
         path: childPath,
         itemId: ingredientId,
@@ -179,6 +218,11 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
         recipeOptions: [],
         recipe: null,
         isCollapsed: false,
+        // Which ancestor this loops back onto - the one whose output a
+        // recycle override actually feeds back into (see cycleRecycle.js's
+        // computeCycleBoosts, which reads this to know whose qty to grow).
+        ancestorPath: ancestorPaths.get(ingredientId),
+        recycledQty: recycledQty > 0 ? recycledQty : undefined,
         children: [],
         byproducts: [],
       });
@@ -192,11 +236,14 @@ function buildNode({ itemId, qty, path, depth, ancestors, registries, choices, o
       path: childPath,
       depth: depth + 1,
       ancestors: new Set([...ancestors, ingredientId]),
+      ancestorPaths: new Map([...ancestorPaths, [ingredientId, childPath]]),
       registries,
       choices,
       overrides,
       proliferation,
       reuseOverrides,
+      recycleOverrides,
+      qtyBoosts,
     }));
   }
 
