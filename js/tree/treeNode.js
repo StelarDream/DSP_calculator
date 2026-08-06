@@ -1,5 +1,5 @@
 import { formatLabel } from '../ui/format.js';
-import { CHEVRON_ICON, EDIT_ICON, PROLIF_NONE_ICON, REUSE_ICON, PENDING_ICON } from '../ui/icons.js';
+import { CHEVRON_ICON, EDIT_ICON, PROLIF_NONE_ICON, REUSE_ICON, PENDING_ICON, SUPPLY_ICON } from '../ui/icons.js';
 import { NODE_WIDTH, NODE_HEIGHT } from './constants.js';
 import { formatQty } from './formatQty.js';
 import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
@@ -7,9 +7,10 @@ import { PROLIF_MODES, renderProlifModeRow, renderProlifLevelRow, modeLabel, lev
 import { renderReuseMenu } from './reusePicker.js';
 import { renderRecycleMenu } from './cyclePicker.js';
 
-// A single fixed-size card in the tree canvas. Five flavors:
+// A single fixed-size card in the tree canvas. Six flavors:
 //  - choice: "expand using this recipe" - see renderChoiceNode.
 //  - reuse choice: "just reuse" - see renderReuseChoiceNode.
+//  - decline choice: "supply this myself" - see renderDeclineChoiceNode.
 //  - cycle: a loop back onto one of its own ancestors, with its own
 //    recycle control - see renderCycleNode.
 //  - leaf: plain, non-interactive card.
@@ -21,7 +22,8 @@ import { renderRecycleMenu } from './cyclePicker.js';
 // treeCanvas.js), keeping this card down to just "what" and "how much."
 export function renderTreeNode(node, handlers = {}) {
   if (node.isChoice) return renderChoiceNode(node, handlers.onChoose);
-  if (node.isReuseChoice) return renderReuseChoiceNode(node, handlers.onApplyReuse);
+  if (node.isReuseChoice) return renderReuseChoiceNode(node, handlers);
+  if (node.isDeclineChoice) return renderDeclineChoiceNode(node, handlers.onDeclineRecipe);
   if (node.isCycle) return renderCycleNode(node, handlers);
 
   const { onToggle } = handlers;
@@ -396,22 +398,43 @@ function renderChoiceNode(node, onChoose) {
 // present at all when reuseChoice.js's injectReuseChoices found leftover
 // to offer (see its module comment for why that's a separate pass over
 // the finished tree rather than something buildTree.js decides inline).
-// Picking it maxes out reuse for the whole node in one click - the exact
-// same effect as the reuse hub's own "Max" button (reuses onApplyReuse
-// directly, no separate handler) - which resolves the choice needsChoice
-// was blocking on *without* ever picking a recipe, as long as that's
-// enough to cover the demand. If it isn't (available < the node's own
-// qty), buildTree.js's next build still finds a genuine remainder to
-// produce and re-enters needsChoice for it - recipe still unpicked, this
-// card's own available number just smaller (or gone, if leftover's now
-// fully claimed elsewhere).
-function renderReuseChoiceNode(node, onApplyReuse) {
-  const el = document.createElement('button');
-  el.type = 'button';
+//
+// Opens the same amount picker as the reuse hub (see renderReuseMenu)
+// rather than instantly maxing out on click - a user who wants *some* of
+// this covered by leftover and the rest actually crafted needs to say so
+// up front, before any recipe's picked, not just take-it-all-or-leave-it.
+// Applying anything less than the full available amount still resolves
+// this particular card away, but doesn't resolve the node: buildTree.js's
+// next build finds a genuine remainder still to produce and re-enters
+// needsChoice for it, this time with suppliedFromLeftover>0 - which is
+// exactly what already happened automatically whenever available < qty
+// (see buildTree.js/layoutTree.js's _hasChoiceHub), just now reachable by
+// choice instead of only by the pool happening to run short. That
+// re-entered needsChoice shows a choice hub with its own reuse hub
+// attached (layoutTree.js), so a further tweak to the amount goes through
+// the normal reuse hub from there, not this card again - this card only
+// ever handles the *first* commit, on a node that hasn't touched reuse
+// yet (menu keyed on node.parentPath via the shared openReuseMenu/
+// onToggleReuseMenu plumbing, same as the reuse hub uses for its own
+// node.path - never collide since a node only ever has one or the other
+// at a time, never both).
+function renderReuseChoiceNode(node, handlers = {}) {
+  const { openReuseMenu, onToggleReuseMenu, onApplyReuse } = handlers;
+  const menuOpen = openReuseMenu?.path === node.parentPath;
+
+  const el = document.createElement('div');
   el.className = 'tree-node tree-node--choice tree-node--reuse-choice';
+  if (menuOpen) el.classList.add('tree-node--reuse-choice-menu-open');
   el.style.width = `${NODE_WIDTH}px`;
   el.style.height = `${NODE_HEIGHT}px`;
-  el.addEventListener('click', () => onApplyReuse?.(node.parentPath, node.available));
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'tree-node-reuse-choice-btn';
+  button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    onToggleReuseMenu?.(node.parentPath);
+  });
 
   const icon = document.createElement('span');
   icon.className = 'tree-node-icon tree-node-reuse-choice-icon';
@@ -422,15 +445,96 @@ function renderReuseChoiceNode(node, onApplyReuse) {
 
   const name = document.createElement('span');
   name.className = 'tree-node-name';
-  name.textContent = 'Just reuse';
+  name.textContent = 'Reuse leftover';
 
   const qty = document.createElement('span');
   qty.className = 'tree-node-qty';
   qty.textContent = `×${formatQty(node.available)} available`;
 
   info.append(name, qty);
+  button.append(icon, info);
+  el.append(button);
+
+  if (menuOpen) {
+    el.appendChild(renderReuseMenu(
+      { path: node.parentPath, itemId: node.itemId, qty: node.parentQty, available: node.available, current: 0 },
+      { onApply: (amount) => onApplyReuse?.(node.parentPath, amount), onClear: () => {} },
+    ));
+  }
+
+  return el;
+}
+
+// "Supply myself" - the needsChoice sibling of "Reuse leftover" (see
+// buildTree.js's buildDeclineChoiceNode), for leaving whatever isn't
+// covered by reuse as plain external demand instead of being forced to
+// pick a recipe just to get past the choice. One click, no amount to
+// pick (unlike the reuse card) - there's nothing to size, it's an
+// all-or-nothing "don't craft this" for the remainder. Reversible from
+// the resulting declined hub (see renderDeclinedHub) once committed.
+function renderDeclineChoiceNode(node, onDeclineRecipe) {
+  const el = document.createElement('button');
+  el.type = 'button';
+  el.className = 'tree-node tree-node--choice tree-node--decline-choice';
+  el.style.width = `${NODE_WIDTH}px`;
+  el.style.height = `${NODE_HEIGHT}px`;
+  el.addEventListener('click', () => onDeclineRecipe?.(node.parentPath));
+
+  const icon = document.createElement('span');
+  icon.className = 'tree-node-icon tree-node-decline-choice-icon';
+  icon.innerHTML = SUPPLY_ICON;
+
+  const info = document.createElement('div');
+  info.className = 'tree-node-info';
+
+  const name = document.createElement('span');
+  name.className = 'tree-node-name';
+  name.textContent = 'Supply myself';
+
+  const qty = document.createElement('span');
+  qty.className = 'tree-node-qty';
+  qty.textContent = "won't be crafted";
+
+  info.append(name, qty);
   el.append(icon, info);
   return el;
+}
+
+// The declined hub - stands in for a resolved recipe's icon once a node's
+// settled on "supply myself" for whatever reuse doesn't cover (see
+// buildTree.js's node.recipeDeclined, layoutTree.js's _hasDeclinedHub).
+// Same primary-hub slot a recipe/choice hub would occupy, but nothing
+// flows through it (no children, same as isFullySupplied) - just a marker
+// plus the one control that matters here: reverting the decision so the
+// node re-enters needsChoice (same recipe options, same reuse amount
+// untouched) if it turns out crafting the rest is wanted after all.
+export function renderDeclinedHub(node, handlers = {}) {
+  const { onUndeclineRecipe } = handlers;
+
+  const hub = document.createElement('div');
+  hub.className = 'declined-hub';
+
+  const icon = document.createElement('span');
+  icon.className = 'tree-node-decline-icon';
+  icon.title = "Supplying this yourself - won't be crafted";
+  icon.innerHTML = SUPPLY_ICON;
+  hub.appendChild(icon);
+
+  if (typeof onUndeclineRecipe === 'function') {
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'tree-node-edit';
+    edit.title = 'Craft this instead';
+    edit.setAttribute('aria-label', 'Craft this instead');
+    edit.innerHTML = EDIT_ICON;
+    edit.addEventListener('click', (event) => {
+      event.stopPropagation();
+      onUndeclineRecipe(node.path);
+    });
+    hub.appendChild(edit);
+  }
+
+  return hub;
 }
 
 // A cycle guard - this ingredient loops back onto one of its own ancestors

@@ -2,7 +2,7 @@ import { formatLabel } from './format.js';
 import { BACK_ICON } from './icons.js';
 import { buildTree } from '../tree/buildTree.js';
 import { resolveCycleBoosts } from '../tree/cycleRecycle.js';
-import { computeReusedTotals, injectReuseChoices } from '../tree/reusePool.js';
+import { computeReusedTotals, injectReuseChoices, clampOverallocatedReuse } from '../tree/reusePool.js';
 import { buildFactoryPlan, lineKey } from '../factory/buildFactoryPlan.js';
 import { computeMachineCounts } from '../factory/computeMachineCounts.js';
 import { getBuildingOptions, getSelectedBuilding, getBuildingSpeed } from '../factory/buildingOptions.js';
@@ -66,27 +66,43 @@ export function renderFactoryView(container, treeState, registries, onBack) {
   // keyed by line.key instead of a tree path.
   let openProlifCard = null;
 
-  function buildCurrentTree() {
+  // Builds + resolves cycle boosts (see cycleRecycle.js) for whatever's
+  // currently in treeState.choices/overrides/.../recycleOverrides. No
+  // local cycleBoosts carried across renders here (Factory View has no
+  // recycle controls of its own, just needs to reflect whatever
+  // treeState.recycleOverrides already says), so this always starts fresh
+  // from an empty Map rather than a remembered one.
+  function buildResolvedTree() {
     const options = {
       choices: treeState.choices,
       overrides: treeState.overrides,
       proliferation: treeState.proliferation,
       reuseOverrides: treeState.reuseOverrides,
       recycleOverrides: treeState.recycleOverrides,
+      declinedRecipes: treeState.declinedRecipes,
     };
     const tree = buildTree(treeState.subjectId, 1, registries, options);
-    // Same iterative correction as treeView.js's rerender() - a cycle
-    // node's recycledQty only tells its ancestor how much more to
-    // produce, which can grow the same demand again each pass (see
-    // cycleRecycle.js). No local cycleBoosts to carry across renders here
-    // (Factory View doesn't have its own recycle controls, just needs to
-    // reflect whatever treeState.recycleOverrides already says), so this
-    // always starts fresh from an empty Map rather than a remembered one.
-    const resolved = resolveCycleBoosts(
+    return resolveCycleBoosts(
       (boosts) => buildTree(treeState.subjectId, 1, registries, { ...options, qtyBoosts: boosts }),
       tree,
       new Map(),
     ).tree;
+  }
+
+  function buildCurrentTree() {
+    let resolved = buildResolvedTree();
+    // Same correction as treeView.js's rerender() - a stale reuseOverrides
+    // entry can claim more than the tree actually backs (see reusePool.js's
+    // clampOverallocatedReuse). Mutates treeState.reuseOverrides itself
+    // (a copy handed over by treeView.js's snapshot(), not the live tree
+    // view map - same "copy, not synced back" treatment overrides/choices
+    // already get), so the correction only affects this Factory View
+    // session, not the tree view it came from.
+    const reuseCorrections = clampOverallocatedReuse(resolved);
+    if (reuseCorrections.size > 0) {
+      for (const [path, amount] of reuseCorrections) treeState.reuseOverrides.set(path, amount);
+      resolved = buildResolvedTree();
+    }
     // Same reasoning as treeView.js's own call - a single-recipe node that
     // silently auto-resolved (see buildTree.js's autoResolved) still needs
     // to be retroactively knocked back into an undecided state here too

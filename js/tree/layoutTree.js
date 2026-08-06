@@ -27,8 +27,9 @@ export function layoutTree(root) {
   function measure(node) {
     maxDepth = Math.max(maxDepth, node.depth);
 
-    // Recipe hub, choice hub, and reuse hub are three independent slots -
-    // a node can have any subset of them (see collect() below):
+    // Recipe hub, choice hub, declined hub, and reuse hub - up to four
+    // independent slots, though recipe/choice/declined are mutually
+    // exclusive with each other (see collect() below):
     //  - recipe hub: resolved to a recipe *and* has ingredients to connect
     //    it to. A choice pseudo-node (buildTree.js's buildChoiceNode)
     //    carries a `recipe` too but never gets one - no children of its
@@ -42,13 +43,20 @@ export function layoutTree(root) {
     //    its options are laid out directly as this node's own children,
     //    same as before any of this existed (see reusePool.js's
     //    injectReuseChoices for the "Just reuse" card offered only then).
+    //  - declined hub: the user explicitly opted out of crafting the
+    //    remainder (node.recipeDeclined - see buildTree.js, treeNode.js's
+    //    "Supply myself" choice card) - no children to route through
+    //    either, same shape as isFullySupplied below but for a partial
+    //    remainder instead of the whole demand.
     //  - reuse hub: node's demand is (at least partly) covered by reuse -
     //    producing the remainder (recipe hub present), fully covered
-    //    (isFullySupplied, no recipe resolved at all), or still choosing a
-    //    recipe for the remainder (choice hub present).
+    //    (isFullySupplied, no recipe resolved at all), still choosing a
+    //    recipe for the remainder (choice hub present), or declining to
+    //    produce the remainder at all (declined hub present).
     node._hasRecipeHub = Boolean(node.recipe) && node.children.length > 0;
     node._hasChoiceHub = node.needsChoice && node.suppliedFromLeftover > 0;
-    const reuseEligible = node._hasRecipeHub || node.isFullySupplied || node._hasChoiceHub;
+    node._hasDeclinedHub = Boolean(node.recipeDeclined);
+    const reuseEligible = node._hasRecipeHub || node.isFullySupplied || node._hasChoiceHub || node._hasDeclinedHub;
     node._hasReuseHub = reuseEligible
       && (node.suppliedFromLeftover > 0 || reuseAvailability(root, node.itemId, node.path) > 0);
 
@@ -115,13 +123,17 @@ export function layoutTree(root) {
 
     const hasRecipeHub = node._hasRecipeHub;
     const hasChoiceHub = node._hasChoiceHub;
+    const hasDeclinedHub = node._hasDeclinedHub;
     const hasReuseHub = node._hasReuseHub;
     const spots = byproductSpots.get(node.path);
 
-    // The "primary" slot - recipe hub or choice hub, whichever applies
-    // (mutually exclusive: a node is either resolved or isn't) - both are
-    // junctions real children route through, unlike the reuse hub.
-    const hasPrimaryHub = hasRecipeHub || hasChoiceHub;
+    // The "primary" slot - recipe hub, choice hub, or declined hub,
+    // whichever applies (mutually exclusive: a node is resolved, still
+    // choosing, or has declined, never more than one at once). Recipe/
+    // choice hubs are junctions real children route through; the declined
+    // hub never has any children to route (same as isFullySupplied), it
+    // just needs the same primary-slot positioning the other two get.
+    const hasPrimaryHub = hasRecipeHub || hasChoiceHub || hasDeclinedHub;
 
     // Horizontally it's the true midpoint of the gap between this node's
     // column and the next - a hub's stored position is a *center* point
@@ -154,6 +166,7 @@ export function layoutTree(root) {
     // straight through.
     let hubPos = null;
     let choiceHubPos = null;
+    let declinedHubPos = null;
     let reuseHubPos = null;
     if (hasPrimaryHub || hasReuseHub) {
       const ys = [pos.y];
@@ -171,15 +184,19 @@ export function layoutTree(root) {
         // way.
         reuseHubPos = { x, y: centerY - half };
         const primaryPos = { x, y: centerY + half };
-        if (hasRecipeHub) hubPos = primaryPos; else choiceHubPos = primaryPos;
+        if (hasRecipeHub) hubPos = primaryPos;
+        else if (hasChoiceHub) choiceHubPos = primaryPos;
+        else declinedHubPos = primaryPos;
       } else if (hasReuseHub) {
         // isFullySupplied: no primary hub to share the point with, so the
         // reuse hub takes it outright.
         reuseHubPos = { x, y: centerY };
       } else if (hasRecipeHub) {
         hubPos = { x, y: centerY };
-      } else {
+      } else if (hasChoiceHub) {
         choiceHubPos = { x, y: centerY };
+      } else {
+        declinedHubPos = { x, y: centerY };
       }
 
       if (reuseHubPos) {
@@ -200,6 +217,11 @@ export function layoutTree(root) {
         edges.push({ from: pos, to: choiceHubPos });
         maxRow = Math.max(maxRow, choiceHubPos.y / ROW_HEIGHT);
       }
+      if (declinedHubPos) {
+        nodes.push({ node, ...declinedHubPos, isDeclinedHub: true });
+        edges.push({ from: pos, to: declinedHubPos });
+        maxRow = Math.max(maxRow, declinedHubPos.y / ROW_HEIGHT);
+      }
     }
 
     if (spots) {
@@ -219,7 +241,7 @@ export function layoutTree(root) {
       });
     }
 
-    const primaryHubPos = hubPos ?? choiceHubPos;
+    const primaryHubPos = hubPos ?? choiceHubPos ?? declinedHubPos;
     for (const child of node.children) {
       // Routed through the primary hub when there is one - fromIsHub tells
       // treeCanvas.js's edgePath not to offset by a full card width, since

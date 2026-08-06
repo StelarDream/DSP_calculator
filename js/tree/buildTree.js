@@ -51,7 +51,18 @@ import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
 //                between builds in treeView.js - this only *applies* a
 //                boost already computed from a previous build, it doesn't
 //                compute one itself).
-export function buildTree(rootItemId, qty, registries, { choices = new Map(), overrides = new Map(), proliferation = new Map(), reuseOverrides = new Map(), recycleOverrides = new Map(), qtyBoosts = new Map() } = {}) {
+// declinedRecipes: Set<path> - nodes where the user explicitly opted out of
+//                crafting whatever's left after reuse, choosing to supply
+//                it externally instead (see treeNode.js's "Reuse leftover"/
+//                "Supply myself" choice cards, renderDeclinedHub). Checked
+//                *after* reuseOverrides above but *before* any recipe would
+//                be resolved - same "don't even ask" treatment full reuse
+//                coverage gets, just for the remainder instead of the whole
+//                demand. Unlike reuseOverrides, this doesn't reduce the
+//                node's own qty at all: buildNode still leaves it as
+//                external demand for summarizeTree.js/computeRawInputs.js to
+//                pick up, same as any other leaf.
+export function buildTree(rootItemId, qty, registries, { choices = new Map(), overrides = new Map(), proliferation = new Map(), reuseOverrides = new Map(), recycleOverrides = new Map(), qtyBoosts = new Map(), declinedRecipes = new Set() } = {}) {
   return buildNode({
     itemId: rootItemId,
     qty,
@@ -66,10 +77,11 @@ export function buildTree(rootItemId, qty, registries, { choices = new Map(), ov
     reuseOverrides,
     recycleOverrides,
     qtyBoosts,
+    declinedRecipes,
   });
 }
 
-function buildNode({ itemId, qty: rawQty, path, depth, ancestors, ancestorPaths, registries, choices, overrides, proliferation, reuseOverrides, recycleOverrides, qtyBoosts, qtyBeforeYield }) {
+function buildNode({ itemId, qty: rawQty, path, depth, ancestors, ancestorPaths, registries, choices, overrides, proliferation, reuseOverrides, recycleOverrides, qtyBoosts, declinedRecipes, qtyBeforeYield }) {
   // A cycle recycling back into this node (see below) adds to what it has
   // to produce - same reasoning as suppliedFromLeftover subtracting, just
   // the opposite direction. Folded in before anything else touches `qty`
@@ -113,6 +125,13 @@ function buildNode({ itemId, qty: rawQty, path, depth, ancestors, ancestorPaths,
     // to adjust/clear the amount later, just no recipe hub (nothing's
     // being produced to show one for).
     isFullySupplied: false,
+    // True once the user's explicitly opted out of crafting whatever's
+    // left after reuse (see declinedRecipes above, renderDeclinedHub) -
+    // no recipe, no children, no byproducts, same shape as isFullySupplied
+    // except the leftover amount (if any) only covers *part* of qty, not
+    // all of it. summarizeTree.js/computeRawInputs.js pick up the
+    // remainder as ordinary external demand, same as any leaf.
+    recipeDeclined: false,
     children: [],
     byproducts: [],
   };
@@ -144,6 +163,16 @@ function buildNode({ itemId, qty: rawQty, path, depth, ancestors, ancestorPaths,
     return node;
   }
 
+  // The user's already said they'll cover whatever's left themselves (see
+  // declinedRecipes above) - stop here same as isFullySupplied above,
+  // just leaving `producedQty` as genuine external demand instead of zero.
+  // Checked before the recipe lookup below so a decline sticks regardless
+  // of how many recipe options this item has.
+  if (declinedRecipes.has(path)) {
+    node.recipeDeclined = true;
+    return node;
+  }
+
   // Still need to actually produce `producedQty` - resolve a recipe as
   // usual, scoped to just that remainder (reuse above already covered the
   // rest, so it's not part of what needs crafting).
@@ -151,9 +180,13 @@ function buildNode({ itemId, qty: rawQty, path, depth, ancestors, ancestorPaths,
   if (!chosen && recipeOptions.length > 1) {
     // More than one way to make this and nothing picked yet - surface the
     // options as the node's "children" instead of guessing one. Resolves
-    // into real ingredient children once onChoose records a pick.
+    // into real ingredient children once onChoose records a pick, plus a
+    // "Supply myself" card (see buildDeclineChoiceNode) so leaving the
+    // remainder as raw demand doesn't require picking a recipe you don't
+    // actually want just to get out of the choice.
     node.needsChoice = true;
     node.children = recipeOptions.map((recipe) => buildChoiceNode(recipe, itemId, path, depth, registries));
+    node.children.push(buildDeclineChoiceNode(node));
     return node;
   }
 
@@ -251,6 +284,7 @@ function buildNode({ itemId, qty: rawQty, path, depth, ancestors, ancestorPaths,
       reuseOverrides,
       recycleOverrides,
       qtyBoosts,
+      declinedRecipes,
     }));
   }
 
@@ -295,6 +329,37 @@ export function buildChoiceNode(recipe, itemId, parentPath, depth, registries) {
       id,
       icon: registries.objects.get(id)?.icon,
     })),
+    isCollapsed: false,
+    children: [],
+    byproducts: [],
+  };
+}
+
+// A pseudo-node standing in for "supply this myself instead" - the
+// needsChoice sibling of buildChoiceNode's recipe cards, letting the
+// remainder after reuse be left as raw external demand without forcing a
+// recipe pick nobody wants (see the needsChoice branch above, and
+// reusePool.js's injectReuseChoices, which appends one of these to its own
+// retrofitted single-recipe-vs-reuse pair too). Distinct from
+// buildReuseChoiceNode (reusePool.js) - that one claims leftover from
+// elsewhere in the tree, this one claims nothing at all, just settles the
+// choice as "don't craft this."
+export function buildDeclineChoiceNode(node) {
+  return {
+    path: `${node.path}»decline`,
+    parentPath: node.path,
+    itemId: node.itemId,
+    object: node.object,
+    qty: undefined,
+    depth: node.depth + 1,
+    isLeaf: true,
+    isCycle: false,
+    isChoice: false,
+    isReuseChoice: false,
+    isDeclineChoice: true,
+    needsChoice: false,
+    recipeOptions: [],
+    recipe: null,
     isCollapsed: false,
     children: [],
     byproducts: [],

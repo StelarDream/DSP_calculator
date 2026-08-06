@@ -1,4 +1,4 @@
-import { buildChoiceNode } from './buildTree.js';
+import { buildChoiceNode, buildDeclineChoiceNode } from './buildTree.js';
 
 // How much of `itemId` is available in the leftover pool for a *specific*
 // node to draw on, given the tree as currently built. Deliberately a
@@ -34,6 +34,53 @@ export function reuseAvailability(root, itemId, excludePath) {
   return Math.max(0, gross - reusedElsewhere);
 }
 
+// Finds any reuseOverrides entry that's currently claiming more than the
+// tree can actually back - itemId's *gross* byproduct total is fixed and
+// finite, but a stale entry (a share link written back when a different
+// recipe choice elsewhere produced more of it, or any other structural
+// change since the amount was set - see buildTree.js's clamp, which only
+// ever bounds a claim against its *own* node's qty, never the shared pool)
+// can still ask for more than currently exists. Confirmed real via a share
+// link: Antimatter's reuse was left at 10 from an earlier tree shape, but
+// the current one only produces 9 of it anywhere - buildTree.js happily
+// applied the full 10 anyway (10 <= that node's own qty of 10, its only
+// check), silently over-crediting 1 unit nothing in the tree actually
+// made.
+//
+// Walks in a stable order and greedily allocates each claim against
+// whatever's left of the *gross* total after earlier claims in the same
+// walk - first-come-first-served, deterministic given a fixed tree shape.
+// Returns path -> corrected amount only for entries that actually needed
+// shrinking (empty when nothing did), for treeView.js/factoryView.js to
+// feed back into reuseOverrides and rebuild once more with - same
+// discover-then-rebuild shape as cycleRecycle.js's resolveCycleBoosts.
+export function clampOverallocatedReuse(root) {
+  const gross = new Map(); // itemId -> total ever produced as a byproduct, unaffected by any reuse elsewhere
+  (function walkGross(node) {
+    for (const byproduct of node.byproducts) {
+      gross.set(byproduct.itemId, (gross.get(byproduct.itemId) ?? 0) + byproduct.qty);
+    }
+    for (const child of node.children) walkGross(child);
+  })(root);
+
+  const claimed = new Map(); // itemId -> how much this walk has already allocated
+  const corrections = new Map(); // path -> corrected amount, only where a shrink was needed
+
+  (function walk(node) {
+    if (node.suppliedFromLeftover) {
+      const already = claimed.get(node.itemId) ?? 0;
+      const allowable = Math.max(0, (gross.get(node.itemId) ?? 0) - already);
+      if (node.suppliedFromLeftover > allowable + 1e-9) {
+        corrections.set(node.path, allowable);
+      }
+      claimed.set(node.itemId, already + Math.min(node.suppliedFromLeftover, allowable));
+    }
+    for (const child of node.children) walk(child);
+  })(root);
+
+  return corrections;
+}
+
 // How much of each item is currently being manually reused across the
 // whole tree - itemId -> total suppliedFromLeftover. Shared by
 // summarizeTree.js's own sidebar and Factory View's computeRawInputs.js,
@@ -65,6 +112,12 @@ function buildReuseChoiceNode(node, available) {
     itemId: node.itemId,
     object: node.object,
     qty: undefined,
+    // The *parent* node's own demand - not this pseudo-node's qty (still
+    // undefined above, it isn't a real ingredient), but what treeNode.js's
+    // amount picker needs as the ceiling on a partial reuse commit here
+    // (min(parentQty, available), same clamp buildTree.js applies once the
+    // amount actually lands in reuseOverrides).
+    parentQty: node.qty,
     depth: node.depth + 1,
     isLeaf: true,
     isCycle: false,
@@ -134,6 +187,7 @@ export function injectReuseChoices(root, registries) {
         node.children = [
           buildChoiceNode(recipe, node.itemId, node.path, node.depth, registries),
           buildReuseChoiceNode(node, available),
+          buildDeclineChoiceNode(node),
         ];
         return; // the discarded children were the real ingredients - nothing left under this node to walk into
       }

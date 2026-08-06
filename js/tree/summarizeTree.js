@@ -31,6 +31,9 @@ import { computeReusedTotals } from './reusePool.js';
 //   - fully supplied by reuse (node.isFullySupplied) - contributes neither
 //     demand nor byproducts of its own, since nothing about it is actually
 //     being produced.
+//   - declined (node.recipeDeclined) - the user explicitly chose not to
+//     craft whatever reuse doesn't cover (see buildTree.js), same
+//     "nothing produced here" shape as needsChoice/collapsed.
 export function summarizeTree(root) {
   const demandTotals = new Map(); // itemId -> { itemId, object, qty, pending }
   const leftoverTotals = new Map(); // itemId -> { itemId, object, qty }
@@ -48,11 +51,20 @@ export function summarizeTree(root) {
   function walk(node) {
     if (node.isFullySupplied) return;
 
-    const leafLike = node.isLeaf || node.isCollapsed || node.needsChoice;
+    const leafLike = node.isLeaf || node.isCollapsed || node.needsChoice || node.recipeDeclined;
 
     if (leafLike) {
       const e = demandEntry(node.itemId, node.object);
-      e.qty += node.qty - (node.recycledQty ?? 0);
+      // A needsChoice/declined node can still have suppliedFromLeftover>0
+      // (partial reuse engaged, remainder either still undecided or
+      // explicitly declined - see buildTree.js) - node.qty is the node's
+      // *full* demand, not just what's left after reuse, so that portion
+      // has to come back out here or it'd double-count: once as this
+      // node's "demand," and again wherever the reused byproduct itself
+      // got produced. isLeaf/isCollapsed nodes never have
+      // suppliedFromLeftover set (buildTree.js resolves reuse only for
+      // expanded, recipe-bearing nodes), so this is a no-op for them.
+      e.qty += node.qty - (node.suppliedFromLeftover ?? 0) - (node.recycledQty ?? 0);
       if (node.needsChoice) e.pending = true;
       return;
     }
