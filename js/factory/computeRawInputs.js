@@ -1,58 +1,50 @@
 import { computeLineRates } from './lineRates.js';
-import { isItemReused } from './byproductReuse.js';
-import { linePrimaryItemId } from './buildFactoryPlan.js';
 
 // Raw ("assumed") input rates for Factory View's bottom bar - what still
-// has to come from outside the compiled plan, in items/sec at the current
-// target rate.
+// has to come from outside the compiled plan - plus `leftover`: everything
+// produced that nothing inside the plan asked for.
 //
-// Built directly from the compiled `lines` (post computeMachineCounts, so
-// craftsPerSec already reflects buildFactoryPlan.js's double-crafting fix)
-// rather than re-walking the raw tree. The tree's own per-node qty and
-// byproduct figures are exactly the *un*-deduplicated numbers that fix
-// exists to correct - e.g. a symmetric recipe whose two separately-demanded
-// results (Hydrogen and Antimatter) merge into one Factory View line still
-// has two tree nodes independently reporting their own Critical Photon
-// demand, so re-deriving raw-input totals from the tree would silently
-// reintroduce the same double-counting bug at the ingredient level, even
-// though the card above it already shows the corrected, deduplicated
-// craft/machine count (see memory: factory-view-plan).
+// Deliberately naive about byproducts, matching buildFactoryPlan.js's own
+// naive crafts math: any result a line's crafts were actually sized for
+// (line.targetedItems - the item(s) some contributing tree node asked for,
+// NOT just the recipe's first result key) nets against demand for that
+// item elsewhere, same as any normal intermediate product in the chain.
+// Every *other* result (an incidental byproduct nothing asked for) never
+// nets against anything - it's unconditionally added to `leftover` in
+// full, even if some other line happens to want that exact item too.
+// That's the point: a byproduct never gets credited toward satisfying a
+// *different* node's need, only its own line's targeted demand can be
+// satisfied by its own line's targeted production.
 //
-// An item counts as `needed` (has to come from outside the plan) whenever
-// total demand for it - summed across every line's own ingredients -
-// outstrips whatever's reused-supplied by lines that produce it. An item
-// no line in this plan produces at all is exactly this with zero supply -
-// true raw resources, but also anything the tree left collapsed or
-// unresolved, since neither has a line either. Whatever's left over once
-// demand is covered (or produced but explicitly toggled to waste, see
-// byproductReuse) counts as `extra` instead.
+// Built from the compiled `lines` (post computeMachineCounts) rather than
+// the raw tree, so it lines up with each card's own numbers - see memory:
+// factory-view-plan.
 //
 // rootItemId (the tree's own subject) is deliberately never counted as
-// supply - it's the plan's actual goal output, not surplus, even though
+// supply - it's the plan's actual goal output, not leftover, even though
 // nothing else in the plan demands it as an ingredient.
-export function computeRawInputs(lines, registries, byproductReuse, rootItemId) {
-  const totals = new Map(); // itemId -> { itemId, demand, reusedSupply, wastedSupply }
+export function computeRawInputs(lines, registries, rootItemId) {
+  const demandTotals = new Map(); // itemId -> demand
+  const primarySupplyTotals = new Map(); // itemId -> supply from primary production only
+  const leftoverTotals = new Map(); // itemId -> unconditional byproduct output
 
-  function entry(itemId) {
-    if (!totals.has(itemId)) totals.set(itemId, { itemId, demand: 0, reusedSupply: 0, wastedSupply: 0 });
-    return totals.get(itemId);
+  function addTo(map, itemId, amount) {
+    map.set(itemId, (map.get(itemId) ?? 0) + amount);
   }
 
   for (const line of lines) {
     const { demand, output } = computeLineRates(line);
 
     for (const { itemId, ratePerSec } of demand) {
-      entry(itemId).demand += ratePerSec;
+      addTo(demandTotals, itemId, ratePerSec);
     }
 
-    const primaryItemId = linePrimaryItemId(line);
     for (const { itemId, ratePerSec } of output) {
       if (itemId === rootItemId) continue;
-      const item = entry(itemId);
-      if (isItemReused(byproductReuse, line.key, itemId, primaryItemId)) {
-        item.reusedSupply += ratePerSec;
+      if (line.targetedItems.has(itemId)) {
+        addTo(primarySupplyTotals, itemId, ratePerSec);
       } else {
-        item.wastedSupply += ratePerSec;
+        addTo(leftoverTotals, itemId, ratePerSec);
       }
     }
   }
@@ -60,25 +52,28 @@ export function computeRawInputs(lines, registries, byproductReuse, rootItemId) 
   // Same "close enough to zero counts as fully netted" tolerance as
   // summarizeTree.js - floating-point scale chains rarely land exactly.
   const EPSILON = 1e-6;
+  const itemIds = new Set([...demandTotals.keys(), ...primarySupplyTotals.keys(), ...leftoverTotals.keys()]);
+
   const needed = [];
-  const extra = [];
+  const leftover = [];
 
-  for (const item of totals.values()) {
-    const object = registries.objects.get(item.itemId);
+  for (const itemId of itemIds) {
+    const object = registries.objects.get(itemId);
+    const demand = demandTotals.get(itemId) ?? 0;
+    const primarySupply = primarySupplyTotals.get(itemId) ?? 0;
 
-    const neededRate = item.demand - item.reusedSupply;
-    if (neededRate > EPSILON) needed.push({ itemId: item.itemId, object, ratePerSec: neededRate });
+    const neededRate = demand - primarySupply;
+    if (neededRate > EPSILON) needed.push({ itemId, object, ratePerSec: neededRate });
 
-    // Reused supply only becomes "extra" once it's covered every bit of
-    // demand it could - a wasted byproduct never offsets anything, so all
-    // of it counts.
-    const reusedSurplus = Math.max(0, item.reusedSupply - item.demand);
-    const extraRate = reusedSurplus + item.wastedSupply;
-    if (extraRate > EPSILON) extra.push({ itemId: item.itemId, object, ratePerSec: extraRate });
+    // Excess primary production (made more than anything currently wants)
+    // plus every bit of this item's byproduct output, unconditionally.
+    const primarySurplus = Math.max(0, primarySupply - demand);
+    const leftoverRate = primarySurplus + (leftoverTotals.get(itemId) ?? 0);
+    if (leftoverRate > EPSILON) leftover.push({ itemId, object, ratePerSec: leftoverRate });
   }
 
   needed.sort((a, b) => b.ratePerSec - a.ratePerSec);
-  extra.sort((a, b) => b.ratePerSec - a.ratePerSec);
+  leftover.sort((a, b) => b.ratePerSec - a.ratePerSec);
 
-  return { needed, extra };
+  return { needed, leftover };
 }

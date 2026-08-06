@@ -1,7 +1,7 @@
 import { formatLabel } from './format.js';
 import { BACK_ICON } from './icons.js';
 import { buildTree } from '../tree/buildTree.js';
-import { buildFactoryPlan, itemLineKey } from '../factory/buildFactoryPlan.js';
+import { buildFactoryPlan, lineKey } from '../factory/buildFactoryPlan.js';
 import { computeMachineCounts } from '../factory/computeMachineCounts.js';
 import { getBuildingOptions, getSelectedBuilding, getBuildingSpeed } from '../factory/buildingOptions.js';
 import { computeRawInputs } from '../factory/computeRawInputs.js';
@@ -59,23 +59,10 @@ export function renderFactoryView(container, treeState, registries, onBack) {
   // a session-wide fallback (see defaultBuildingPanel.js) that applies to
   // any line of that type without its own explicit per-card override.
   const defaultBuildingByType = new Map();
-  // Which of a line's byproducts count as reusable rather than waste -
-  // keyed by "<lineKey>::<itemId>" since one line can have more than one
-  // byproduct and each toggles independently. Absent = reused (the
-  // default) - see isByproductReused below. Feeds two different things: it
-  // lets buildFactoryPlan.js share one batch of crafts across nodes that
-  // separately demand different results of the same recipe instead of
-  // double-crafting them, and it drives which byproducts count toward
-  // computeRawInputs.js's raw-input netting for the bottom bar.
-  const byproductReuse = new Map();
   // Which card's proliferation popover is open, plus its in-progress
   // mode/level - same shape/rationale as treeView.js's openProlifMenu, just
   // keyed by line.key instead of a tree path.
   let openProlifCard = null;
-
-  function isByproductReused(key, itemId) {
-    return byproductReuse.get(`${key}::${itemId}`) ?? true;
-  }
 
   function buildCurrentTree() {
     return buildTree(treeState.subjectId, 1, registries, {
@@ -86,7 +73,7 @@ export function renderFactoryView(container, treeState, registries, onBack) {
   }
 
   function computeLines(tree) {
-    const rawLines = buildFactoryPlan(tree, treeState.proliferation, byproductReuse);
+    const rawLines = buildFactoryPlan(tree, treeState.proliferation);
     const withBuildingSpeed = rawLines.map((line) => {
       const options = getBuildingOptions(line.recipe, registries);
       const buildingId = getSelectedBuilding(options, buildingChoice, line.key, defaultBuildingByType.get(line.recipe.type));
@@ -105,7 +92,7 @@ export function renderFactoryView(container, treeState, registries, onBack) {
       placeholder.textContent = 'Nothing to compile yet - expand the tree first.';
       planContainer.appendChild(placeholder);
       renderSidebar(sidebar, [], registries, defaultBuildingByType, onSetDefaultBuilding);
-      renderBottomBar(bottomBar, { needed: [], extra: [] }, registries);
+      renderBottomBar(bottomBar, { needed: [], leftover: [] }, registries);
       return;
     }
 
@@ -147,14 +134,9 @@ export function renderFactoryView(container, treeState, registries, onBack) {
           const target = lines.find((l) => l.key === key);
           if (target) {
             for (const path of target.nodePaths) treeState.proliferation.set(path, { mode: null, level: null });
-            carryBuildingChoice(target, itemLineKey(target.recipe.id, null, null, target.itemId));
+            carryBuildingChoice(target, lineKey(target.recipe.id, null, null));
           }
           openProlifCard = null;
-          rerenderPlan();
-        },
-        isByproductReused,
-        onToggleByproductReuse(key, itemId) {
-          byproductReuse.set(`${key}::${itemId}`, !isByproductReused(key, itemId));
           rerenderPlan();
         },
       }));
@@ -163,7 +145,7 @@ export function renderFactoryView(container, treeState, registries, onBack) {
     planContainer.appendChild(grid);
     renderSidebar(sidebar, lines, registries, defaultBuildingByType, onSetDefaultBuilding);
 
-    const rawInputs = computeRawInputs(lines, registries, byproductReuse, treeState.subjectId);
+    const rawInputs = computeRawInputs(lines, registries, treeState.subjectId);
     renderBottomBar(bottomBar, rawInputs, registries);
   }
 
@@ -182,7 +164,7 @@ export function renderFactoryView(container, treeState, registries, onBack) {
     for (const path of target.nodePaths) {
       treeState.proliferation.set(path, { mode: openProlifCard.mode, level: openProlifCard.level });
     }
-    carryBuildingChoice(target, itemLineKey(target.recipe.id, openProlifCard.mode, openProlifCard.level, target.itemId));
+    carryBuildingChoice(target, lineKey(target.recipe.id, openProlifCard.mode, openProlifCard.level));
     openProlifCard = null;
   }
 
@@ -337,18 +319,16 @@ function renderTotalsSection(lines, registries) {
 
 // Footer strip across the bottom of Factory View - two rows: every raw
 // item the compiled plan still needs from outside it, and (once there's
-// any) how much gets produced but never used - a reused byproduct's
-// leftover once it's covered demand elsewhere, plus every bit of any
-// byproduct toggled to waste (see computeRawInputs.js). Both in items/sec
-// at the current target rate.
-function renderBottomBar(bottomBar, { needed, extra }, registries) {
+// any) everything it produces that nothing inside it demands (see
+// computeRawInputs.js). Both in items/sec at the current target rate.
+function renderBottomBar(bottomBar, { needed, leftover }, registries) {
   bottomBar.innerHTML = '';
   bottomBar.appendChild(renderBottomBarRow('Raw Inputs', needed, registries, 'needed'));
   // Only shown once there's something to report - most plans with no
-  // byproducts (or all-reused ones with nothing left over) have nothing
-  // here, and an empty "Extra Created" row would just be noise.
-  if (extra.length > 0) {
-    bottomBar.appendChild(renderBottomBarRow('Extra Created', extra, registries, 'extra'));
+  // byproducts have nothing here, and an empty "Leftover" row would just
+  // be noise.
+  if (leftover.length > 0) {
+    bottomBar.appendChild(renderBottomBarRow('Leftover', leftover, registries, 'leftover'));
   }
 }
 

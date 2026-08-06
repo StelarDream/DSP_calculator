@@ -1,8 +1,16 @@
 // Aggregates the "outer boundary" of a built tree: every leaf-like node's
-// quantity, summed by item and netted against any byproduct surplus of that
-// same item anywhere in the tree. This is what actually has to come from
-// outside the tree (mined, bought, stockpiled...), not the full chain of
-// intermediate products.
+// quantity, summed by item - what actually has to come from outside the
+// tree (mined, bought, stockpiled...), not the full chain of intermediate
+// products.
+//
+// Deliberately naive about byproducts: a byproduct never reduces demand
+// for that same item elsewhere in the tree, even if the numbers would
+// otherwise cancel out - it's always counted in full as `leftover`,
+// regardless of what `needed` says about that same item. Matches Factory
+// View's own computeRawInputs.js, which settled on the same "no cross-item
+// netting" behavior after a byproduct silently covering an unrelated
+// node's demand turned out to be more confusing than useful (see memory:
+// factory-view-plan).
 //
 // A node counts as leaf-like - contributes to demand, isn't recursed into
 // further - whenever there's nothing more to decompose it into *right now*:
@@ -13,25 +21,31 @@
 //     children are choice *options*, not real ingredients (and don't even
 //     have a real qty), so recursing into them would be wrong.
 export function summarizeTree(root) {
-  const totals = new Map(); // itemId -> { itemId, object, demand, supply, pending }
+  const demandTotals = new Map(); // itemId -> { itemId, object, qty, pending }
+  const leftoverTotals = new Map(); // itemId -> { itemId, object, qty }
 
-  function entry(itemId, object) {
-    if (!totals.has(itemId)) totals.set(itemId, { itemId, object, demand: 0, supply: 0, pending: false });
-    return totals.get(itemId);
+  function demandEntry(itemId, object) {
+    if (!demandTotals.has(itemId)) demandTotals.set(itemId, { itemId, object, qty: 0, pending: false });
+    return demandTotals.get(itemId);
+  }
+
+  function leftoverEntry(itemId, object) {
+    if (!leftoverTotals.has(itemId)) leftoverTotals.set(itemId, { itemId, object, qty: 0 });
+    return leftoverTotals.get(itemId);
   }
 
   function walk(node) {
     const leafLike = node.isLeaf || node.isCollapsed || node.needsChoice;
 
     if (leafLike) {
-      const e = entry(node.itemId, node.object);
-      e.demand += node.qty;
+      const e = demandEntry(node.itemId, node.object);
+      e.qty += node.qty;
       if (node.needsChoice) e.pending = true;
       return;
     }
 
     for (const byproduct of node.byproducts) {
-      entry(byproduct.itemId, byproduct.object).supply += byproduct.qty;
+      leftoverEntry(byproduct.itemId, byproduct.object).qty += byproduct.qty;
     }
     for (const child of node.children) {
       walk(child);
@@ -41,20 +55,10 @@ export function summarizeTree(root) {
   walk(root);
 
   // Floating-point scale-chain arithmetic rarely lands on an exact zero -
-  // treat anything this close as fully netted out rather than showing a
-  // stray 0.00 on either side.
+  // treat anything this close to nothing as not worth showing.
   const EPSILON = 1e-6;
-  const needed = [];
-  const leftover = [];
-
-  for (const item of totals.values()) {
-    const net = item.demand - item.supply;
-    if (net > EPSILON) {
-      needed.push({ ...item, qty: net });
-    } else if (net < -EPSILON) {
-      leftover.push({ ...item, qty: -net });
-    }
-  }
+  const needed = [...demandTotals.values()].filter((item) => item.qty > EPSILON);
+  const leftover = [...leftoverTotals.values()].filter((item) => item.qty > EPSILON);
 
   needed.sort((a, b) => b.qty - a.qty);
   leftover.sort((a, b) => b.qty - a.qty);

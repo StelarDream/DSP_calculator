@@ -784,14 +784,14 @@ body {
   color: var(--secondary);
 }
 
-/* "Extra Created" chips - primary tone, same convention as the tree
-   sidebar's own Leftover rows (.tree-resource-row--leftover), so
-   "surplus" reads the same color across both views. */
-.factory-bottom-bar-chip--extra {
+/* "Leftover" chips - primary tone, same convention as the tree sidebar's
+   own Leftover rows (.tree-resource-row--leftover), so "surplus" reads
+   the same color across both views. */
+.factory-bottom-bar-chip--leftover {
   border-color: var(--primary-border);
 }
 
-.factory-bottom-bar-chip--extra .factory-bottom-bar-rate {
+.factory-bottom-bar-chip--leftover .factory-bottom-bar-rate {
   color: var(--primary);
 }
 
@@ -1083,42 +1083,6 @@ body {
 
 .factory-rate-row--output .factory-rate-value {
   color: var(--primary);
-}
-
-/* "Reused | Wasted" - a byproduct output row's toggle (see
-   renderByproductToggle in factoryCard.js). Sits between the item name and
-   its rate, only ever on non-primary Output rows. Reused reads as a quiet
-   confirmation (muted, matches the rest of the row); Wasted is flagged in
-   the danger tone since it's the "this isn't helping anything else" state. */
-.factory-byproduct-toggle {
-  flex: 0 0 auto;
-  padding: 2px 8px;
-  background: var(--bg-panel-alt);
-  border: 1px solid var(--border-soft);
-  border-radius: 999px;
-  font-family: var(--font-accent);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  cursor: pointer;
-}
-
-.factory-byproduct-toggle:hover {
-  border-color: var(--primary-border);
-  color: var(--primary);
-}
-
-.factory-byproduct-toggle--waste {
-  background: var(--danger-dim);
-  border-color: var(--danger-border);
-  color: var(--danger);
-}
-
-.factory-byproduct-toggle--waste:hover {
-  border-color: var(--danger);
-  color: var(--danger);
 }
 
 .tree-view-body {
