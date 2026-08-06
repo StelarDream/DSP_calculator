@@ -1,9 +1,10 @@
 import { formatLabel } from '../ui/format.js';
-import { CHEVRON_ICON, EDIT_ICON, PROLIF_NONE_ICON } from '../ui/icons.js';
+import { CHEVRON_ICON, EDIT_ICON, PROLIF_NONE_ICON, REUSE_ICON } from '../ui/icons.js';
 import { NODE_WIDTH, NODE_HEIGHT } from './constants.js';
 import { formatQty } from './formatQty.js';
 import { PROLIFERATOR_LEVELS } from './proliferatorLevels.js';
 import { PROLIF_MODES, renderProlifModeRow, renderProlifLevelRow, modeLabel, levelLabel } from './proliferationPicker.js';
+import { renderReuseMenu } from './reusePicker.js';
 
 // A single fixed-size card in the tree canvas. Three flavors:
 //  - choice: "expand using this recipe" - see renderChoiceNode.
@@ -70,6 +71,23 @@ export function renderTreeNode(node, handlers = {}) {
     qty.appendChild(yieldNote);
   }
 
+  // Set only once a reuse override actually applies - see buildTree.js's
+  // suppliedFromLeftover. Shows how much of this node's own qty is being
+  // covered from leftover instead of produced, e.g. "×10 (5 from leftover)"
+  // - or, once reuse covers all of it, "×10 (all from leftover)" since
+  // there's no remaining production amount worth restating.
+  if (node.suppliedFromLeftover > 0) {
+    const reuseNote = document.createElement('span');
+    reuseNote.className = 'tree-node-qty-reuse';
+    reuseNote.textContent = node.isFullySupplied
+      ? ' (all from leftover)'
+      : ` (${formatQty(node.suppliedFromLeftover)} from leftover)`;
+    qty.title = node.isFullySupplied
+      ? `All ×${formatQty(node.qty)} supplied from leftover elsewhere in the tree - nothing produced here`
+      : `×${formatQty(node.suppliedFromLeftover)} of this supplied from leftover elsewhere in the tree`;
+    qty.appendChild(reuseNote);
+  }
+
   info.append(name, qty);
   el.append(icon, info);
 
@@ -91,11 +109,21 @@ export function renderTreeNode(node, handlers = {}) {
 // the "change recipe" and proliferation controls that used to live on the
 // item card itself.
 export function renderRecipeHub(node, handlers = {}) {
-  const { onEdit, proliferation, openProlifMenu, onToggleProlifMenu } = handlers;
+  const { onEdit, proliferation, openProlifMenu, onToggleProlifMenu, getReuseAvailability, openReuseMenu, onToggleReuseMenu, onApplyReuse, onClearReuse } = handlers;
 
   // Only worth offering when there's actually more than one recipe to
   // switch between - same rule the old item-card badge used.
   const editable = node.recipeOptions.length > 1 && typeof onEdit === 'function';
+
+  // How much of node.itemId is sitting unclaimed in the leftover pool right
+  // now (see reusePool.js) - already excludes this node's own current
+  // claim, so it's the right number for both "should the button show at
+  // all" and the popover's own ceiling. Still offered (at 0 available) when
+  // this node already has an active reuse, so it stays reachable to clear.
+  const currentReuse = node.suppliedFromLeftover ?? 0;
+  const available = typeof getReuseAvailability === 'function' ? getReuseAvailability(node.itemId, node.path) : 0;
+  const reusable = (available > 0 || currentReuse > 0) && typeof onToggleReuseMenu === 'function';
+  const reuseMenuOpen = reusable && openReuseMenu?.path === node.path;
 
   // Which proliferator effects *this* recipe can support - "only display
   // the available modes" starts with not showing the button at all when
@@ -112,9 +140,9 @@ export function renderRecipeHub(node, handlers = {}) {
   const hub = document.createElement('div');
   hub.className = 'recipe-hub';
   // Own stacking context (see the transform in treeCanvas.js's
-  // positionNode) - bumped above neighboring hubs/cards while its popover
-  // is open, same reasoning as the old .tree-node--menu-open.
-  if (menuOpen) hub.classList.add('recipe-hub--menu-open');
+  // positionNode) - bumped above neighboring hubs/cards while either
+  // popover is open, same reasoning as the old .tree-node--menu-open.
+  if (menuOpen || reuseMenuOpen) hub.classList.add('recipe-hub--menu-open');
 
   const icon = document.createElement('img');
   icon.className = 'recipe-hub-icon';
@@ -191,8 +219,41 @@ export function renderRecipeHub(node, handlers = {}) {
     }
   }
 
-  // Appended last - after the proliferation button, if there is one - so
-  // it renders on the right of it, matching .recipe-hub's plain row order.
+  // Same in-flow-to-the-left placement as the proliferation button above,
+  // and independent of it - a recipe can offer both, either, or neither.
+  if (reusable) {
+    const reuse = document.createElement('button');
+    reuse.type = 'button';
+    reuse.className = 'tree-node-reuse';
+    if (currentReuse > 0) reuse.classList.add('tree-node-reuse--active');
+    reuse.title = currentReuse > 0
+      ? `Reusing ×${formatQty(currentReuse)} from leftover`
+      : 'Supply from leftover';
+    reuse.setAttribute('aria-label', reuse.title);
+    reuse.innerHTML = REUSE_ICON;
+    reuse.addEventListener('click', (event) => {
+      event.stopPropagation();
+      onToggleReuseMenu(node.path);
+    });
+    hub.appendChild(reuse);
+
+    const reuseDivider = document.createElement('div');
+    reuseDivider.className = 'recipe-hub-divider';
+    hub.appendChild(reuseDivider);
+
+    if (reuseMenuOpen) {
+      hub.appendChild(renderReuseMenu(
+        { path: node.path, itemId: node.itemId, qty: node.qty, available, current: currentReuse },
+        {
+          onApply: (amount) => onApplyReuse(node.path, amount),
+          onClear: () => onClearReuse(node.path),
+        },
+      ));
+    }
+  }
+
+  // Appended last - after the proliferation/reuse buttons, if present - so
+  // it renders on the right of them, matching .recipe-hub's plain row order.
   hub.appendChild(icon);
 
   return hub;

@@ -1663,6 +1663,120 @@ body {
   color: var(--danger);
 }
 
+/* "Supply from leftover" - the reuse control on a resolved node's recipe
+   hub (see treeNode.js's renderRecipeHub, reusePicker.js). Same in-flow
+   placement/sizing convention as .tree-node-prolif beside it - a plain
+   icon button, tinted only once a reuse is actually active. */
+.tree-node-reuse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.tree-node-reuse svg {
+  width: 15px;
+  height: 15px;
+}
+
+.tree-node-reuse:hover {
+  color: var(--primary);
+  background: var(--bg-panel);
+}
+
+.tree-node-reuse--active {
+  color: var(--primary);
+  background: var(--primary-dim);
+}
+
+/* The amount-note appended to a reused node's own qty (see treeNode.js) -
+   same dim/smaller treatment as .tree-node-qty-yield, just tinted primary
+   instead of neutral so it's legible at a glance as "this came from reuse,"
+   not just another parenthetical. */
+.tree-node-qty-reuse {
+  color: var(--primary);
+}
+
+/* Reuse popover - same shape/positioning convention as
+   .tree-node-prolif-menu (nested in the hub, so it inherits the tree's
+   pan/zoom transform), just narrower since its content is a single input
+   row instead of two button rows. */
+.tree-node-reuse-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  margin-bottom: 6px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel);
+}
+
+.tree-node-reuse-availability {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.tree-node-reuse-row {
+  display: flex;
+  gap: 6px;
+}
+
+.tree-node-reuse-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.tree-node-reuse-input:disabled {
+  opacity: 0.5;
+}
+
+.tree-node-reuse-btn {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.tree-node-reuse-btn:hover:not(:disabled) {
+  border-color: var(--primary-border);
+  color: var(--primary);
+}
+
+.tree-node-reuse-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.tree-node-reuse-btn--clear:hover {
+  border-color: var(--danger-border);
+  color: var(--danger);
+}
+
 .detail-header {
   display: flex;
   align-items: center;

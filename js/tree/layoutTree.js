@@ -77,7 +77,11 @@ export function layoutTree(root) {
     // needsChoice nodes all have node.recipe === null - see buildTree.js -
     // so that alone is the right gate, no need to re-check those
     // separately) and something on the other side of it to connect to.
-    const hasHub = Boolean(node.recipe) && node.children.length > 0;
+    // isFullySupplied is the one exception: node.recipe is set but there
+    // are no children (reuse covers 100% of demand, nothing to craft) -
+    // the hub still needs to exist there so the reuse amount stays
+    // reachable to adjust or clear (see treeNode.js's reuse control).
+    const hasHub = Boolean(node.recipe) && (node.children.length > 0 || node.isFullySupplied);
     const spots = byproductSpots.get(node.path);
 
     // Horizontally it's the true midpoint of the gap between this node's

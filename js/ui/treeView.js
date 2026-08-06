@@ -8,6 +8,7 @@ import { serializeTreeState } from '../tree/serializeTree.js';
 import { summarizeTree } from '../tree/summarizeTree.js';
 import { summarizeProliferatorUsage } from '../tree/summarizeProliferators.js';
 import { createResourceSidebar, renderResourcesInto } from '../tree/resourceSidebar.js';
+import { reuseAvailability } from '../tree/reusePool.js';
 
 // Ensures at most one "close the proliferation menu on an outside click"
 // listener is ever attached to document - it doesn't get garbage-collected
@@ -85,6 +86,9 @@ function renderBody(subjectId, recipe, registries, initialState) {
   const choices = new Map(initialState?.choices);
   const overrides = new Map(initialState?.overrides);
   const proliferation = new Map(initialState?.proliferation);
+  // path -> amount manually reused from leftover instead of produced - see
+  // buildTree.js's suppliedFromLeftover and the reuse hub below.
+  const reuseOverrides = new Map(initialState?.reuseOverrides);
   choices.set(subjectId, recipe.id);
 
   // Paths whose node has resolved to a recipe at least once - lets
@@ -100,6 +104,11 @@ function renderBody(subjectId, recipe, registries, initialState) {
   // once both axes are set (see onSetProlifMode/onSetProlifLevel).
   let openProlifMenu = null;
 
+  // Which node's reuse picker is open - null when none is. Independent of
+  // openProlifMenu (either, both, or neither can be open at once) since
+  // they're separate controls on the same hub.
+  let openReuseMenu = null;
+
   // The tree-wide default from the sidebar's "Default Proliferation" panel
   // - stamped onto newly-resolved nodes by applyDefaultProliferation below.
   // Session-local like everything else here; not seeded from a shared link.
@@ -114,13 +123,13 @@ function renderBody(subjectId, recipe, registries, initialState) {
   // pan/zoom transform survives.
   let size;
   function rerender() {
-    let tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation });
+    let tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation, reuseOverrides });
     if (applyDefaultProliferation(tree)) {
       // Defaults just got stamped onto newly-resolved nodes - rebuild so
       // any Extra Yield among them is reflected in *this* render's
       // quantities too, not just their badges (buildTree.js reads
       // `proliferation` while computing qty - see its yield handling).
-      tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation });
+      tree = buildTree(subjectId, 1, registries, { choices, overrides, proliferation, reuseOverrides });
     }
     size = renderTreeInto(world, tree, {
       onToggle(path, wasCollapsed) {
@@ -165,6 +174,31 @@ function renderBody(subjectId, recipe, registries, initialState) {
         // below doesn't turn right around and reapply the default to it.
         proliferation.set(path, { mode: null, level: null });
         openProlifMenu = null;
+        rerender();
+      },
+      openReuseMenu,
+      // Read against `tree` (this render's freshly built tree, closed over
+      // here) rather than recomputed independently - see reusePool.js for
+      // why excluding `path` itself matters.
+      getReuseAvailability(itemId, path) {
+        return reuseAvailability(tree, itemId, path);
+      },
+      onToggleReuseMenu(path) {
+        openReuseMenu = openReuseMenu?.path === path ? null : { path };
+        rerender();
+      },
+      onApplyReuse(path, amount) {
+        if (amount > 0) {
+          reuseOverrides.set(path, amount);
+        } else {
+          reuseOverrides.delete(path);
+        }
+        openReuseMenu = null;
+        rerender();
+      },
+      onClearReuse(path) {
+        reuseOverrides.delete(path);
+        openReuseMenu = null;
         rerender();
       },
     });
@@ -223,15 +257,21 @@ function renderBody(subjectId, recipe, registries, initialState) {
     }
   }
 
-  // Closes the proliferation menu on a click anywhere outside it - the
-  // badge and the menu's own contents already stop their clicks from
-  // bubbling this far (see treeNode.js), so this only ever sees genuine
-  // "elsewhere" clicks.
+  // Closes the proliferation/reuse popovers on a click anywhere outside
+  // them - the badges and the menus' own contents already stop their
+  // clicks from bubbling this far (see treeNode.js), so this only ever
+  // sees genuine "elsewhere" clicks.
   function onDocumentClick(event) {
-    if (!openProlifMenu) return;
-    if (event.target.closest('.tree-node-prolif-menu, .tree-node-prolif')) return;
-    openProlifMenu = null;
-    rerender();
+    let changed = false;
+    if (openProlifMenu && !event.target.closest('.tree-node-prolif-menu, .tree-node-prolif')) {
+      openProlifMenu = null;
+      changed = true;
+    }
+    if (openReuseMenu && !event.target.closest('.tree-node-reuse-menu, .tree-node-reuse')) {
+      openReuseMenu = null;
+      changed = true;
+    }
+    if (changed) rerender();
   }
   document.addEventListener('click', onDocumentClick);
   detachOutsideClick = () => document.removeEventListener('click', onDocumentClick);
@@ -239,26 +279,27 @@ function renderBody(subjectId, recipe, registries, initialState) {
   rerender();
 
   const fit = () => panZoom.fitToView(size.width, size.height);
-  const shareUrl = () => buildShareUrl(subjectId, recipe.id, choices, overrides, proliferation);
+  const shareUrl = () => buildShareUrl(subjectId, recipe.id, choices, overrides, proliferation, reuseOverrides);
   canvas.appendChild(renderToolbar(panZoom, fit, shareUrl));
 
-  // Snapshot of the live choice/override/proliferation maps, for handing
-  // off to Factory View (or restoring back into a fresh tree view) without
-  // sharing mutable references into this closure.
+  // Snapshot of the live choice/override/proliferation/reuse maps, for
+  // handing off to Factory View (or restoring back into a fresh tree view)
+  // without sharing mutable references into this closure.
   const snapshot = () => ({
     subjectId,
     recipe,
     choices: new Map(choices),
     overrides: new Map(overrides),
     proliferation: new Map(proliferation),
+    reuseOverrides: new Map(reuseOverrides),
   });
 
   body.append(canvas, resources);
   return { body, fit, snapshot };
 }
 
-function buildShareUrl(subjectId, recipeId, choices, overrides, proliferation) {
-  const code = serializeTreeState({ subjectId, recipeId, choices, overrides, proliferation });
+function buildShareUrl(subjectId, recipeId, choices, overrides, proliferation, reuseOverrides) {
+  const code = serializeTreeState({ subjectId, recipeId, choices, overrides, proliferation, reuseOverrides });
   const url = new URL(window.location.href);
   // Only ever touches `tree` - any other params (present now or added by
   // future features) are left exactly as they are.

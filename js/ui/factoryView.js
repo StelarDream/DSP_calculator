@@ -69,6 +69,7 @@ export function renderFactoryView(container, treeState, registries, onBack) {
       choices: treeState.choices,
       overrides: treeState.overrides,
       proliferation: treeState.proliferation,
+      reuseOverrides: treeState.reuseOverrides,
     });
   }
 

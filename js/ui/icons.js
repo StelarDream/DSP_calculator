@@ -48,3 +48,7 @@ export const PROLIF_NONE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="cu
 // Counter-clockwise reset arrow - "back to default", e.g. clearing a
 // Factory View card's explicit building pick (see factoryCard.js).
 export const RESET_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>`;
+
+// Recycle glyph - the tree node hub's "supply from leftover" control (see
+// treeNode.js's reuse button, js/tree/reusePicker.js).
+export const REUSE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`;
