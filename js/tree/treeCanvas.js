@@ -24,7 +24,7 @@ export function createTreeWorld() {
 export function renderTreeInto(world, root, handlers) {
   world.innerHTML = '';
 
-  const { nodes, edges, byproductEdges, width, height } = layoutTree(root, handlers.openChoiceMenu);
+  const { nodes, edges, byproductEdges, width, height } = layoutTree(root);
   const worldWidth = width + PADDING * 2;
   const worldHeight = height + PADDING * 2;
   world.style.width = `${worldWidth}px`;

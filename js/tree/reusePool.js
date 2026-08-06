@@ -33,11 +33,19 @@ export function reuseAvailability(root, itemId, excludePath) {
 }
 
 // Appends a "Just reuse" pseudo-choice alongside a needsChoice node's real
-// recipe options, whenever there's actually leftover to draw on - a
-// shortcut for maxing out reuse (see treeNode.js's onChooseReuse handler)
-// *before* ever picking a recipe, since buildTree.js now resolves reuse
-// before recipe choice (see its buildNode) - if reuse alone would cover
-// the whole demand, no recipe choice is needed at all.
+// recipe options, whenever there's actually leftover to draw on *and*
+// reuse hasn't already been engaged for this node - a shortcut for maxing
+// out reuse (see treeNode.js's renderReuseChoiceNode) *before* ever
+// picking a recipe, since buildTree.js now resolves reuse before recipe
+// choice (see its buildNode) - if reuse alone would cover the whole
+// demand, no recipe choice is needed at all.
+//
+// Once suppliedFromLeftover is already set (reuse engaged, even
+// partially), this card stops appearing - layoutTree.js instead gives the
+// node its own reuse hub for adjusting/clearing that amount (see
+// _hasChoiceHub/_hasReuseHub), so offering the same action twice (once as
+// an inline card, once as the hub) would just be a duplicate control for
+// the same thing.
 //
 // Deliberately a post-build mutation pass over the *finished* tree, not
 // something buildTree.js does inline - reuseAvailability needs the whole
@@ -49,7 +57,7 @@ export function reuseAvailability(root, itemId, excludePath) {
 // than living inside buildTree.js.
 export function injectReuseChoices(root) {
   (function walk(node) {
-    if (node.needsChoice) {
+    if (node.needsChoice && !node.suppliedFromLeftover) {
       const available = reuseAvailability(root, node.itemId, node.path);
       if (available > 0) {
         node.children.push({

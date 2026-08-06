@@ -295,45 +295,28 @@ export function renderReuseHub(node, handlers = {}) {
   return hub;
 }
 
-// The choice hub - stands in for a needsChoice node's real choice cards
-// once it's already had reuse applied and been adjusted since (see
-// layoutTree.js's _choiceCollapsed): showing the full card spread again
-// on every little tweak was the actual complaint this replaced. Clicking
-// it opens a popover with the exact same cards (real recipe options plus
-// "Just reuse" if reusePool.js's injectReuseChoices found any leftover)
-// that would otherwise be laid out as tree siblings - same content,
-// different container. A first-ever view of a choice (no reuse touched
-// yet) never reaches this at all; layoutTree.js keeps the cards inline
-// then, same as always.
-export function renderChoiceHub(node, handlers = {}) {
-  const { openChoiceMenu, onToggleChoiceMenu, onChoose, onApplyReuse } = handlers;
-  const menuOpen = openChoiceMenu?.path === node.path;
-
+// The choice hub - stands in for a resolved recipe's icon whenever a
+// needsChoice node has already had reuse engaged (see layoutTree.js's
+// _hasChoiceHub): its real recipe options branch out from this hub as
+// actual tree children (see layoutTree.js's primaryHubPos routing),
+// exactly like a resolved node's ingredients would, just with a "still
+// undecided" pending-icon look instead of the recipe's own icon. Purely a
+// visual marker, not a toggle - the options are always right there as
+// siblings, nothing to expand/collapse. A first-ever view of a choice (no
+// reuse touched yet) never gets one at all; layoutTree.js routes those
+// options directly off the node itself instead, same as always - see
+// reusePool.js's injectReuseChoices for why "Just reuse" only shows up
+// then too, not here (this hub's sibling reuse hub already covers that
+// once reuse is engaged).
+export function renderChoiceHub() {
   const hub = document.createElement('div');
   hub.className = 'choice-hub';
-  if (menuOpen) hub.classList.add('choice-hub--menu-open');
 
-  const toggle = document.createElement('button');
-  toggle.type = 'button';
-  toggle.className = 'tree-node-choice-toggle';
-  toggle.title = 'Pick a recipe';
-  toggle.setAttribute('aria-label', 'Pick a recipe');
-  toggle.innerHTML = PENDING_ICON;
-  toggle.addEventListener('click', (event) => {
-    event.stopPropagation();
-    onToggleChoiceMenu(node.path);
-  });
-  hub.appendChild(toggle);
-
-  if (menuOpen) {
-    const menu = document.createElement('div');
-    menu.className = 'tree-node-choice-menu';
-    menu.addEventListener('click', (event) => event.stopPropagation());
-    for (const child of node.children) {
-      menu.appendChild(child.isReuseChoice ? renderReuseChoiceNode(child, onApplyReuse) : renderChoiceNode(child, onChoose));
-    }
-    hub.appendChild(menu);
-  }
+  const icon = document.createElement('span');
+  icon.className = 'tree-node-choice-icon';
+  icon.title = 'Recipe not chosen yet';
+  icon.innerHTML = PENDING_ICON;
+  hub.appendChild(icon);
 
   return hub;
 }

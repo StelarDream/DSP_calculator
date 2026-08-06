@@ -1831,67 +1831,35 @@ body {
   color: var(--danger);
 }
 
-/* The choice hub - stands in for a needsChoice node's real choice cards
-   once they've been collapsed behind it (see layoutTree.js's
-   _choiceCollapsed, treeNode.js's renderChoiceHub). Same box shape as
-   .recipe-hub/.reuse-hub for visual consistency across all three hub
-   kinds, dashed like .tree-node--choice to read as "still undecided"
-   rather than a settled recipe. */
+/* The choice hub - stands in for a resolved recipe's icon once a
+   needsChoice node has reuse engaged (see layoutTree.js's _hasChoiceHub,
+   treeNode.js's renderChoiceHub) - its real options branch out from here
+   as ordinary tree children, same as a resolved node's ingredients would.
+   Same box shape as .recipe-hub/.reuse-hub for visual consistency across
+   all three hub kinds, dashed like .tree-node--choice to read as "still
+   undecided" rather than a settled recipe. Purely decorative - no
+   button/hover state, since there's nothing to click here anymore. */
 .choice-hub {
   position: absolute;
   display: flex;
   align-items: center;
-  padding: 4px;
+  padding: 6px;
   background: var(--bg-elevated);
   border: 1px dashed var(--secondary-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-panel);
 }
 
-.choice-hub--menu-open {
-  z-index: 10;
-}
-
-.tree-node-choice-toggle {
+.tree-node-choice-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 6px;
-  background: none;
-  border: none;
-  border-radius: 4px;
   color: var(--secondary);
-  cursor: pointer;
 }
 
-.tree-node-choice-toggle svg {
-  width: 15px;
-  height: 15px;
-}
-
-.tree-node-choice-toggle:hover {
-  background: var(--secondary-dim);
-}
-
-/* The reopened choice popover - same cards renderChoiceNode/
-   renderReuseChoiceNode already draw as tree siblings on a first-ever
-   view, just stacked in a floating panel instead (same positioning
-   convention as .tree-node-reuse-menu/.tree-node-prolif-menu). */
-.tree-node-choice-menu {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-bottom: 6px;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 8px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-panel);
+.tree-node-choice-icon svg {
+  width: 22px;
+  height: 22px;
 }
 
 .detail-header {

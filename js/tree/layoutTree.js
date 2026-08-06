@@ -18,14 +18,7 @@ import { reuseAvailability } from './reusePool.js';
 // height), not a single counter shared across the whole tree - so one
 // branch's depth/byproducts can never force a phantom gap into an unrelated
 // sibling branch two columns over.
-//
-// openChoiceMenu: { path } | null - which needsChoice node (if any) has its
-// collapsed choice-hub popover open right now (see treeNode.js's
-// renderChoiceHub) - the one thing about handler state layout itself needs
-// to know, since it changes whether that node's real choice cards get laid
-// out as siblings at all (collapsed: no, popover-open or first-ever-view:
-// yes) - see _choiceCollapsed below.
-export function layoutTree(root, openChoiceMenu) {
+export function layoutTree(root) {
   const positions = new Map(); // path -> { x, y }
   const byproductSpots = new Map(); // path -> [{ x, y }, ...], same order as node.byproducts
   let maxDepth = 0;
@@ -34,46 +27,32 @@ export function layoutTree(root, openChoiceMenu) {
   function measure(node) {
     maxDepth = Math.max(maxDepth, node.depth);
 
-    // A needsChoice node collapses its real choice cards into a single
-    // compact "pick a recipe" hub (see treeNode.js's renderChoiceHub) once
-    // it's already had *some* reuse applied - otherwise every partial
-    // adjustment (nudge the reuse amount down a bit) would dump the full
-    // card spread back out, which is what a user actually complained
-    // about. First-ever view of a choice (suppliedFromLeftover never set)
-    // always shows the cards directly, same as before this existed.
-    // Reopened via the hub's own click (onToggleChoiceMenu), tracked here
-    // rather than a per-node flag so it survives this node's own rebuilds.
-    node._choiceCollapsed = node.needsChoice && node.suppliedFromLeftover > 0 && openChoiceMenu?.path !== node.path;
-
-    // What actually gets laid out as this node's children row(s) - the
-    // real ones, unless collapsed behind a choice-hub (nothing to lay out
-    // then; the popover renders them separately, off of the hub itself,
-    // not as tree siblings).
-    const children = node._choiceCollapsed ? [] : node.children;
-    node._layoutChildren = children;
-
     // Recipe hub, choice hub, and reuse hub are three independent slots -
     // a node can have any subset of them (see collect() below):
     //  - recipe hub: resolved to a recipe *and* has ingredients to connect
     //    it to. A choice pseudo-node (buildTree.js's buildChoiceNode)
     //    carries a `recipe` too but never gets one - no children of its
-    //    own to connect it to, so this checks real node.children, not the
-    //    possibly-collapsed `children` above.
-    //  - choice hub: the collapsed placeholder described above.
+    //    own to connect it to.
+    //  - choice hub: a needsChoice node that's already had reuse engaged
+    //    (suppliedFromLeftover set) - once that's true, its real recipe
+    //    options branch out from this hub exactly like a resolved node's
+    //    ingredients would (see collect()'s children loop), just with a
+    //    "still undecided" look instead of the recipe's own icon. A
+    //    needsChoice node with reuse never touched has no hub at all -
+    //    its options are laid out directly as this node's own children,
+    //    same as before any of this existed (see reusePool.js's
+    //    injectReuseChoices for the "Just reuse" card offered only then).
     //  - reuse hub: node's demand is (at least partly) covered by reuse -
     //    producing the remainder (recipe hub present), fully covered
     //    (isFullySupplied, no recipe resolved at all), or still choosing a
-    //    recipe for the remainder but collapsed behind a choice hub. Not
-    //    offered on an *un*-collapsed needsChoice node - the inline "Just
-    //    reuse" card (reusePool.js's injectReuseChoices) is that same
-    //    control already, no need to duplicate it as a floating hub too.
+    //    recipe for the remainder (choice hub present).
     node._hasRecipeHub = Boolean(node.recipe) && node.children.length > 0;
-    node._hasChoiceHub = node._choiceCollapsed;
-    const reuseEligible = node._hasRecipeHub || node.isFullySupplied || node._choiceCollapsed;
+    node._hasChoiceHub = node.needsChoice && node.suppliedFromLeftover > 0;
+    const reuseEligible = node._hasRecipeHub || node.isFullySupplied || node._hasChoiceHub;
     node._hasReuseHub = reuseEligible
       && (node.suppliedFromLeftover > 0 || reuseAvailability(root, node.itemId, node.path) > 0);
 
-    // No extra row reserved for the reuse/choice hub split, on purpose -
+    // No extra row reserved for the reuse-hub half of a split, on purpose -
     // it doesn't need one. collect()'s half-row split lands each hub
     // exactly half a row off of centerY, and centerY itself is always
     // derived from existing ROW_HEIGHT-spaced positions - so the split
@@ -88,7 +67,7 @@ export function layoutTree(root, openChoiceMenu) {
     // half a row lower than where the node and its ingredients actually
     // sat. Confirmed by a user screenshot showing exactly that drift.
     const ownRows = 1 + node.byproducts.length;
-    const childrenRows = children.reduce((sum, child) => sum + measure(child), 0);
+    const childrenRows = node.children.reduce((sum, child) => sum + measure(child), 0);
     node._blockHeight = Math.max(ownRows, childrenRows);
     return node._blockHeight;
   }
@@ -97,12 +76,11 @@ export function layoutTree(root, openChoiceMenu) {
   // non-byproduct parent needs to center itself on.
   function assign(node, rowStart) {
     const x = node.depth * COLUMN_WIDTH;
-    const children = node._layoutChildren;
 
-    const childrenRows = children.reduce((sum, child) => sum + child._blockHeight, 0);
+    const childrenRows = node.children.reduce((sum, child) => sum + child._blockHeight, 0);
     const offset = (node._blockHeight - childrenRows) / 2;
     let cursor = rowStart + offset;
-    const childOwnRows = children.map((child) => {
+    const childOwnRows = node.children.map((child) => {
       const row = assign(child, cursor);
       cursor += child._blockHeight;
       return row;
@@ -135,14 +113,14 @@ export function layoutTree(root, openChoiceMenu) {
     const pos = positions.get(node.path);
     nodes.push({ node, ...pos });
 
-    const children = node._layoutChildren;
     const hasRecipeHub = node._hasRecipeHub;
     const hasChoiceHub = node._hasChoiceHub;
     const hasReuseHub = node._hasReuseHub;
     const spots = byproductSpots.get(node.path);
 
-    // The "primary" slot - recipe hub or choice-hub placeholder, whichever
-    // applies (mutually exclusive: a node is either resolved or isn't).
+    // The "primary" slot - recipe hub or choice hub, whichever applies
+    // (mutually exclusive: a node is either resolved or isn't) - both are
+    // junctions real children route through, unlike the reuse hub.
     const hasPrimaryHub = hasRecipeHub || hasChoiceHub;
 
     // Horizontally it's the true midpoint of the gap between this node's
@@ -174,7 +152,7 @@ export function layoutTree(root, openChoiceMenu) {
     let choiceHubPos = null;
     let reuseHubPos = null;
     if (hasPrimaryHub || hasReuseHub) {
-      const ys = [pos.y, ...children.map((child) => positions.get(child.path).y)];
+      const ys = [pos.y, ...node.children.map((child) => positions.get(child.path).y)];
       if (spots) ys.push(...spots.map((spot) => spot.y));
       const half = ROW_HEIGHT / 2;
       const rawCenterY = (Math.min(...ys) + Math.max(...ys)) / 2;
@@ -191,11 +169,8 @@ export function layoutTree(root, openChoiceMenu) {
         const primaryPos = { x, y: centerY + half };
         if (hasRecipeHub) hubPos = primaryPos; else choiceHubPos = primaryPos;
       } else if (hasReuseHub) {
-        // isFullySupplied (or a collapsed choice with no reuse hub, which
-        // can't actually happen - see _hasReuseHub's gate - but this
-        // branch only needs the reuse case to be correct either way): no
-        // primary hub to share the point with, so the reuse hub takes it
-        // outright.
+        // isFullySupplied: no primary hub to share the point with, so the
+        // reuse hub takes it outright.
         reuseHubPos = { x, y: centerY };
       } else if (hasRecipeHub) {
         hubPos = { x, y: centerY };
@@ -206,7 +181,7 @@ export function layoutTree(root, openChoiceMenu) {
       if (reuseHubPos) {
         nodes.push({ node, ...reuseHubPos, isReuseHub: true });
         // The card-to-reuse-hub connector - same idea as the card-to-
-        // recipe-hub edge below, just so the reuse hub doesn't look like
+        // primary-hub edge below, just so the reuse hub doesn't look like
         // it's floating unattached to anything.
         edges.push({ from: pos, to: reuseHubPos });
         maxRow = Math.max(maxRow, reuseHubPos.y / ROW_HEIGHT);
@@ -229,7 +204,10 @@ export function layoutTree(root, openChoiceMenu) {
       // than arbitrarily picking one ingredient, the old behavior) is both
       // more accurate and unambiguous regardless of how many ingredients
       // there are. Falls back to the node's own position on the (unlikely)
-      // chance there's no recipe hub to anchor to.
+      // chance there's no recipe hub to anchor to. Byproducts only ever
+      // exist on a resolved node anyway (buildTree.js computes them after
+      // choosing a recipe), so hasRecipeHub is the right - and only
+      // reachable - case here, never hasChoiceHub.
       const anchor = hasRecipeHub ? hubPos : pos;
       node.byproducts.forEach((byproduct, i) => {
         nodes.push({ node: byproduct, ...spots[i], isByproduct: true });
@@ -237,13 +215,13 @@ export function layoutTree(root, openChoiceMenu) {
       });
     }
 
-    for (const child of children) {
-      // Routed through the recipe hub when there is one - fromIsHub tells
+    const primaryHubPos = hubPos ?? choiceHubPos;
+    for (const child of node.children) {
+      // Routed through the primary hub when there is one - fromIsHub tells
       // treeCanvas.js's edgePath not to offset by a full card width, since
       // a hub's position is already a center point, not a card's left edge.
-      // Never the choice/reuse hub - neither is a junction ingredients
-      // flow through.
-      edges.push({ from: hasRecipeHub ? hubPos : pos, to: positions.get(child.path), fromIsHub: hasRecipeHub });
+      // Never the reuse hub - it's not a junction anything flows through.
+      edges.push({ from: hasPrimaryHub ? primaryHubPos : pos, to: positions.get(child.path), fromIsHub: hasPrimaryHub });
       collect(child);
     }
   })(root);
